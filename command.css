@@ -102,8 +102,8 @@ body.command-body {
   text-align: left;
   cursor: pointer;
   display: grid;
-  grid-template-columns: 24px 1fr;
-  gap: 2px 12px;
+  grid-template-columns: 1fr;
+  gap: 2px;
   align-items: baseline;
   font: inherit;
 }
@@ -118,9 +118,7 @@ body.command-body {
 }
 
 .side-item small {
-  color: var(--gold-soft);
-  grid-row: 1 / 3;
-  font: 400 10px Georgia, serif;
+  display: none;
 }
 
 .side-item strong {
@@ -135,7 +133,6 @@ body.command-body {
 
 .side-item span {
   color: var(--faint);
-  grid-column: 2;
   font-size: 10px;
 }
 
