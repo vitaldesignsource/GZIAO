@@ -2314,6 +2314,156 @@ body.command-body {
   white-space: nowrap;
 }
 
+/* ---------------- study module ---------------- */
+
+.study-lesson {
+  border-bottom: 1px solid var(--panel-line);
+  padding: 20px 0;
+}
+
+.study-lesson:first-child {
+  padding-top: 4px;
+}
+
+.study-lesson:last-child {
+  border-bottom: 0;
+  padding-bottom: 4px;
+}
+
+.study-lesson h3 {
+  margin: 0 0 8px;
+  font: 400 18px Georgia, serif;
+  color: var(--amber);
+}
+
+.study-lesson p {
+  color: var(--muted);
+  margin: 0;
+  font: 400 13px / 1.8 Georgia, serif;
+}
+
+.study-lesson .table-lite {
+  margin-top: 14px;
+}
+
+.flashcard {
+  width: 100%;
+  max-width: 480px;
+  height: 220px;
+  margin: 0 auto 18px;
+  perspective: 1400px;
+  cursor: pointer;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s var(--ease, ease);
+  transform-style: preserve-3d;
+}
+
+.flashcard.is-flipped .flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border: 1px solid var(--gold-soft);
+  border-radius: 12px;
+  background: var(--panel-solid);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  font: 400 17px / 1.6 Georgia, serif;
+  box-shadow: 0 0 30px #63dfca14;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+  color: var(--gold);
+}
+
+.quiz-option {
+  border: 1px solid var(--panel-line-bright);
+  border-radius: 10px;
+  background: var(--panel-solid);
+  color: inherit;
+  padding: 14px 18px;
+  text-align: left;
+  cursor: pointer;
+  font: 400 13px Georgia, serif;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.quiz-option:hover {
+  border-color: var(--gold-soft);
+}
+
+.quiz-option.is-correct {
+  border-color: var(--gold);
+  background: #63dfca18;
+  color: var(--gold);
+}
+
+.quiz-option.is-wrong {
+  border-color: #d98181;
+  background: #d9818118;
+  color: #d98181;
+}
+
+.quiz-option:disabled {
+  cursor: default;
+}
+
+.reflect-card {
+  border-bottom: 1px solid var(--panel-line);
+  padding: 18px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.reflect-card:last-child {
+  border-bottom: 0;
+}
+
+.reflect-card p {
+  color: var(--muted);
+  margin: 0;
+  font: 400 13.5px / 1.75 Georgia, serif;
+}
+
+.reflect-card button {
+  flex: none;
+  border: 1px solid var(--panel-line-bright);
+  background: none;
+  color: var(--muted);
+  height: 34px;
+  padding: 0 14px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+
+.reflect-card button:hover {
+  color: var(--gold);
+  border-color: var(--gold-soft);
+}
+
+.check-list li {
+  cursor: pointer;
+}
+
+.check-list li i {
+  cursor: pointer;
+}
+
 @media (max-width: 1220px) {
   .mod-index {
     grid-template-columns: repeat(2, 1fr);

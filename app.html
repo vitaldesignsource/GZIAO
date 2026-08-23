@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=7" />
+    <link rel="stylesheet" href="command.css?v=8" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -35,6 +35,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=3"></script>
     <script src="auth.js?v=2"></script>
+    <script src="study-data.js?v=1"></script>
   </head>
   <body class="command-body">
     <div class="shell">
@@ -1035,6 +1036,7 @@
           </div>
           <section class="tabbar" id="tw-fieldtabs">
             <button class="is-on" type="button" data-field="grade"><b>&#127963; Grade work</b><span>Neophyte through Philosophus</span></button>
+            <button type="button" data-field="study"><b>&#128213; Study</b><span>Lessons, flashcards, quiz, practice</span></button>
             <button type="button" data-field="dream"><b>&#9790; Dream field</b><span>Oneiric record + celestial timestamps</span></button>
           </section>
 
@@ -1070,6 +1072,81 @@
                 <ul class="vault-list" id="tw-list" style="margin-top: 10px; max-height: 420px"></ul>
               </div>
             </section>
+          </div>
+
+          <!-- ---- study field ---- -->
+          <div id="tw-study-field" hidden>
+            <section class="panel" style="border-color: #d0ad6d44">
+              <span class="kicker is-amber" id="study-kicker">STUDY &middot; NEOPHYTE</span>
+              <h2 id="study-title">Neophyte</h2>
+              <p class="panel-sub" id="study-subtitle"></p>
+              <div class="chips" id="study-nav" style="margin-top: 18px">
+                <button class="is-on" type="button" data-pane="lessons">Lessons</button>
+                <button type="button" data-pane="flashcards">Flashcards</button>
+                <button type="button" data-pane="quiz">Quiz</button>
+                <button type="button" data-pane="reflect">Reflect</button>
+                <button type="button" data-pane="practice">Practice</button>
+              </div>
+            </section>
+
+            <div id="study-empty" hidden class="panel">
+              <div class="empty-center">
+                <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
+                <b>No study material provided yet for this grade.</b>
+                <span>Send the grade's knowledge lectures and papers and a study area will be built for it here.</span>
+              </div>
+            </div>
+
+            <div id="study-body">
+              <section class="panel" id="pane-lessons">
+                <div id="study-lessons"></div>
+              </section>
+
+              <section class="panel" id="pane-flashcards" hidden>
+                <div class="privacy-row" style="margin-bottom: 14px">
+                  <span id="flash-progress">Card 1 of 1</span>
+                  <span id="flash-known-count">0 known</span>
+                </div>
+                <div class="flashcard" id="flashcard" tabindex="0">
+                  <div class="flashcard-inner" id="flashcard-inner">
+                    <div class="flashcard-face flashcard-front" id="flash-front"></div>
+                    <div class="flashcard-face flashcard-back" id="flash-back"></div>
+                  </div>
+                </div>
+                <p class="panel-note" style="text-align: center">Click or press Space to flip.</p>
+                <div class="rec-actions" style="justify-content: center; gap: 14px">
+                  <button class="ghost-btn" id="flash-prev" type="button">&larr; Previous</button>
+                  <button class="ghost-btn" id="flash-know" type="button">Mark known</button>
+                  <button class="ghost-btn" id="flash-next" type="button">Next &rarr;</button>
+                </div>
+              </section>
+
+              <section class="panel" id="pane-quiz" hidden>
+                <div id="quiz-active">
+                  <div class="privacy-row" style="margin-bottom: 14px">
+                    <span id="quiz-progress">Question 1 of 1</span>
+                    <span id="quiz-score-live">0 correct</span>
+                  </div>
+                  <h3 id="quiz-question" style="font: 400 19px Georgia, serif; margin: 0 0 16px"></h3>
+                  <div id="quiz-options" style="display: flex; flex-direction: column; gap: 10px"></div>
+                </div>
+                <div id="quiz-done" hidden style="text-align: center; padding: 30px 0">
+                  <div class="big-score" style="justify-content: center">
+                    <b id="quiz-final"></b><span id="quiz-final-total"></span>
+                  </div>
+                  <p class="panel-sub">Best score: <span id="quiz-best"></span></p>
+                  <button class="prime-btn" id="quiz-retry" type="button">Retake quiz</button>
+                </div>
+              </section>
+
+              <section class="panel" id="pane-reflect" hidden>
+                <div id="study-reflections"></div>
+              </section>
+
+              <section class="panel" id="pane-practice" hidden>
+                <ul class="check-list" id="study-practice" style="font-size: 12.5px"></ul>
+              </section>
+            </div>
           </div>
 
           <!-- ---- dream field ---- -->
@@ -1252,15 +1329,17 @@
               signOut: async () => location.replace("signin.html"),
             },
             from: (table) => ({
-              select: () => ({
-                order: async () => ({ data: demo.slice(), error: null }),
-                eq: () => ({
+              select: () => {
+                const chain = {
+                  order: async () => ({ data: demo.slice(), error: null }),
+                  eq: () => chain,
                   maybeSingle: async () =>
                     table === "profiles"
                       ? { data: { display_name: "operator", household_id: "mock-household" }, error: null }
                       : { data: null, error: null },
-                }),
-              }),
+                };
+                return chain;
+              },
               insert: (row) => ({
                 select: () => ({
                   single: async () => {
@@ -1408,7 +1487,7 @@
             records = [];
           } else {
             latticeOk = true;
-            records = rows;
+            records = (rows || []).filter((row) => row.kind !== "study_progress");
           }
         }
 
@@ -1816,6 +1895,7 @@
             cell.addEventListener("click", () => {
               activeGrade = index;
               renderTempleView();
+              if (!$("tw-study-field").hidden) renderStudy();
             });
             track.append(cell);
           });
@@ -2231,12 +2311,287 @@
         $("tw-fieldtabs").addEventListener("click", (event) => {
           const button = event.target.closest("button[data-field]");
           if (!button) return;
-          const dreamMode = button.dataset.field === "dream";
+          const field = button.dataset.field;
           document.querySelectorAll("#tw-fieldtabs button").forEach((tab) => tab.classList.remove("is-on"));
           button.classList.add("is-on");
-          $("tw-grade-field").hidden = dreamMode;
-          $("tw-dream-field").hidden = !dreamMode;
-          if (dreamMode) refreshDreamLayer();
+          $("tw-grade-field").hidden = field !== "grade";
+          $("tw-study-field").hidden = field !== "study";
+          $("tw-dream-field").hidden = field !== "dream";
+          if (field === "dream") refreshDreamLayer();
+          if (field === "study") renderStudy();
+        });
+
+        /* ---------- study engine ---------- */
+        const studyProgress = {};
+        let studyGradeLoaded = null;
+        let flashIndex = 0;
+        let flashFlipped = false;
+        let quizIndex = 0;
+        let quizScore = 0;
+
+        async function loadStudyProgress(gradeName) {
+          if (studyProgress[gradeName]) return studyProgress[gradeName];
+          const state = { known: new Set(), quizBest: 0, practiceChecked: new Set(), recordId: null };
+          const { data } = await GZ.client
+            .from("records")
+            .select("id, meta")
+            .eq("kind", "study_progress")
+            .eq("grade", gradeName)
+            .maybeSingle();
+          if (data) {
+            state.recordId = data.id;
+            const meta = data.meta || {};
+            state.known = new Set(meta.known || []);
+            state.quizBest = meta.quizBest || 0;
+            state.practiceChecked = new Set(meta.practiceChecked || []);
+          }
+          studyProgress[gradeName] = state;
+          return state;
+        }
+
+        async function saveStudyProgress(gradeName) {
+          const state = studyProgress[gradeName];
+          if (!state) return;
+          const meta = {
+            known: [...state.known],
+            quizBest: state.quizBest,
+            practiceChecked: [...state.practiceChecked],
+          };
+          if (state.recordId) {
+            await GZ.client.from("records").update({ meta }).eq("id", state.recordId);
+          } else {
+            const { data } = await GZ.client
+              .from("records")
+              .insert({ title: "Study progress · " + gradeName, kind: "study_progress", grade: gradeName, meta })
+              .select()
+              .single();
+            if (data) state.recordId = data.id;
+          }
+        }
+
+        function renderStudyLessons(data) {
+          const holder = $("study-lessons");
+          holder.innerHTML = "";
+          for (const lesson of data.lessons) {
+            const block = document.createElement("div");
+            block.className = "study-lesson";
+            const h3 = document.createElement("h3");
+            h3.textContent = lesson.title;
+            const p = document.createElement("p");
+            p.textContent = lesson.body;
+            block.append(h3, p);
+            if (lesson.table) {
+              const table = document.createElement("table");
+              table.className = "table-lite";
+              const thead = document.createElement("thead");
+              const headRow = document.createElement("tr");
+              lesson.table.headers.forEach((label) => {
+                const th = document.createElement("th");
+                th.textContent = label;
+                headRow.append(th);
+              });
+              thead.append(headRow);
+              const tbody = document.createElement("tbody");
+              lesson.table.rows.forEach((row) => {
+                const tr = document.createElement("tr");
+                row.forEach((cell, index) => {
+                  const td = document.createElement("td");
+                  td.textContent = cell;
+                  if (index > 0) td.className = "t-dim";
+                  tr.append(td);
+                });
+                tbody.append(tr);
+              });
+              table.append(thead, tbody);
+              block.append(table);
+            }
+            holder.append(block);
+          }
+        }
+
+        function renderFlashcard(data) {
+          const cards = data.flashcards;
+          const state = studyProgress[studyGradeLoaded];
+          const known = state ? state.known : new Set();
+          const card = cards[flashIndex];
+          $("flash-progress").textContent = "Card " + (flashIndex + 1) + " of " + cards.length;
+          $("flash-known-count").textContent = known.size + " / " + cards.length + " known";
+          $("flash-front").textContent = card.front;
+          $("flash-back").textContent = card.back;
+          $("flashcard").classList.toggle("is-flipped", flashFlipped);
+          $("flash-know").textContent = known.has(flashIndex) ? "Known ✓" : "Mark known";
+        }
+
+        function renderQuizQuestion(data) {
+          const questions = data.quiz;
+          if (quizIndex >= questions.length) {
+            $("quiz-active").hidden = true;
+            $("quiz-done").hidden = false;
+            $("quiz-final").textContent = quizScore;
+            $("quiz-final-total").textContent = " / " + questions.length;
+            const state = studyProgress[studyGradeLoaded];
+            const best = state ? Math.max(state.quizBest, quizScore) : quizScore;
+            $("quiz-best").textContent = best + " / " + questions.length;
+            return;
+          }
+          $("quiz-active").hidden = false;
+          $("quiz-done").hidden = true;
+          const q = questions[quizIndex];
+          $("quiz-progress").textContent = "Question " + (quizIndex + 1) + " of " + questions.length;
+          $("quiz-score-live").textContent = quizScore + " correct";
+          $("quiz-question").textContent = q.q;
+          const optionsHolder = $("quiz-options");
+          optionsHolder.innerHTML = "";
+          q.options.forEach((option, index) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "quiz-option";
+            button.textContent = option;
+            button.addEventListener("click", () => answerQuiz(index));
+            optionsHolder.append(button);
+          });
+        }
+
+        async function answerQuiz(index) {
+          const data = window.GZ_STUDY[studyGradeLoaded];
+          const q = data.quiz[quizIndex];
+          const buttons = [...$("quiz-options").querySelectorAll("button")];
+          buttons.forEach((button, i) => {
+            button.disabled = true;
+            if (i === q.correct) button.classList.add("is-correct");
+            else if (i === index) button.classList.add("is-wrong");
+          });
+          if (index === q.correct) quizScore++;
+          await new Promise((resolve) => setTimeout(resolve, 650));
+          quizIndex++;
+          if (quizIndex >= data.quiz.length) {
+            const state = studyProgress[studyGradeLoaded];
+            if (state) {
+              state.quizBest = Math.max(state.quizBest, quizScore);
+              await saveStudyProgress(studyGradeLoaded);
+            }
+          }
+          renderQuizQuestion(data);
+        }
+
+        function renderReflections(data) {
+          const holder = $("study-reflections");
+          holder.innerHTML = "";
+          data.reflections.forEach((prompt) => {
+            const card = document.createElement("div");
+            card.className = "reflect-card";
+            const p = document.createElement("p");
+            p.textContent = prompt;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Journal this →";
+            button.addEventListener("click", () => {
+              openCapture({ kind: "journal", grade: studyGradeLoaded });
+              const clip = prompt.length > 60 ? prompt.slice(0, 60) + "…" : prompt;
+              $("capture-title").value = "Reflection: " + clip;
+              $("capture-body").value = prompt + "\n\n";
+              $("capture-body").focus();
+            });
+            card.append(p, button);
+            holder.append(card);
+          });
+        }
+
+        function renderPractice(data) {
+          const gradeName = studyGradeLoaded;
+          const state = studyProgress[gradeName];
+          const checked = state ? state.practiceChecked : new Set();
+          const holder = $("study-practice");
+          holder.innerHTML = "";
+          data.practice.forEach((item, index) => {
+            const li = document.createElement("li");
+            li.className = checked.has(index) ? "is-done" : "";
+            const mark = document.createElement("i");
+            const span = document.createElement("span");
+            span.textContent = item;
+            li.append(mark, span);
+            li.addEventListener("click", async () => {
+              if (checked.has(index)) checked.delete(index);
+              else checked.add(index);
+              li.classList.toggle("is-done");
+              await saveStudyProgress(gradeName);
+            });
+            holder.append(li);
+          });
+        }
+
+        async function renderStudy() {
+          const gradeName = GRADES[activeGrade].name;
+          const data = window.GZ_STUDY && window.GZ_STUDY[gradeName];
+          $("study-kicker").textContent = "STUDY · " + gradeName.toUpperCase();
+          $("study-title").textContent = gradeName;
+          $("study-subtitle").textContent = data ? data.subtitle : "";
+          $("study-empty").hidden = Boolean(data);
+          $("study-body").hidden = !data;
+          if (!data) return;
+
+          if (studyGradeLoaded !== gradeName) {
+            studyGradeLoaded = gradeName;
+            flashIndex = 0;
+            flashFlipped = false;
+            quizIndex = 0;
+            quizScore = 0;
+            await loadStudyProgress(gradeName);
+          }
+
+          renderStudyLessons(data);
+          renderFlashcard(data);
+          renderQuizQuestion(data);
+          renderReflections(data);
+          renderPractice(data);
+        }
+
+        $("study-nav").addEventListener("click", (event) => {
+          const button = event.target.closest("button[data-pane]");
+          if (!button) return;
+          document.querySelectorAll("#study-nav button").forEach((tab) => tab.classList.remove("is-on"));
+          button.classList.add("is-on");
+          const pane = button.dataset.pane;
+          ["lessons", "flashcards", "quiz", "reflect", "practice"].forEach((name) => {
+            $("pane-" + name).hidden = name !== pane;
+          });
+        });
+
+        function flipFlashcard() {
+          flashFlipped = !flashFlipped;
+          $("flashcard").classList.toggle("is-flipped", flashFlipped);
+        }
+        $("flashcard").addEventListener("click", flipFlashcard);
+        $("flashcard").addEventListener("keydown", (event) => {
+          if (event.key === " ") {
+            event.preventDefault();
+            flipFlashcard();
+          }
+        });
+        $("flash-prev").addEventListener("click", () => {
+          const data = window.GZ_STUDY[studyGradeLoaded];
+          flashIndex = (flashIndex - 1 + data.flashcards.length) % data.flashcards.length;
+          flashFlipped = false;
+          renderFlashcard(data);
+        });
+        $("flash-next").addEventListener("click", () => {
+          const data = window.GZ_STUDY[studyGradeLoaded];
+          flashIndex = (flashIndex + 1) % data.flashcards.length;
+          flashFlipped = false;
+          renderFlashcard(data);
+        });
+        $("flash-know").addEventListener("click", async () => {
+          const state = studyProgress[studyGradeLoaded];
+          if (!state) return;
+          if (state.known.has(flashIndex)) state.known.delete(flashIndex);
+          else state.known.add(flashIndex);
+          await saveStudyProgress(studyGradeLoaded);
+          renderFlashcard(window.GZ_STUDY[studyGradeLoaded]);
+        });
+        $("quiz-retry").addEventListener("click", () => {
+          quizIndex = 0;
+          quizScore = 0;
+          renderQuizQuestion(window.GZ_STUDY[studyGradeLoaded]);
         });
 
         $("dr-when").addEventListener("change", refreshDreamLayer);
