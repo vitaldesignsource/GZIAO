@@ -1,0 +1,16 @@
+{
+  "name": "Gimel Zayin IAO",
+  "short_name": "GZ IAO",
+  "description": "Private adaptive intelligence for people, patterns, time, and deliberate action.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#050812",
+  "theme_color": "#151719",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

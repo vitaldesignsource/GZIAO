@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gimel Zayin IAO</title>
+    <meta
+      name="description"
+      content="A private adaptive intelligence system for people, patterns, time, and deliberate action."
+    />
+    <meta name="application-name" content="Gimel Zayin IAO" />
+    <meta property="og:title" content="Gimel Zayin IAO" />
+    <meta
+      property="og:description"
+      content="Private adaptive intelligence for people, patterns, time, and deliberate action."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Gimel Zayin IAO" />
+    <meta
+      name="twitter:description"
+      content="Private adaptive intelligence for people, patterns, time, and deliberate action."
+    />
+    <meta name="theme-color" content="#151719" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eceeef" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="favicon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("gz-theme");
+          var theme =
+            saved === "light" || saved === "dark"
+              ? saved
+              : matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <main class="public-entry">
+      <div class="entry-grid" aria-hidden="true"></div>
+      <header class="entry-nav">
+        <div class="entry-brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span>G</span>
+            <i></i>
+            <span>Z</span>
+          </div>
+          <div>
+            <strong>GIMEL ZAYIN</strong>
+            <small>I.A.O</small>
+          </div>
+        </div>
+        <div class="entry-nav-actions">
+          <span>PRIVATE STRATEGIC INTELLIGENCE</span>
+          <button class="theme-toggle" type="button" aria-label="Switch color theme">
+            <span class="theme-toggle-copy">Dark</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="entry-hero">
+        <div class="entry-seal" aria-hidden="true">
+          <span>IAO</span>
+          <i></i>
+        </div>
+        <div class="entry-copy">
+          <span class="entry-kicker">IMPROVISE / ADAPT / OVERCOME</span>
+          <h1>Your life is a field of intelligence.</h1>
+          <p>
+            Unify people, timing systems, finances, documents, decisions, and living chronology
+            inside one private command architecture.
+          </p>
+          <a class="entry-signin" href="/signin-with-chatgpt?return_to=%2F">
+            Sign in to enter <span aria-hidden="true">&rarr;</span>
+          </a>
+          <div class="entry-assurance">
+            <b>Private by identity</b>
+            <span>Encrypted hosted storage</span>
+            <span>Source-aware records</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="entry-modules" aria-label="System capabilities">
+        <article>
+          <small>01</small>
+          <strong>COMMAND</strong>
+          <span>Daily intelligence</span>
+        </article>
+        <article>
+          <small>02</small>
+          <strong>AION</strong>
+          <span>Esoteric timing</span>
+        </article>
+        <article>
+          <small>03</small>
+          <strong>VAULT</strong>
+          <span>Private records</span>
+        </article>
+        <article>
+          <small>04</small>
+          <strong>ORACLE</strong>
+          <span>Cross-field analysis</span>
+        </article>
+      </section>
+
+      <footer class="entry-footer">
+        <span>GZ IAO / ADAPTIVE INTELLIGENCE SYSTEM</span>
+        <b>Authorized access only</b>
+      </footer>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>

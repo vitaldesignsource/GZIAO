@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="18" fill="#050812"/>
+  <path d="M64 12 116 64 64 116 12 64Z" fill="none" stroke="#63dfca" stroke-width="4"/>
+  <path d="M64 26v76" stroke="#2f9188" stroke-width="4"/>
+  <text x="37" y="52" fill="#edf8f5" font-family="Georgia, serif" font-size="24" font-weight="700">G</text>
+  <text x="72" y="86" fill="#edf8f5" font-family="Georgia, serif" font-size="24" font-weight="700">Z</text>
+</svg>
