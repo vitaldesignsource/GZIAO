@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign in — Gimel Zayin IAO</title>
+    <title>Welcome — Gimel Zayin IAO</title>
     <meta name="theme-color" content="#151719" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#eceeef" media="(prefers-color-scheme: light)" />
     <meta name="color-scheme" content="dark light" />
@@ -25,6 +25,8 @@
         } catch (error) {
           document.documentElement.dataset.theme = "dark";
         }
+        /* capture the arrival hash before supabase-js consumes and cleans it */
+        window.GZ_ENTRY = location.hash + location.search;
       })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -68,36 +70,43 @@
       </header>
 
       <section class="gate-hero">
-        <span class="entry-kicker">IDENTITY GATE</span>
-        <h1 id="gate-title">Enter the system.</h1>
+        <span class="entry-kicker" id="claim-kicker">INVITATION</span>
+        <h1 id="claim-title">Verifying your invitation&hellip;</h1>
 
-        <div class="gate-setup" id="gate-setup" hidden>
-          <b>System not yet connected.</b><br />
-          Create a free project at supabase.com, then open
-          <code>config.js</code> in this site and paste your project's URL and
-          anon key. Full steps are in <code>SETUP.md</code>.
+        <div class="gate-setup" id="claim-error" hidden>
+          <b>This link is invalid or has expired.</b><br />
+          Invitations and recovery links are single-use and time-limited. Ask the
+          operator for a fresh invitation, or request a new recovery link from the
+          <a href="signin.html" style="color: inherit">identity gate</a>.
         </div>
 
-        <form class="gate-panel" id="gate-form" hidden>
+        <form class="gate-panel" id="claim-form" hidden>
           <label>
-            Email
-            <input type="email" id="gate-email" autocomplete="email" required />
+            Identity
+            <input type="email" id="claim-email" autocomplete="username" readonly />
           </label>
           <label>
-            Passphrase
+            New passphrase
             <input
               type="password"
-              id="gate-password"
-              autocomplete="current-password"
+              id="claim-password"
+              autocomplete="new-password"
               minlength="8"
               required
             />
           </label>
-          <button class="entry-signin" type="submit" id="gate-submit">Enter</button>
-          <div class="gate-message" id="gate-message" role="status"></div>
-          <div class="gate-switch">
-            Access is by invitation only. <a id="gate-forgot">Forgot passphrase?</a>
-          </div>
+          <label>
+            Confirm passphrase
+            <input
+              type="password"
+              id="claim-confirm"
+              autocomplete="new-password"
+              minlength="8"
+              required
+            />
+          </label>
+          <button class="entry-signin" type="submit" id="claim-submit">Seal passphrase</button>
+          <div class="gate-message" id="claim-message" role="status"></div>
         </form>
       </section>
 
@@ -108,62 +117,56 @@
     </main>
     <script src="script.js?v=2"></script>
     <script>
-      (function () {
-        const form = document.getElementById("gate-form");
-        const setup = document.getElementById("gate-setup");
-
+      (async function () {
         if (!GZ.configured) {
-          setup.hidden = false;
+          location.replace("signin.html");
           return;
         }
-        form.hidden = false;
 
-        const email = document.getElementById("gate-email");
-        const password = document.getElementById("gate-password");
-        const submit = document.getElementById("gate-submit");
-        const message = document.getElementById("gate-message");
-        const forgot = document.getElementById("gate-forgot");
-
-        GZ.client.auth.getSession().then(({ data }) => {
-          if (data.session) location.replace("app.html");
-        });
+        const entry = window.GZ_ENTRY || "";
+        const isRecovery = entry.includes("type=recovery");
+        const title = document.getElementById("claim-title");
+        const kicker = document.getElementById("claim-kicker");
+        const errorBox = document.getElementById("claim-error");
+        const form = document.getElementById("claim-form");
+        const message = document.getElementById("claim-message");
 
         function say(text, kind) {
           message.textContent = text;
           message.className = "gate-message" + (kind ? " is-" + kind : "");
         }
 
-        forgot.addEventListener("click", async () => {
-          const address = email.value.trim();
-          if (!address) {
-            say("Enter your email above first.", "error");
-            return;
-          }
-          say("Sending recovery transmission…");
-          const { error } = await GZ.client.auth.resetPasswordForEmail(address, {
-            redirectTo: location.origin + "/welcome.html",
-          });
-          if (error) say(error.message, "error");
-          else say("Recovery transmission sent. Check your email.", "ok");
-        });
+        const { data } = await GZ.client.auth.getSession();
+
+        if (!data.session) {
+          title.textContent = isRecovery ? "Recovery failed." : "No invitation found.";
+          errorBox.hidden = false;
+          return;
+        }
+
+        kicker.textContent = isRecovery ? "RECOVERY" : "INVITATION";
+        title.textContent = isRecovery ? "Renew your passphrase." : "Claim your identity.";
+        document.getElementById("claim-email").value = data.session.user.email;
+        form.hidden = false;
 
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
-          submit.disabled = true;
-          say("Verifying identity…");
-
-          const { error } = await GZ.client.auth.signInWithPassword({
-            email: email.value.trim(),
-            password: password.value,
-          });
-
-          submit.disabled = false;
-          if (error) {
-            say(error.message, "error");
-          } else {
-            say("Access granted.", "ok");
-            location.replace("app.html");
+          const password = document.getElementById("claim-password").value;
+          const confirm = document.getElementById("claim-confirm").value;
+          if (password !== confirm) {
+            say("Passphrases do not match.", "error");
+            return;
           }
+          document.getElementById("claim-submit").disabled = true;
+          say("Sealing passphrase…");
+          const { error } = await GZ.client.auth.updateUser({ password });
+          if (error) {
+            document.getElementById("claim-submit").disabled = false;
+            say(error.message, "error");
+            return;
+          }
+          say("Identity sealed. Entering…", "ok");
+          location.replace("app.html");
         });
       })();
     </script>

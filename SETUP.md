@@ -51,19 +51,20 @@ create policy "Users manage only their own records"
 Row-level security means each signed-in identity can only ever see and
 touch its own records — even though the site itself is public static files.
 
-## 4. Create your identity
+## 4. Membership is invite-only
 
-1. Open the site, click **Sign in to enter**, then **Create your identity**.
-2. Use your email and a passphrase (8+ characters).
-3. By default Supabase sends a confirmation email — click the link, then
-   sign in. (You can turn confirmation off under
-   **Authentication → Sign In / Up → Email** if you prefer.)
+Public sign-up is disabled. The master identity is `3magipress@gmail.com`;
+every other member joins only by invitation:
 
-## 5. Lock the door (recommended)
+1. In the Supabase dashboard open **Authentication → Users → Add user →
+   Invite user** (or use "Send invitation").
+2. Enter the person's email. They receive an email whose link lands on the
+   site's claim page (`welcome.html`), where they set their own passphrase.
+3. Their vault is private to them automatically — row-level security keeps
+   every identity's records isolated, including from the master account.
 
-Once your own account exists, make the system private:
+Lost passphrases are self-service: the identity gate has a
+"Forgot passphrase?" link that emails a recovery link to the same claim page.
 
-- **Authentication → Sign In / Up** → turn **off** "Allow new users to sign up".
-
-Now the site is a true single-operator system: no one else can create an
-identity, and no ChatGPT/OpenAI dependency remains anywhere.
+Keep **Authentication → Sign In / Up → "Allow new users to sign up"** turned
+**off** — invitations still work with it off, and nobody can join uninvited.

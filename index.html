@@ -25,6 +25,13 @@
     <meta name="color-scheme" content="dark light" />
     <link rel="icon" href="favicon.svg" />
     <link rel="manifest" href="manifest.webmanifest" />
+    <script>
+      /* Supabase invite/recovery links land at the site root — forward them
+         to the claim page with their tokens intact. */
+      if (/access_token=|token_hash=|type=invite|type=recovery|error_description=/.test(location.hash + location.search)) {
+        location.replace("welcome.html" + location.search + location.hash);
+      }
+    </script>
     <link rel="stylesheet" href="styles.css?v=2" />
     <script>
       (function () {
