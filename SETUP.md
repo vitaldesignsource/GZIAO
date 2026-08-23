@@ -26,7 +26,26 @@ window.GZ_CONFIG = {
 The anon key is designed to be public; privacy comes from row-level
 security (next step), not from hiding the key.
 
-## 3. Create the Vault table
+## 3. Schema
+
+The live schema is `schema/001_foundation.sql` — run it in **SQL Editor**. It creates:
+
+- `households` — the shared relationship field
+- `profiles` — one per identity, auto-created on signup, linked to a household
+- `records` — all private-field content, typed by `kind` (record, journal, dream,
+  draft) with `grade`, `occurred_at`, `meta` jsonb, and a `visibility` of
+  `private` or `shared`
+- `people` — person profiles carrying real birth data for chart calculation
+
+**Sharing model.** Row-level security grants read access to your own rows always,
+plus any row marked `shared` belonging to your household. Writes and deletes stay
+owner-only — sharing an entry never grants anyone else the right to edit it, and
+you can return any entry to private at any time.
+
+The original `vault_records` table is left in place and its contents copied into
+`records`; nothing was deleted.
+
+### Legacy: the original vault table
 
 In the dashboard open **SQL Editor**, paste this, and run it:
 

@@ -609,6 +609,142 @@ select:focus {
   background: #63dfca12;
 }
 
+/* ---------------- sharing controls ---------------- */
+
+.share-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+}
+
+.share-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.share-toggle > span {
+  width: 34px;
+  height: 18px;
+  border: 1px solid var(--panel-line-bright);
+  border-radius: 999px;
+  position: relative;
+  flex: none;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.share-toggle > span::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--faint);
+  transition: transform 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.share-toggle input:checked + span {
+  background: #63dfca24;
+  border-color: var(--gold-soft);
+}
+
+.share-toggle input:checked + span::after {
+  transform: translateX(16px);
+  background: var(--gold);
+}
+
+.share-toggle input:focus-visible + span {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.share-row {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.share-row small {
+  color: var(--faint);
+  font-size: 9.5px;
+}
+
+.share-badge {
+  margin-left: 10px;
+  padding: 2px 7px;
+  border: 1px solid var(--gold-soft);
+  border-radius: 4px;
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-style: normal;
+  font-size: 7px;
+  letter-spacing: 0.16em;
+  vertical-align: 2px;
+}
+
+.rec-actions-row {
+  grid-column: 1 / -1;
+  justify-self: end;
+  display: flex;
+  gap: 14px;
+}
+
+.vault-list .rec-actions-row button {
+  border: 0;
+  background: none;
+  color: var(--faint);
+  padding: 0;
+  cursor: pointer;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: var(--font-ui);
+  font-size: 7px;
+  transition: color 0.2s var(--ease);
+}
+
+.vault-list .rec-actions-row button:hover {
+  color: var(--gold);
+}
+
+.vault-list .rec-actions-row button.is-destroy:hover {
+  color: #d98181;
+}
+
+.vault-list .rec-actions-row button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.side-field {
+  border-top: 1px solid var(--panel-line);
+  padding: 12px 24px 0;
+  color: var(--faint);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.side-field i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex: none;
+}
+
 /* ---------------- accessibility ---------------- */
 
 @media (prefers-reduced-motion: reduce) {

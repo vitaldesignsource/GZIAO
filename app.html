@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
     <link rel="stylesheet" href="command.css?v=7" />
-    <link rel="stylesheet" href="polish.css?v=4" />
+    <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
         try {
@@ -85,6 +85,7 @@
         </nav>
 
         <div class="side-foot">
+          <div class="side-field" id="side-field" hidden><i></i><span id="side-field-copy"></span></div>
           <div class="side-doctrine">
             <b>STRATEGIC DOCTRINE</b>
             <span>IMPROVISE</span><span>ADAPT</span><span>OVERCOME</span>
@@ -431,6 +432,11 @@
               <form class="vault-form" id="vault-form" style="margin-top: 16px">
                 <input type="text" id="vault-title" placeholder="Record title" required />
                 <textarea id="vault-body" placeholder="Details (optional)"></textarea>
+                <label class="share-toggle">
+                  <input type="checkbox" id="vault-shared" />
+                  <span></span>
+                  Share to the relationship field
+                </label>
                 <button type="submit">Seal record</button>
               </form>
             </section>
@@ -1113,8 +1119,12 @@
                     <label>SYMBOLS &amp; FIGURES<input type="text" id="dr-symbols" placeholder="water, tower, serpent, unknown woman, red door&hellip;" /></label>
                     <label>TAGS<input type="text" id="dr-tags" placeholder="recurring, childhood, work, warning&hellip;" /></label>
                   </div>
-                  <div class="privacy-row" style="margin-top: 16px">
-                    <span>Celestial metadata is calculated at seal time.</span>
+                  <div class="privacy-row" style="margin-top: 16px; align-items: center">
+                    <label class="share-toggle">
+                      <input type="checkbox" id="dr-shared" />
+                      <span></span>
+                      Share to the relationship field
+                    </label>
                     <button class="prime-btn" type="submit" id="dr-seal">Seal dream + timestamp</button>
                   </div>
                 </form>
@@ -1191,16 +1201,24 @@
 
     <div class="modal" id="capture-modal" hidden>
       <form class="gate-panel" id="capture-form">
-        <h3 class="modal-title">Capture into the field.</h3>
-        <p class="modal-sub">Sealed to the vault under your identity. Private by construction.</p>
+        <h3 class="modal-title" id="capture-heading">Capture into the field.</h3>
+        <p class="modal-sub" id="capture-sub">Sealed to the vault under your identity. Private by construction.</p>
         <label>
-          Signal
+          <span id="capture-title-label">Signal</span>
           <input type="text" id="capture-title" placeholder="Event, obligation, decision, or source" required />
         </label>
         <label>
           Details
           <textarea id="capture-body" placeholder="Optional context" style="border: 1px solid var(--line); background: transparent; color: var(--paper); padding: 11px 14px; min-height: 80px; resize: vertical; font: 400 13px Georgia, serif"></textarea>
         </label>
+        <div class="share-row">
+          <label class="share-toggle">
+            <input type="checkbox" id="capture-shared" />
+            <span></span>
+            Share to the relationship field
+          </label>
+          <small>Private by default. You can share or unshare any entry later.</small>
+        </div>
         <button class="entry-signin" type="submit" id="capture-submit">Seal record</button>
         <button class="modal-cancel" type="button" id="capture-cancel">Cancel</button>
       </form>
@@ -1219,22 +1237,60 @@
         /* localhost-only preview mode: app.html?mock=1 — never active in production */
         if (location.hostname === "localhost" && location.search.includes("mock=1")) {
           const demo = [
-            { id: "d1", title: "First sealed record", body: "A demonstration entry held privately in the vault.", created_at: new Date().toISOString() },
+            {
+              id: "d1", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
+              title: "First sealed record", body: "A demonstration entry held privately in the vault.",
+              created_at: new Date().toISOString(),
+            },
           ];
           GZ.client = {
             auth: {
-              getSession: async () => ({ data: { session: { user: { email: "operator@gziao.test", created_at: "2026-08-01T00:00:00Z" } } } }),
+              getSession: async () => ({
+                data: { session: { user: { id: "mock-user", email: "operator@gziao.test", created_at: "2026-08-01T00:00:00Z" } } },
+              }),
               onAuthStateChange: () => {},
               signOut: async () => location.replace("signin.html"),
             },
-            from: () => ({
-              select: () => ({ order: async () => ({ data: demo.slice(), error: null }) }),
-              insert: (row) => ({
-                select: () => ({
-                  single: async () => ({ data: { ...row, id: String(Math.random()), created_at: new Date().toISOString() }, error: null }),
+            from: (table) => ({
+              select: () => ({
+                order: async () => ({ data: demo.slice(), error: null }),
+                eq: () => ({
+                  maybeSingle: async () =>
+                    table === "profiles"
+                      ? { data: { display_name: "operator", household_id: "mock-household" }, error: null }
+                      : { data: null, error: null },
                 }),
               }),
-              delete: () => ({ eq: async () => ({ error: null }) }),
+              insert: (row) => ({
+                select: () => ({
+                  single: async () => {
+                    const inserted = {
+                      owner_id: "mock-user", visibility: "private", grade: null, ...row,
+                      id: String(Math.random()), created_at: new Date().toISOString(),
+                    };
+                    demo.unshift(inserted);
+                    return { data: inserted, error: null };
+                  },
+                }),
+              }),
+              update: (patch) => ({
+                eq: (_col, id) => ({
+                  select: () => ({
+                    single: async () => {
+                      const row = demo.find((r) => r.id === id);
+                      Object.assign(row, patch);
+                      return { data: { ...row }, error: null };
+                    },
+                  }),
+                }),
+              }),
+              delete: () => ({
+                eq: async (_col, id) => {
+                  const i = demo.findIndex((r) => r.id === id);
+                  if (i > -1) demo.splice(i, 1);
+                  return { error: null };
+                },
+              }),
             }),
           };
         }
@@ -1250,6 +1306,17 @@
           if (!session) location.replace("signin.html");
         });
 
+        /* ---------- profile + shared field ---------- */
+        let profile = { display_name: null, household_id: null };
+        if (GZ.client.from) {
+          const { data: profileRow } = await GZ.client
+            .from("profiles")
+            .select("display_name, household_id")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (profileRow) profile = profileRow;
+        }
+
         /* ---------- helpers ---------- */
         const $ = (id) => document.getElementById(id);
         const dayMs = 86400000;
@@ -1264,7 +1331,11 @@
         }
 
         /* ---------- identity ---------- */
-        const handle = user.email.split("@")[0];
+        const handle = profile.display_name || user.email.split("@")[0];
+        if (profile.household_id) {
+          $("side-field").hidden = false;
+          $("side-field-copy").textContent = "Shared field connected";
+        }
         $("user-handle").textContent = handle;
         $("user-avatar").textContent = handle.slice(0, 2).toUpperCase();
         $("chip-operator").textContent = handle;
@@ -1329,7 +1400,7 @@
 
         async function loadRecords() {
           const { data: rows, error } = await GZ.client
-            .from("vault_records")
+            .from("records")
             .select("*")
             .order("created_at", { ascending: false });
           if (error) {
@@ -1340,6 +1411,9 @@
             records = rows;
           }
         }
+
+        const isMine = (record) => !record.owner_id || record.owner_id === user.id;
+        const isShared = (record) => record.visibility === "shared";
 
         /* ---------- renderers ---------- */
         function renderStrip() {
@@ -1488,6 +1562,12 @@
             const item = document.createElement("li");
             const title = document.createElement("b");
             title.textContent = record.title;
+            if (isShared(record)) {
+              const badge = document.createElement("i");
+              badge.className = "share-badge";
+              badge.textContent = "SHARED";
+              title.append(badge);
+            }
             const stamp = document.createElement("time");
             stamp.textContent = new Date(record.created_at).toLocaleDateString();
             item.append(title, stamp);
@@ -1496,18 +1576,39 @@
               body.textContent = record.body;
               item.append(body);
             }
-            const remove = document.createElement("button");
-            remove.type = "button";
-            remove.textContent = "Destroy";
-            remove.addEventListener("click", async () => {
-              const { error } = await GZ.client.from("vault_records").delete().eq("id", record.id);
-              if (!error) {
-                records = records.filter((held) => held.id !== record.id);
-                renderAll();
-                toast("Record destroyed.");
-              }
-            });
-            item.append(remove);
+
+            const actions = document.createElement("span");
+            actions.className = "rec-actions-row";
+
+            if (isMine(record)) {
+              const share = document.createElement("button");
+              share.type = "button";
+              share.textContent = isShared(record) ? "Make private" : "Share";
+              share.addEventListener("click", () => setVisibility(record, !isShared(record)));
+              actions.append(share);
+
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.className = "is-destroy";
+              remove.textContent = "Destroy";
+              remove.addEventListener("click", async () => {
+                const { error } = await GZ.client.from("records").delete().eq("id", record.id);
+                if (!error) {
+                  records = records.filter((held) => held.id !== record.id);
+                  renderAll();
+                  toast("Record destroyed.");
+                }
+              });
+              actions.append(remove);
+            } else {
+              const from = document.createElement("button");
+              from.type = "button";
+              from.disabled = true;
+              from.textContent = "Shared with you";
+              actions.append(from);
+            }
+
+            item.append(actions);
             list.append(item);
           }
         }
@@ -1580,7 +1681,7 @@
           const empty = records.length === 0;
           const today = new Date().toDateString();
           const todays = records.filter((record) => new Date(record.created_at).toDateString() === today).length;
-          const journals = records.filter((record) => record.title.startsWith("Draft: ")).length;
+          const journals = records.filter((record) => record.kind === "draft").length;
           $("or-indexed").textContent =
             records.length + " PRIVATE SIGNAL" + (records.length === 1 ? "" : "S") + " INDEXED";
           $("or-mi-chrono").textContent = todays + " indexed";
@@ -1684,11 +1785,13 @@
         let activeGrade = 0;
 
         function gradeEntries(index) {
-          return records.filter((record) => record.title.startsWith("Journal · " + GRADES[index].name + ":"));
+          return records.filter(
+            (record) => record.kind === "journal" && record.grade === GRADES[index].name
+          );
         }
 
         function dreamEntries() {
-          return records.filter((record) => record.title.startsWith("Dream · "));
+          return records.filter((record) => record.kind === "dream");
         }
 
         function renderTempleView() {
@@ -1734,7 +1837,7 @@
           for (const record of entries) {
             const item = document.createElement("li");
             const title = document.createElement("b");
-            title.textContent = record.title.split(":").slice(1).join(":").trim();
+            title.textContent = record.title;
             const stamp = document.createElement("time");
             stamp.textContent = new Date(record.created_at).toLocaleDateString();
             item.append(title, stamp);
@@ -1755,20 +1858,35 @@
           for (const record of dreams) {
             const item = document.createElement("li");
             const title = document.createElement("b");
-            title.textContent = record.title.replace("Dream · ", "");
+            title.textContent = record.title;
+            if (isShared(record)) {
+              const badge = document.createElement("i");
+              badge.className = "share-badge";
+              badge.textContent = "SHARED";
+              title.append(badge);
+            }
             const stamp = document.createElement("time");
-            stamp.textContent = new Date(record.created_at).toLocaleDateString();
+            stamp.textContent = new Date(record.occurred_at || record.created_at).toLocaleDateString();
             item.append(title, stamp);
             if (record.body) {
               const body = document.createElement("p");
               body.textContent = record.body;
               item.append(body);
             }
+            const layer = record.meta && record.meta.celestial;
+            if (layer) {
+              const cel = document.createElement("p");
+              cel.style.cssText = "color: var(--amber); font-size: 10px";
+              cel.textContent =
+                layer.ruler + " day · " + layer.phase + " moon · lunar day " + layer.lunarDay +
+                " · JD " + layer.julian + (record.meta.tone ? " · " + record.meta.tone : "");
+              item.append(cel);
+            }
             const remove = document.createElement("button");
             remove.type = "button";
             remove.textContent = "Destroy";
             remove.addEventListener("click", async () => {
-              const { error } = await GZ.client.from("vault_records").delete().eq("id", record.id);
+              const { error } = await GZ.client.from("records").delete().eq("id", record.id);
               if (!error) {
                 records = records.filter((held) => held.id !== record.id);
                 renderAll();
@@ -1888,9 +2006,19 @@
 
         /* ---------- capture modal ---------- */
         const modal = $("capture-modal");
-        function openCapture(prefix) {
+        let captureContext = { kind: "record" };
+
+        function openCapture(context) {
+          captureContext = context && context.kind ? context : { kind: "record" };
+          const journal = captureContext.kind === "journal";
+          $("capture-heading").textContent = journal
+            ? "Compose in " + captureContext.grade + "."
+            : "Capture into the field.";
+          $("capture-sub").textContent = journal
+            ? "Filed to the " + captureContext.grade + " register under your identity."
+            : "Sealed to the vault under your identity. Private by construction.";
+          $("capture-title-label").textContent = journal ? "Entry" : "Signal";
           modal.hidden = false;
-          if (typeof prefix === "string" && !$("capture-title").value) $("capture-title").value = prefix;
           $("capture-title").focus();
         }
         document.querySelectorAll("[data-capture]").forEach((button) => {
@@ -1902,10 +2030,22 @@
           if (event.target === modal) modal.hidden = true;
         });
 
-        async function seal(titleValue, bodyValue) {
+        async function seal(titleValue, bodyValue, options) {
+          const opts = options || {};
+          const row = {
+            title: titleValue,
+            body: bodyValue || null,
+            kind: opts.kind || "record",
+            visibility: opts.shared ? "shared" : "private",
+            household_id: opts.shared ? profile.household_id : null,
+          };
+          if (opts.grade) row.grade = opts.grade;
+          if (opts.occurredAt) row.occurred_at = opts.occurredAt;
+          if (opts.meta) row.meta = opts.meta;
+
           const { data: inserted, error } = await GZ.client
-            .from("vault_records")
-            .insert({ title: titleValue, body: bodyValue || null })
+            .from("records")
+            .insert(row)
             .select()
             .single();
           if (error) {
@@ -1917,25 +2057,58 @@
           return true;
         }
 
+        /* flip an existing record between private and shared */
+        async function setVisibility(record, shared) {
+          const { data: updated, error } = await GZ.client
+            .from("records")
+            .update({
+              visibility: shared ? "shared" : "private",
+              household_id: shared ? profile.household_id : null,
+            })
+            .eq("id", record.id)
+            .select()
+            .single();
+          if (error) {
+            toast("Could not change sharing: " + error.message);
+            return;
+          }
+          const index = records.findIndex((held) => held.id === record.id);
+          if (index > -1) records[index] = updated;
+          renderAll();
+          toast(shared ? "Shared to the relationship field." : "Returned to private.");
+        }
+
         $("capture-form").addEventListener("submit", async (event) => {
           event.preventDefault();
           $("capture-submit").disabled = true;
-          const ok = await seal($("capture-title").value.trim(), $("capture-body").value.trim());
+          const ok = await seal($("capture-title").value.trim(), $("capture-body").value.trim(), {
+            kind: captureContext.kind,
+            grade: captureContext.grade,
+            shared: $("capture-shared").checked,
+          });
           $("capture-submit").disabled = false;
           if (ok) {
             $("capture-title").value = "";
             $("capture-body").value = "";
+            $("capture-shared").checked = false;
             modal.hidden = true;
-            toast("Record sealed into the vault.");
+            toast(
+              captureContext.kind === "journal"
+                ? "Entry filed in " + captureContext.grade + "."
+                : "Record sealed into the vault."
+            );
           }
         });
 
         $("vault-form").addEventListener("submit", async (event) => {
           event.preventDefault();
-          const ok = await seal($("vault-title").value.trim(), $("vault-body").value.trim());
+          const ok = await seal($("vault-title").value.trim(), $("vault-body").value.trim(), {
+            shared: $("vault-shared").checked,
+          });
           if (ok) {
             $("vault-title").value = "";
             $("vault-body").value = "";
+            $("vault-shared").checked = false;
             toast("Record sealed into the vault.");
           }
         });
@@ -1996,7 +2169,7 @@
             toast("Give the document a title first.");
             return;
           }
-          const ok = await seal("Draft: " + title, $("scr-body").value.trim());
+          const ok = await seal(title, $("scr-body").value.trim(), { kind: "draft" });
           if (ok) toast("Draft preserved in the vault.");
         });
         document.querySelectorAll(".scr-ins").forEach((button) => {
@@ -2046,7 +2219,7 @@
 
         /* ---------- temple journal + dream field ---------- */
         function composeInGrade() {
-          openCapture("Journal · " + GRADES[activeGrade].name + ": ");
+          openCapture({ kind: "journal", grade: GRADES[activeGrade].name });
         }
         $("tw-new").addEventListener("click", () => {
           if ($("tw-dream-field").hidden) composeInGrade();
@@ -2075,25 +2248,26 @@
             return;
           }
           const layer = celestialLayer(when);
-          const parts = [
-            $("dr-body").value.trim(),
-            "",
-            "TONE: " + $("dr-tone").value + " · LUCIDITY: " + $("dr-lucid").value,
-            $("dr-symbols").value.trim() ? "SYMBOLS: " + $("dr-symbols").value.trim() : "",
-            $("dr-tags").value.trim() ? "TAGS: " + $("dr-tags").value.trim() : "",
-            "DREAMED: " + when.toLocaleString(),
-            "CELESTIAL: " + layer.ruler + " day · " + layer.phase + " moon · lunar day " +
-              layer.lunarDay + " · JD " + layer.julian + " · " + layer.station,
-          ].filter(Boolean);
-
           $("dr-seal").disabled = true;
-          const ok = await seal("Dream · " + $("dr-title").value.trim(), parts.join("\n"));
+          const ok = await seal($("dr-title").value.trim(), $("dr-body").value.trim(), {
+            kind: "dream",
+            occurredAt: when.toISOString(),
+            shared: $("dr-shared").checked,
+            meta: {
+              tone: $("dr-tone").value,
+              lucidity: $("dr-lucid").value,
+              symbols: $("dr-symbols").value.trim(),
+              tags: $("dr-tags").value.trim(),
+              celestial: layer,
+            },
+          });
           $("dr-seal").disabled = false;
           if (ok) {
             $("dr-title").value = "";
             $("dr-body").value = "";
             $("dr-symbols").value = "";
             $("dr-tags").value = "";
+            $("dr-shared").checked = false;
             toast("Dream sealed with its celestial layer.");
           }
         });
