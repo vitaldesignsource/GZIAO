@@ -10,7 +10,7 @@
     <link rel="icon" href="favicon.svg" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=5" />
+    <link rel="stylesheet" href="command.css?v=6" />
     <script>
       (function () {
         try {
@@ -1023,41 +1023,126 @@
               <button class="prime-btn" id="tw-new" type="button">+ New entry</button>
             </div>
           </div>
-          <section class="grade-track">
-            <div class="grade-cell is-on"><div><small>00 &middot; 0&deg;=0&#9633;</small><b>Neophyte</b><span>Threshold &middot; 0 entries</span></div><i class="grade-mark"></i></div>
-            <div class="grade-cell"><div><small>01 &middot; 1&deg;=10&#9633;</small><b>Zelator</b><span>Earth &middot; 0 entries</span></div><i class="grade-mark"></i></div>
-            <div class="grade-cell"><div><small>02 &middot; 2&deg;=9&#9633;</small><b>Theoricus</b><span>Air &middot; 0 entries</span></div><i class="grade-mark"></i></div>
-            <div class="grade-cell"><div><small>03 &middot; 3&deg;=8&#9633;</small><b>Practicus</b><span>Water &middot; 0 entries</span></div><i class="grade-mark"></i></div>
-            <div class="grade-cell"><div><small>04 &middot; 4&deg;=7&#9633;</small><b>Philosophus</b><span>Fire &middot; 0 entries</span></div><i class="grade-mark"></i></div>
+          <section class="tabbar" id="tw-fieldtabs">
+            <button class="is-on" type="button" data-field="grade"><b>&#127963; Grade work</b><span>Neophyte through Philosophus</span></button>
+            <button type="button" data-field="dream"><b>&#9790; Dream field</b><span>Oneiric record + celestial timestamps</span></button>
           </section>
-          <section class="strip">
-            <div class="strip-cell"><div><small>PRACTITIONER</small><b id="tw-prac"></b></div><span>Active sanctum</span></div>
-            <div class="strip-cell"><div><small>TOTAL RECORDS</small><b id="tw-total">0</b></div><span>Across all grades</span></div>
-            <div class="strip-cell"><div><small>GRADES OPENED</small><b>0/5</b></div><span>With journal activity</span></div>
-            <div class="strip-cell"><div><small>IMAGE FOLIO</small><b>0</b></div><span>Private photographs</span></div>
-          </section>
-          <section class="chrono-row">
-            <div class="panel" style="max-width: 400px">
-              <span class="kicker is-amber">CURRENT CHAMBER</span>
-              <div class="chamber-glyph"><span>0&deg;=0&#9633;</span></div>
-              <h2 style="margin-top: 0">Neophyte</h2>
-              <span class="kicker" style="color: var(--faint)">THRESHOLD</span>
-              <p class="panel-sub" style="margin-top: 10px">Orientation &middot; equilibrium &middot; first observations</p>
-              <div class="warn-note" style="border-color: var(--panel-line-bright); font-style: italic">What did I observe before interpretation entered?</div>
-              <button class="ghost-btn" id="tw-compose" type="button" style="margin-top: 18px; width: 100%">+ Compose in this grade</button>
-            </div>
-            <div class="panel">
-              <span class="kicker is-amber" id="tw-reg-kicker">NEOPHYTE &middot; JOURNAL REGISTER</span>
-              <h2>Journal register</h2>
-              <div class="empty-center" id="tw-empty">
-                <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
-                <b>The Neophyte register is unopened.</b>
-                <span>Begin the record with the first dated observation, practice, dream, or grade reflection.</span>
-                <div style="margin-top: 18px"><button class="ghost-btn" id="tw-first" type="button">+ Create first entry</button></div>
+
+          <!-- ---- grade work ---- -->
+          <div id="tw-grade-field">
+            <section class="grade-track" id="tw-track"></section>
+            <section class="strip" style="margin-top: 18px">
+              <div class="strip-cell"><div><small>PRACTITIONER</small><b id="tw-prac"></b></div><span>Active sanctum</span></div>
+              <div class="strip-cell"><div><small>TOTAL RECORDS</small><b id="tw-total">0</b></div><span>Across all grades</span></div>
+              <div class="strip-cell"><div><small>GRADES OPENED</small><b id="tw-opened">0/5</b></div><span>With journal activity</span></div>
+              <div class="strip-cell"><div><small>DREAM FOLIO</small><b id="tw-dreamcount">0</b></div><span>Sealed dreams</span></div>
+            </section>
+            <section class="chrono-row" style="margin-top: 18px">
+              <div class="panel" style="max-width: 400px">
+                <span class="kicker is-amber">CURRENT CHAMBER</span>
+                <div class="chamber-glyph"><span id="tw-glyph">0&deg;=0&#9633;</span></div>
+                <h2 style="margin-top: 0" id="tw-name">Neophyte</h2>
+                <span class="kicker" style="color: var(--faint)" id="tw-element">THRESHOLD</span>
+                <p class="panel-sub" style="margin-top: 10px" id="tw-motto"></p>
+                <div class="warn-note" style="border-color: var(--panel-line-bright); font-style: italic" id="tw-question"></div>
+                <div class="privacy-row"><span>RECORDS</span><b id="tw-graderecs" style="color: var(--paper)">0</b></div>
+                <button class="ghost-btn" id="tw-compose" type="button" style="margin-top: 8px; width: 100%">+ Compose in this grade</button>
               </div>
-              <ul class="vault-list" id="tw-list" style="margin-top: 10px"></ul>
-            </div>
-          </section>
+              <div class="panel">
+                <span class="kicker is-amber" id="tw-reg-kicker">NEOPHYTE &middot; JOURNAL REGISTER</span>
+                <h2>Journal register</h2>
+                <div class="empty-center" id="tw-empty">
+                  <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
+                  <b id="tw-empty-title">The Neophyte register is unopened.</b>
+                  <span>Begin the record with the first dated observation, practice, or grade reflection.</span>
+                  <div style="margin-top: 18px"><button class="ghost-btn" id="tw-first" type="button">+ Create first entry</button></div>
+                </div>
+                <ul class="vault-list" id="tw-list" style="margin-top: 10px; max-height: 420px"></ul>
+              </div>
+            </section>
+          </div>
+
+          <!-- ---- dream field ---- -->
+          <div id="tw-dream-field" hidden>
+            <section class="panel" style="border-color: #d0ad6d44">
+              <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+                <span>ONEIRIC INTELLIGENCE &middot; <span id="dr-owner"></span></span>
+                <span class="pill-status" style="height: 26px; --pill-color: var(--amber)"><i></i>PRIVATE ARCHIVE LIVE</span>
+              </span>
+              <h2>Dream Journal</h2>
+              <p class="panel-sub">Capture the dream first. The system seals its astronomical and symbolic time layers automatically.</p>
+              <div class="chrono-row" style="margin-top: 18px; grid-template-columns: 300px 1fr">
+                <div>
+                  <div class="chamber-glyph" style="width: 92px; height: 92px; margin: 10px auto 20px; border-radius: 50%; transform: none">
+                    <span style="transform: none; font-size: 30px; color: var(--amber)">&#9790;</span>
+                  </div>
+                  <h2 style="font-size: 21px; margin: 0 0 10px">Record before interpretation</h2>
+                  <p class="panel-note" style="margin: 0">
+                    The exact local time, UTC instant, Julian day, Sun, Moon phase, lunar day, and
+                    planetary day are attached when this entry is sealed.
+                  </p>
+                </div>
+                <form id="dream-form">
+                  <div class="intake" style="grid-template-columns: 2fr 1fr 1fr; margin-top: 0">
+                    <label>DREAM DATE &amp; TIME<input type="datetime-local" id="dr-when" required /></label>
+                    <label>DREAM TONE
+                      <select id="dr-tone">
+                        <option>Numinous</option><option>Ordinary</option><option>Turbulent</option>
+                        <option>Nightmare</option><option>Healing</option><option>Fragmentary</option>
+                      </select>
+                    </label>
+                    <label>LUCIDITY
+                      <select id="dr-lucid">
+                        <option>Not lucid</option><option>Semi-lucid</option><option>Fully lucid</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="intake" style="grid-template-columns: 1fr; margin-top: 12px">
+                    <label>DREAM TITLE<input type="text" id="dr-title" placeholder="A short name you will recognize later" required /></label>
+                  </div>
+                  <div class="intake" style="grid-template-columns: 1fr; margin-top: 12px">
+                    <label>DREAM NARRATIVE
+                      <textarea id="dr-body" placeholder="Record scenes, sequence, persons, places, words, sensations, colors, and the moment of waking&hellip;" style="border: 1px solid var(--panel-line-bright); border-radius: 8px; background: var(--panel-solid); color: var(--paper); min-height: 130px; padding: 12px; resize: vertical; font: 400 12.5px/1.7 Georgia, serif"></textarea>
+                    </label>
+                  </div>
+                  <div class="intake" style="grid-template-columns: 1fr 1fr; margin-top: 12px">
+                    <label>SYMBOLS &amp; FIGURES<input type="text" id="dr-symbols" placeholder="water, tower, serpent, unknown woman, red door&hellip;" /></label>
+                    <label>TAGS<input type="text" id="dr-tags" placeholder="recurring, childhood, work, warning&hellip;" /></label>
+                  </div>
+                  <div class="privacy-row" style="margin-top: 16px">
+                    <span>Celestial metadata is calculated at seal time.</span>
+                    <button class="prime-btn" type="submit" id="dr-seal">Seal dream + timestamp</button>
+                  </div>
+                </form>
+              </div>
+            </section>
+            <section class="chrono-row" style="margin-top: 18px">
+              <div class="panel">
+                <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+                  <span>DREAM CHRONOLOGY</span><span id="dr-count" style="color: var(--faint)">0 private records</span>
+                </span>
+                <h2>Sealed dreams</h2>
+                <div class="empty-center" id="dr-empty">
+                  <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
+                  <b>The dream field is unopened.</b>
+                  <span>Seal the first dream and its celestial layers are preserved with it.</span>
+                </div>
+                <ul class="vault-list" id="dr-list" style="margin-top: 10px; max-height: 420px"></ul>
+              </div>
+              <div class="panel">
+                <span class="kicker is-amber">TONIGHT&rsquo;S CELESTIAL LAYER</span>
+                <h2>What will be attached</h2>
+                <div class="oracle-facts" style="margin-top: 16px">
+                  <div><small>PLANETARY DAY</small><b id="dr-ruler"></b></div>
+                  <div><small>LUNAR PHASE</small><b id="dr-phase"></b></div>
+                  <div><small>LUNAR DAY</small><b id="dr-lday"></b></div>
+                  <div><small>JULIAN DAY</small><b id="dr-jd"></b></div>
+                  <div><small>SOLAR STATION</small><b id="dr-station"></b></div>
+                </div>
+                <p class="panel-note">These values are computed from the dream time you enter, not the time of writing.</p>
+              </div>
+            </section>
+          </div>
         </div>
 
         <div class="content" id="view-atlas" hidden>
@@ -1564,17 +1649,88 @@
           }
         }
 
+        /* ---------- temple journal ---------- */
+        const GRADES = [
+          {
+            num: "00", sig: "0°=0□", name: "Neophyte", element: "THRESHOLD",
+            motto: "Orientation · equilibrium · first observations",
+            question: "What did I observe before interpretation entered?",
+          },
+          {
+            num: "01", sig: "1°=10□", name: "Zelator", element: "EARTH",
+            motto: "Foundation · discipline · the body of the work",
+            question: "What did I actually do, and what held steady under it?",
+          },
+          {
+            num: "02", sig: "2°=9□", name: "Theoricus", element: "AIR",
+            motto: "Intellect · pattern · communication",
+            question: "Which pattern repeated, and what named it accurately?",
+          },
+          {
+            num: "03", sig: "3°=8□", name: "Practicus", element: "WATER",
+            motto: "Feeling · reflection · adaptation",
+            question: "What moved in me, and where did it originate?",
+          },
+          {
+            num: "04", sig: "4°=7□", name: "Philosophus", element: "FIRE",
+            motto: "Will · devotion · transformation",
+            question: "What was refined, and what was consumed to refine it?",
+          },
+        ];
+        let activeGrade = 0;
+
+        function gradeEntries(index) {
+          return records.filter((record) => record.title.startsWith("Journal · " + GRADES[index].name + ":"));
+        }
+
+        function dreamEntries() {
+          return records.filter((record) => record.title.startsWith("Dream · "));
+        }
+
         function renderTempleView() {
           $("tw-prac").textContent = handle;
-          const journals = records.filter((record) => record.title.startsWith("Journal: "));
-          $("tw-total").textContent = journals.length;
-          $("tw-empty").hidden = journals.length > 0;
+          const dreams = dreamEntries();
+          const allJournals = GRADES.reduce((sum, _, index) => sum + gradeEntries(index).length, 0);
+          $("tw-total").textContent = allJournals;
+          $("tw-dreamcount").textContent = dreams.length;
+          $("tw-opened").textContent = GRADES.filter((_, index) => gradeEntries(index).length).length + "/5";
+
+          const track = $("tw-track");
+          track.innerHTML = "";
+          GRADES.forEach((grade, index) => {
+            const count = gradeEntries(index).length;
+            const cell = document.createElement("button");
+            cell.type = "button";
+            cell.className = "grade-cell" + (index === activeGrade ? " is-on" : "");
+            cell.innerHTML =
+              "<div><small>" + grade.num + " · " + grade.sig + "</small><b>" + grade.name +
+              "</b><span>" + grade.element.charAt(0) + grade.element.slice(1).toLowerCase() + " · " + count +
+              " entr" + (count === 1 ? "y" : "ies") + "</span></div><i class='grade-mark'></i>";
+            cell.addEventListener("click", () => {
+              activeGrade = index;
+              renderTempleView();
+            });
+            track.append(cell);
+          });
+
+          const grade = GRADES[activeGrade];
+          $("tw-glyph").textContent = grade.sig;
+          $("tw-name").textContent = grade.name;
+          $("tw-element").textContent = grade.element;
+          $("tw-motto").textContent = grade.motto;
+          $("tw-question").textContent = grade.question;
+          $("tw-reg-kicker").textContent = grade.name.toUpperCase() + " · JOURNAL REGISTER";
+          $("tw-empty-title").textContent = "The " + grade.name + " register is unopened.";
+
+          const entries = gradeEntries(activeGrade);
+          $("tw-graderecs").textContent = entries.length;
+          $("tw-empty").hidden = entries.length > 0;
           const list = $("tw-list");
           list.innerHTML = "";
-          for (const record of journals) {
+          for (const record of entries) {
             const item = document.createElement("li");
             const title = document.createElement("b");
-            title.textContent = record.title.replace("Journal: ", "");
+            title.textContent = record.title.split(":").slice(1).join(":").trim();
             const stamp = document.createElement("time");
             stamp.textContent = new Date(record.created_at).toLocaleDateString();
             item.append(title, stamp);
@@ -1585,6 +1741,68 @@
             }
             list.append(item);
           }
+
+          /* dream field */
+          $("dr-owner").textContent = handle.toUpperCase();
+          $("dr-count").textContent = dreams.length + " private record" + (dreams.length === 1 ? "" : "s");
+          $("dr-empty").hidden = dreams.length > 0;
+          const dreamList = $("dr-list");
+          dreamList.innerHTML = "";
+          for (const record of dreams) {
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = record.title.replace("Dream · ", "");
+            const stamp = document.createElement("time");
+            stamp.textContent = new Date(record.created_at).toLocaleDateString();
+            item.append(title, stamp);
+            if (record.body) {
+              const body = document.createElement("p");
+              body.textContent = record.body;
+              item.append(body);
+            }
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.textContent = "Destroy";
+            remove.addEventListener("click", async () => {
+              const { error } = await GZ.client.from("vault_records").delete().eq("id", record.id);
+              if (!error) {
+                records = records.filter((held) => held.id !== record.id);
+                renderAll();
+                toast("Dream record destroyed.");
+              }
+            });
+            item.append(remove);
+            dreamList.append(item);
+          }
+        }
+
+        /* celestial layer for any given moment */
+        function celestialLayer(when) {
+          const startOfThatYear = new Date(when.getFullYear(), 0, 1);
+          const station = Math.floor((when - startOfThatYear) / dayMs) + 1;
+          const yearLength = Math.round((new Date(when.getFullYear() + 1, 0, 1) - startOfThatYear) / dayMs);
+          const moonAge = ((when.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / dayMs) % synodic;
+          const positiveAge = moonAge < 0 ? moonAge + synodic : moonAge;
+          const moonPhase = phaseNames.find(([limit]) => positiveAge < limit)[1];
+          const julian = when.getTime() / dayMs + 2440587.5;
+          return {
+            ruler: rulers[when.getDay()],
+            phase: moonPhase,
+            lunarDay: Math.floor(positiveAge) + 1,
+            julian: julian.toFixed(3),
+            station: "Day " + station + " of " + yearLength,
+          };
+        }
+
+        function refreshDreamLayer() {
+          const value = $("dr-when").value;
+          const when = value ? new Date(value) : new Date();
+          const layer = celestialLayer(when);
+          $("dr-ruler").textContent = layer.ruler;
+          $("dr-phase").textContent = layer.phase;
+          $("dr-lday").textContent = layer.lunarDay;
+          $("dr-jd").textContent = layer.julian;
+          $("dr-station").textContent = layer.station;
         }
 
         function renderAll() {
@@ -1822,11 +2040,63 @@
           toast("Field re-scanned.");
         });
 
-        /* ---------- temple journal + aion intake ---------- */
-        $("tw-new").addEventListener("click", () => openCapture("Journal: "));
-        $("tw-compose").addEventListener("click", () => openCapture("Journal: "));
-        $("tw-first").addEventListener("click", () => openCapture("Journal: "));
+        /* ---------- temple journal + dream field ---------- */
+        function composeInGrade() {
+          openCapture("Journal · " + GRADES[activeGrade].name + ": ");
+        }
+        $("tw-new").addEventListener("click", () => {
+          if ($("tw-dream-field").hidden) composeInGrade();
+          else $("dr-title").focus();
+        });
+        $("tw-compose").addEventListener("click", composeInGrade);
+        $("tw-first").addEventListener("click", composeInGrade);
+
+        $("tw-fieldtabs").addEventListener("click", (event) => {
+          const button = event.target.closest("button[data-field]");
+          if (!button) return;
+          const dreamMode = button.dataset.field === "dream";
+          document.querySelectorAll("#tw-fieldtabs button").forEach((tab) => tab.classList.remove("is-on"));
+          button.classList.add("is-on");
+          $("tw-grade-field").hidden = dreamMode;
+          $("tw-dream-field").hidden = !dreamMode;
+          if (dreamMode) refreshDreamLayer();
+        });
+
+        $("dr-when").addEventListener("change", refreshDreamLayer);
+        $("dream-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const when = new Date($("dr-when").value);
+          if (isNaN(when)) {
+            toast("Enter the dream date and time first.");
+            return;
+          }
+          const layer = celestialLayer(when);
+          const parts = [
+            $("dr-body").value.trim(),
+            "",
+            "TONE: " + $("dr-tone").value + " · LUCIDITY: " + $("dr-lucid").value,
+            $("dr-symbols").value.trim() ? "SYMBOLS: " + $("dr-symbols").value.trim() : "",
+            $("dr-tags").value.trim() ? "TAGS: " + $("dr-tags").value.trim() : "",
+            "DREAMED: " + when.toLocaleString(),
+            "CELESTIAL: " + layer.ruler + " day · " + layer.phase + " moon · lunar day " +
+              layer.lunarDay + " · JD " + layer.julian + " · " + layer.station,
+          ].filter(Boolean);
+
+          $("dr-seal").disabled = true;
+          const ok = await seal("Dream · " + $("dr-title").value.trim(), parts.join("\n"));
+          $("dr-seal").disabled = false;
+          if (ok) {
+            $("dr-title").value = "";
+            $("dr-body").value = "";
+            $("dr-symbols").value = "";
+            $("dr-tags").value = "";
+            toast("Dream sealed with its celestial layer.");
+          }
+        });
         const bootNow = new Date();
+        const localIso = new Date(bootNow.getTime() - bootNow.getTimezoneOffset() * 60000).toISOString();
+        $("dr-when").value = localIso.slice(0, 16);
+        refreshDreamLayer();
         $("aion-date").value = bootNow.toISOString().slice(0, 10);
         $("aion-scan").value = bootNow.toISOString().slice(0, 10);
         $("aion-time").value = bootNow.toTimeString().slice(0, 5);
