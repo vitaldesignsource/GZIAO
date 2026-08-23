@@ -10,6 +10,7 @@
     <link rel="icon" href="favicon.svg" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
+    <link rel="stylesheet" href="command.css?v=4" />
     <script>
       (function () {
         try {
@@ -31,23 +32,84 @@
     <script src="config.js?v=3"></script>
     <script src="auth.js?v=2"></script>
   </head>
-  <body>
-    <main class="public-entry">
-      <div class="entry-grid" aria-hidden="true"></div>
-      <header class="entry-nav">
-        <div class="entry-brand">
+  <body class="command-body">
+    <div class="shell">
+      <aside class="side" id="side">
+        <div class="side-head">
           <div class="brand-mark" aria-hidden="true">
             <span>G</span>
             <i></i>
             <span>Z</span>
           </div>
           <div>
-            <strong>GIMEL ZAYIN</strong>
-            <small>I&middot;A&middot;O</small>
+            <strong style="letter-spacing: 0.16em; font: 600 12px Georgia, serif">GIMEL ZAYIN</strong>
+            <small style="color: var(--amber); letter-spacing: 0.45em; font-size: 8px; display: block">I&middot;A&middot;O</small>
           </div>
         </div>
-        <div class="deck-nav-user">
-          <span id="deck-identity"></span>
+
+        <div class="side-sys">
+          <b>PRIVATE INTELLIGENCE SYSTEM</b>
+          <span>4 work areas &middot; 13 modules</span>
+        </div>
+
+        <nav id="side-nav">
+          <div class="side-section">
+            <header><b>ORIENT</b><span>See what is happening</span></header>
+            <button class="side-item" data-view="command"><small>01</small><strong>Command</strong><span>Daily intelligence</span></button>
+            <button class="side-item" data-view="timeline"><small>02</small><strong>Timeline</strong><span>Chronology</span></button>
+            <button class="side-item" data-view="watchtower"><small>03</small><strong>Watchtower</strong><span>Brief &amp; academy</span></button>
+          </div>
+          <div class="side-section">
+            <header><b>PROTECT</b><span>Cases, evidence, and drafts</span></header>
+            <button class="side-item" data-view="sentinel"><small>04</small><strong>Sentinel</strong><span>Cases &amp; citations</span></button>
+            <button class="side-item" data-view="vault"><small>10</small><strong>The Vault</strong><span>Documents</span></button>
+            <button class="side-item" data-view="scriptorium"><small>11</small><strong>Scriptorium</strong><span>Document studio</span></button>
+          </div>
+          <div class="side-section">
+            <header><b>MANAGE</b><span>Tasks, finances, and plans</span></header>
+            <button class="side-item" data-view="operations"><small>08</small><strong>Operations</strong><span>Tasks &amp; decisions</span></button>
+            <button class="side-item" data-view="resources"><small>09</small><strong>Resources</strong><span>Financial field</span></button>
+          </div>
+          <div class="side-section">
+            <header><b>UNDERSTAND</b><span>People, practice, and analysis</span></header>
+            <button class="side-item" data-view="constellations"><small>05</small><strong>Constellations</strong><span>People &amp; relations</span></button>
+            <button class="side-item" data-view="thework"><small>06</small><strong>The Work</strong><span>Grade journals</span></button>
+            <button class="side-item" data-view="aion"><small>07</small><strong>AION</strong><span>Timing systems</span></button>
+            <button class="side-item" data-view="atlas"><small>12</small><strong>The Atlas</strong><span>Correspondences</span></button>
+            <button class="side-item" data-view="oracle"><small>13</small><strong>Oracle</strong><span>Analysis</span></button>
+          </div>
+        </nav>
+
+        <div class="side-foot">
+          <div class="side-doctrine">
+            <b>STRATEGIC DOCTRINE</b>
+            <span>IMPROVISE</span><span>ADAPT</span><span>OVERCOME</span>
+          </div>
+          <div class="side-user">
+            <div class="side-avatar" id="user-avatar"></div>
+            <div class="side-user-copy">
+              <strong id="user-handle"></strong>
+              <span>Authenticated field</span>
+            </div>
+            <button class="side-signout" id="signout">Sign out</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="top">
+          <button class="top-menu" id="menu-toggle" aria-label="Toggle navigation">&#9776;</button>
+          <div class="crumb">
+            <small id="crumb-num">01</small>
+            <strong id="crumb-name">Command</strong>
+            <span id="crumb-desc">Daily intelligence</span>
+          </div>
+          <div class="top-search">
+            <input type="search" id="cmd-search" placeholder="Search or open a command&hellip;" autocomplete="off" />
+            <kbd>&#8984;K</kbd>
+            <div class="search-drop" id="search-drop" hidden></div>
+          </div>
+          <button class="ghost-btn" id="guide-btn" type="button">&#10022; Guide</button>
           <button class="theme-toggle" type="button" aria-label="Switch color theme">
             <svg class="tt-icon" viewBox="0 0 16 16" aria-hidden="true">
               <circle cx="8" cy="8" r="3" fill="currentColor" />
@@ -57,88 +119,771 @@
             </svg>
             <span class="tt-track" aria-hidden="true"><i class="tt-knob"></i></span>
             <svg class="tt-icon" viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                d="M13.3 10.1A5.8 5.8 0 0 1 5.9 2.7 6.3 6.3 0 1 0 13.3 10.1Z"
-                fill="currentColor"
-              />
+              <path d="M13.3 10.1A5.8 5.8 0 0 1 5.9 2.7 6.3 6.3 0 1 0 13.3 10.1Z" fill="currentColor" />
             </svg>
             <span class="theme-toggle-copy">Dark</span>
           </button>
-          <button class="deck-signout" type="button" id="deck-signout">Sign out</button>
-        </div>
-      </header>
+          <div class="top-state"><i></i> <span id="field-state">Field clear</span> <b id="top-time"></b></div>
+          <button class="top-cap" id="cap-open" type="button" aria-label="Capture">+</button>
+        </header>
 
-      <section class="deck">
-        <div class="deck-head">
-          <span class="entry-kicker">IMPROVISE &middot; ADAPT &middot; OVERCOME</span>
-          <h1 id="deck-greeting">Command deck</h1>
-        </div>
-
-        <div class="deck-grid">
-          <article class="deck-module">
-            <header>
-              <small>01</small>
-              <strong>COMMAND</strong>
-              <span>Daily intelligence</span>
-            </header>
-            <div class="deck-line" id="command-brief"></div>
-            <div class="deck-stat-row">
-              <div class="deck-stat"><b id="command-doy"></b><span>Day of year</span></div>
-              <div class="deck-stat"><b id="command-week"></b><span>Week</span></div>
-              <div class="deck-stat"><b id="command-remaining"></b><span>Days remain</span></div>
+        <!-- ================= COMMAND VIEW ================= -->
+        <div class="content" id="view-command">
+          <section class="hero">
+            <div class="hero-seal" aria-hidden="true"><span>GZ</span></div>
+            <div class="hero-copy">
+              <span class="kicker hero-kicker"><i></i> <span id="hero-kicker-text"></span></span>
+              <h1>Your field, at a glance.</h1>
+              <p id="hero-sub">One directive organizes the current field. Six intelligence layers explain why.</p>
             </div>
-          </article>
-
-          <article class="deck-module">
-            <header>
-              <small>02</small>
-              <strong>AION</strong>
-              <span>Esoteric timing</span>
-            </header>
-            <div class="deck-line" id="aion-brief"></div>
-            <div class="deck-stat-row">
-              <div class="deck-stat"><b id="aion-ruler"></b><span>Day ruler</span></div>
-              <div class="deck-stat"><b id="aion-phase"></b><span>Lunar phase</span></div>
-              <div class="deck-stat"><b id="aion-age"></b><span>Lunar day</span></div>
+            <div class="hero-actions">
+              <div class="seg" id="horizon-seg">
+                <button class="is-on" type="button">NOW</button>
+                <button type="button">7 DAYS</button>
+                <button type="button">30 DAYS</button>
+              </div>
+              <button class="ghost-btn" id="configure-btn" type="button">&#9776; Configure</button>
+              <button class="prime-btn" data-capture type="button">+ Capture</button>
             </div>
-          </article>
+          </section>
 
-          <article class="deck-module">
-            <header>
-              <small>03</small>
-              <strong>VAULT</strong>
-              <span>Private records</span>
-            </header>
-            <form class="vault-form" id="vault-form">
-              <input type="text" id="vault-title" placeholder="Record title" required />
-              <textarea id="vault-body" placeholder="Details (optional)"></textarea>
-              <button type="submit">Seal record</button>
-            </form>
-            <ul class="vault-list" id="vault-list"></ul>
-            <div class="deck-empty" id="vault-status"></div>
-          </article>
-
-          <article class="deck-module">
-            <header>
-              <small>04</small>
-              <strong>ORACLE</strong>
-              <span>Cross-field analysis</span>
-            </header>
-            <div class="deck-line" id="oracle-brief"></div>
-            <div class="deck-stat-row">
-              <div class="deck-stat"><b id="oracle-records"></b><span>Records held</span></div>
-              <div class="deck-stat"><b id="oracle-latest"></b><span>Last sealed</span></div>
-              <div class="deck-stat"><b id="oracle-tenure"></b><span>Days inside</span></div>
+          <section class="strip">
+            <div class="strip-cell">
+              <div><small>LOCAL COMMAND TIME</small><b id="strip-time"></b></div>
+              <span id="strip-tz"></span>
             </div>
-          </article>
+            <div class="strip-cell">
+              <div><small>IDENTITY PERIMETER</small><b>Verified</b></div>
+              <span>Private field isolated</span>
+            </div>
+            <div class="strip-cell">
+              <div><small>RECORD LATTICE</small><b id="strip-lattice">Synchronized</b></div>
+              <span id="strip-records">0 records indexed</span>
+            </div>
+            <div class="strip-cell">
+              <div><small>AION ENGINE</small><b>Solar online</b></div>
+              <span>Tropical &middot; Sidereal</span>
+            </div>
+          </section>
+
+          <section class="ql">
+            <div class="ql-badge">QUICK<br />LAUNCH</div>
+            <button class="ql-item" style="--item-color: var(--gold)" data-capture type="button">
+              <i class="ql-dot"></i>
+              <span class="ql-copy"><strong>+ Capture</strong><span>Anything entering the field</span></span>
+              <kbd>&#8997;C</kbd>
+            </button>
+            <button class="ql-item" style="--item-color: var(--violet)" data-soon="Profiles and relationships arrive with the Constellations build." type="button">
+              <i class="ql-dot"></i>
+              <span class="ql-copy"><strong>Add a person</strong><span>Profiles and relationships</span></span>
+              <kbd>&#8997;P</kbd>
+            </button>
+            <button class="ql-item" style="--item-color: var(--amber)" data-goto="aion" type="button">
+              <i class="ql-dot"></i>
+              <span class="ql-copy"><strong>Cast AION</strong><span>Timing calculations</span></span>
+              <kbd>&#8997;A</kbd>
+            </button>
+            <button class="ql-item" style="--item-color: var(--m3)" data-soon="Financial intelligence arrives with the Resources build." type="button">
+              <i class="ql-dot"></i>
+              <span class="ql-copy"><strong>Record amount</strong><span>Financial intelligence</span></span>
+              <kbd>&#8997;R</kbd>
+            </button>
+            <button class="ql-item" style="--item-color: var(--gold-soft)" data-goto="vault" type="button">
+              <i class="ql-dot"></i>
+              <span class="ql-copy"><strong>Open Vault</strong><span>Private documents</span></span>
+              <kbd>&#8997;V</kbd>
+            </button>
+          </section>
+
+          <section class="panel">
+            <span class="kicker">HOURLY PATTERN MEMORY</span>
+            <h2>Life Recommendations</h2>
+            <p class="panel-sub">Useful leads, optimizations, and next moves for the private field.</p>
+            <div class="chips" id="rec-chips">
+              <button class="is-on" type="button">All</button>
+              <button type="button" id="chip-operator"></button>
+              <button type="button">Shared</button>
+            </div>
+            <div class="rec-card">
+              <div class="rec-head">
+                <small>01</small>
+                <span class="rec-cat" id="rec-cat"></span>
+                <b id="rec-pct"></b>
+              </div>
+              <h3 id="rec-title"></h3>
+              <p id="rec-body"></p>
+              <details>
+                <summary>&#9656; Why this surfaced</summary>
+                <p id="rec-why"></p>
+              </details>
+              <div class="rec-actions">
+                <button class="ghost-btn" id="rec-primary" type="button"></button>
+                <button class="ghost-btn" id="rec-secondary" type="button"></button>
+              </div>
+            </div>
+            <p class="panel-note">
+              Recommendations use accumulated structured patterns and explainable rules. They are
+              suggestions, not autonomous decisions or proof of causation.
+            </p>
+          </section>
+
+          <section class="duo">
+            <div class="directive">
+              <div class="directive-head">
+                <span class="kicker is-amber">&#9670; <span id="directive-kicker">CLEAR FIELD</span></span>
+                <span id="directive-state">Field clear</span>
+              </div>
+              <div class="directive-body">
+                <div class="directive-num">01</div>
+                <div>
+                  <h3 id="directive-title"></h3>
+                  <p id="directive-copy"></p>
+                  <div class="directive-meta">
+                    <div><small>DEPENDS ON</small><b id="directive-depends"></b></div>
+                    <div><small>UNLOCKS</small><b id="directive-unlocks"></b></div>
+                    <button class="ghost-btn" data-capture type="button">Capture signal &rarr;</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel ring-panel">
+              <span class="kicker">FIELD READINESS</span>
+              <h2>Right now</h2>
+              <div class="ring-wrap">
+                <div class="ring" id="ready-ring">
+                  <div class="ring-value"><b id="ready-count">0</b><small>RECORDS HELD</small></div>
+                </div>
+              </div>
+              <div class="ring-cap"><i></i><span id="ready-cap">0 ready</span></div>
+            </div>
+          </section>
+
+          <section class="pulse-row">
+            <div class="panel pulse-panel">
+              <div>
+                <span class="kicker">LIVING NOW</span>
+                <div class="ring-wrap" style="width: 132px; height: 132px; margin: 16px 0 0">
+                  <div class="ring" style="--ring-color: var(--green)" id="pulse-ring">
+                    <div class="ring-value"><b id="pulse-value">100</b><small>FIELD PULSE</small></div>
+                  </div>
+                </div>
+              </div>
+              <div class="pulse-stats">
+                <h2 id="pulse-title" style="margin: 0">The field is coherent.</h2>
+                <p class="panel-sub" id="pulse-sub"></p>
+                <div class="pulse-stat"><b id="pulse-groups">0</b><span>source groups</span></div>
+                <div class="pulse-stat"><b id="pulse-files">0</b><span>preserved records</span></div>
+                <div class="pulse-stat"><b id="pulse-review">0</b><span>awaiting review</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <span class="kicker" style="display: flex; justify-content: space-between">
+                <span>ACTIVITY PULSE &middot; SOURCE AWARE</span>
+                <button class="ghost-btn" data-capture type="button" style="height: 34px">+ Add evidence</button>
+              </span>
+              <h2>Living intake</h2>
+              <div class="evi-row" id="evi-row"></div>
+              <div class="privacy-row">
+                <span><i></i>Source media remains private</span>
+                <span>Observation is separated from inference</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="chrono-row">
+            <div class="panel">
+              <span class="kicker" style="display: flex">
+                <span>LIVE CHRONOLOGY</span>
+                <button class="chrono-open" data-goto="timeline" type="button">OPEN TIMELINE &rarr;</button>
+              </span>
+              <h2>Today&rsquo;s movement</h2>
+              <div class="now-line"><small>NOW</small><i></i><hr /><b id="now-time"></b></div>
+              <ul class="chrono-list" id="chrono-list"></ul>
+            </div>
+            <div class="panel oracle-panel">
+              <div class="oracle-mark" aria-hidden="true"></div>
+              <span class="kicker is-violet">ORACLE SYNTHESIS</span>
+              <h2>What deserves attention?</h2>
+              <p class="oracle-read" id="oracle-read"></p>
+              <div class="oracle-facts">
+                <div><small>FINDING</small><b id="oracle-finding"></b></div>
+                <div><small>BASIS</small><b id="oracle-basis"></b></div>
+                <div><small>CONFIDENCE</small><b id="oracle-confidence"></b></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="stat-row">
+            <div class="stat-card" style="--card-color: var(--amber)">
+              <small>OPEN ACTIONS</small>
+              <b id="stat-actions">0</b>
+              <span>0 time-sensitive</span>
+            </div>
+            <div class="stat-card" style="--card-color: var(--m3)">
+              <small>NEXT DEADLINE</small>
+              <b id="stat-deadline">Clear</b>
+              <span>No dated obligations</span>
+            </div>
+            <div class="stat-card" style="--card-color: var(--gold-soft)">
+              <small>RECORDS IN REVIEW</small>
+              <b id="stat-review">0</b>
+              <span id="stat-review-sub">Vault field clear</span>
+            </div>
+            <div class="stat-card" style="--card-color: var(--violet)">
+              <small>UNCERTAINTIES</small>
+              <b id="stat-uncertain">0</b>
+              <span>identified</span>
+            </div>
+          </section>
+
+          <section class="trio">
+            <div class="panel" style="border-left: 3px solid #e08baf66">
+              <span class="kicker" style="display: flex; justify-content: space-between; color: #e08baf">
+                <span>LIFE DOMAINS</span>
+                <span style="color: var(--faint)">MANAGE</span>
+              </span>
+              <h2>Field balance</h2>
+              <div class="big-score"><b>76</b><span>/ 100</span></div>
+              <p class="panel-sub" style="margin-bottom: 10px">Composite stability &middot; demonstration layer</p>
+              <div class="bar-row"><small>Operations</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 82"></div></div><b>82</b></div>
+              <div class="bar-row"><small>Resources</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 64; --bar-color: var(--violet)"></div></div><b>64</b></div>
+              <div class="bar-row"><small>Relationships</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 91"></div></div><b>91</b></div>
+              <div class="bar-row"><small>Documents</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 58; --bar-color: #e08baf"></div></div><b>58</b></div>
+              <div class="bar-row"><small>Timing</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 77"></div></div><b>77</b></div>
+            </div>
+            <div class="panel" style="border-left: 3px solid #d0ad6d66">
+              <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+                <span>AION TEMPORAL FIELD</span>
+                <span style="color: var(--faint)">COMPARE SYSTEMS</span>
+              </span>
+              <h2>Seven-day pressure</h2>
+              <svg class="mini-chart" viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points="0,72 25,58 50,38 75,34 100,46 125,66 150,74 175,60 200,36 225,28 250,40 275,52 300,22" />
+                <circle cx="225" cy="28" r="3.4" />
+              </svg>
+              <div class="chart-legend" style="margin-bottom: 8px">
+                <span><i style="background: var(--gold)"></i>WESTERN TROPICAL &middot; ACTIVE</span>
+                <span><i style="background: var(--violet)"></i>SIDEREAL &middot; ACTIVE</span>
+              </div>
+              <p class="panel-note" style="margin: 0">Demonstration layer &middot; calculation engine pending</p>
+            </div>
+            <div class="panel" style="border-left: 3px solid #5ce0a166">
+              <span class="kicker" style="display: flex; justify-content: space-between">
+                <span>RESOURCES</span>
+                <button class="chrono-open" data-goto="resources" type="button">OPEN LEDGER</button>
+              </span>
+              <h2>Thirty-day position</h2>
+              <p class="panel-sub">Net recorded position</p>
+              <div class="money">$0</div>
+              <p class="money-cap">Nothing recorded yet &middot; the ledger activates in Resources</p>
+              <div class="split-bar">
+                <i style="flex: 2; background: var(--amber)"></i>
+                <i style="flex: 3; background: var(--m3)"></i>
+                <i style="flex: 2; background: var(--green)"></i>
+              </div>
+              <div class="chart-legend">
+                <span><i style="background: var(--amber)"></i>OUTFLOW</span>
+                <span><i style="background: var(--m3)"></i>INCOME</span>
+                <span><i style="background: var(--green)"></i>NET</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <span class="kicker" style="display: flex; justify-content: space-between">
+              <span>VAULT INTEGRITY</span>
+              <button class="chrono-open" data-goto="vault" type="button">OPEN VAULT</button>
+            </span>
+            <h2>Document readiness</h2>
+            <div class="strip" style="margin-top: 14px">
+              <div class="strip-cell"><div><small>TOTAL RECORDS</small><b id="vi-total">0</b></div></div>
+              <div class="strip-cell"><div><small>VERIFIED</small><b id="vi-verified">0</b></div></div>
+              <div class="strip-cell"><div><small>IN REVIEW</small><b>0</b></div></div>
+              <div class="strip-cell"><div><small>INTEGRITY</small><b>Original preserved</b></div></div>
+            </div>
+            <div id="vi-rows"></div>
+          </section>
+
+          <div class="mp-footer">
+            <span><i></i>LIVE PRIVATE RECORDS CONNECTED</span>
+            <span id="cmd-footer-mid">1 PROFILE &middot; 0 RECORDS &middot; OWNER-ISOLATED</span>
+            <span>CUSTOMIZE COMMAND</span>
+          </div>
         </div>
-      </section>
 
-      <footer class="entry-footer">
-        <span>GZ IAO &middot; ADAPTIVE INTELLIGENCE SYSTEM</span>
-        <b>Authorized access only</b>
-      </footer>
-    </main>
+        <!-- ================= VAULT VIEW ================= -->
+        <div class="content" id="view-vault" hidden>
+          <section class="panel">
+            <span class="kicker">MODULE 10 &middot; PROTECT</span>
+            <h2>The Vault</h2>
+            <p class="panel-sub">
+              Private records, sealed under your identity. Row-level security keeps every record
+              readable by you alone.
+            </p>
+          </section>
+          <div class="vault-grid">
+            <section class="panel">
+              <span class="kicker">SEAL A RECORD</span>
+              <form class="vault-form" id="vault-form" style="margin-top: 16px">
+                <input type="text" id="vault-title" placeholder="Record title" required />
+                <textarea id="vault-body" placeholder="Details (optional)"></textarea>
+                <button type="submit">Seal record</button>
+              </form>
+            </section>
+            <section class="panel">
+              <span class="kicker">HELD IN THE VAULT</span>
+              <ul class="vault-list" id="vault-list" style="margin-top: 16px; max-height: 460px"></ul>
+              <div class="deck-empty" id="vault-status"></div>
+            </section>
+          </div>
+        </div>
+
+        <!-- ================= AION VIEW ================= -->
+        <div class="content" id="view-aion" hidden>
+          <section class="panel">
+            <span class="kicker is-amber">MODULE 07 &middot; UNDERSTAND</span>
+            <h2>AION &middot; Timing systems</h2>
+            <p class="panel-sub" id="aion-read"></p>
+          </section>
+          <section class="strip">
+            <div class="strip-cell"><div><small>DAY RULER</small><b id="aion-ruler"></b></div><span>Chaldean order</span></div>
+            <div class="strip-cell"><div><small>LUNAR PHASE</small><b id="aion-phase"></b></div><span id="aion-illum"></span></div>
+            <div class="strip-cell"><div><small>LUNAR DAY</small><b id="aion-age"></b></div><span>of the synodic month</span></div>
+            <div class="strip-cell"><div><small>SOLAR STATION</small><b id="aion-doy"></b></div><span id="aion-remain"></span></div>
+          </section>
+          <section class="stat-row">
+            <div class="stat-card" style="--card-color: var(--amber)"><small>DAY OF YEAR</small><b id="aion-s1">0</b><span>solar count</span></div>
+            <div class="stat-card" style="--card-color: var(--gold-soft)"><small>WEEK</small><b id="aion-s2">0</b><span>of the cycle</span></div>
+            <div class="stat-card" style="--card-color: var(--m3)"><small>DAYS REMAIN</small><b id="aion-s3">0</b><span>until year turn</span></div>
+            <div class="stat-card" style="--card-color: var(--violet)"><small>DAYS INSIDE</small><b id="aion-s4">0</b><span>since identity sealed</span></div>
+          </section>
+        </div>
+
+        <!-- ================= TIMELINE / CHRONOSCOPE ================= -->
+        <div class="content" id="view-timeline" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker">GZ TEMPORAL INTELLIGENCE</span>
+              <h1>Chronoscope</h1>
+              <p>One searchable temporal field for records, operations, resources, and evidence.</p>
+            </div>
+            <div class="mp-actions">
+              <div class="pill-status"><i></i>PRIVATE FIELD LIVE</div>
+              <button class="prime-btn" data-capture type="button">+ Capture event</button>
+            </div>
+          </div>
+          <section class="ql" style="align-items: center; padding: 8px 14px; gap: 8px">
+            <div class="chips" style="margin: 0">
+              <button class="is-on" type="button">ALL</button>
+              <button type="button">RECORDS <span id="tl-chip-records">0</span></button>
+              <button type="button">OPERATIONS 0</button>
+              <button type="button">RESOURCES 0</button>
+              <button type="button">VAULT <span id="tl-chip-vault">0</span></button>
+              <button type="button">7 DAYS</button>
+              <button class="is-on" type="button">30 DAYS</button>
+              <button type="button">ALL TIME</button>
+            </div>
+          </section>
+          <section class="chrono-row">
+            <div class="panel">
+              <div class="now-line" style="margin-top: 4px"><small>NOW</small><i></i><hr /><b id="tl-now"></b></div>
+              <div class="empty-center" id="tl-empty">
+                <div class="glyph"></div>
+                <b>No signals in this field.</b>
+                <span>Change the filters or capture the first dated event.</span>
+                <div style="margin-top: 18px"><button class="prime-btn" data-capture type="button">+ Capture event</button></div>
+              </div>
+              <ul class="chrono-list" id="tl-list"></ul>
+            </div>
+            <div class="panel">
+              <span class="kicker">SIGNAL INSPECTOR</span>
+              <h2>Awaiting a signal</h2>
+              <p class="panel-sub">Select an item in the temporal field to inspect its source and metadata.</p>
+              <span class="kicker" style="margin-top: 22px; display: block; color: var(--faint)">FIELD COMPOSITION</span>
+              <div class="bar-row"><small>Records</small><div class="bar-track"><div class="bar-fill" id="fc-records-bar" style="--bar-pct: 4"></div></div><b id="fc-records">0</b></div>
+              <div class="bar-row"><small>Operations</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2; --bar-color: var(--violet)"></div></div><b>0</b></div>
+              <div class="bar-row"><small>Resources</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2; --bar-color: var(--amber)"></div></div><b>0</b></div>
+              <div class="bar-row"><small>Vault</small><div class="bar-track"><div class="bar-fill" id="fc-vault-bar" style="--bar-pct: 4; --bar-color: #e08baf"></div></div><b id="fc-vault">0</b></div>
+              <div class="privacy-row" style="justify-content: flex-start"><span><i></i>Owner-isolated data &middot; live index</span></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ================= WATCHTOWER ================= -->
+        <div class="content" id="view-watchtower" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker is-violet">RESEARCH VIGILANCE &middot; DISCIPLINED PRACTICE</span>
+              <h1>Watchtower</h1>
+              <p>A daily source-linked brief and a safety-centered academy for psychological literacy, spiritual discernment, and ethical defense.</p>
+            </div>
+            <div class="mp-actions">
+              <div class="pill-status" style="--pill-color: var(--violet)"><i></i>RESEARCH FIELD FORMING</div>
+              <button class="prime-btn" data-soon="The research index connects in a later build." type="button">Refresh brief</button>
+            </div>
+          </div>
+          <section class="principles" style="--pr-color: var(--violet)">
+            <div><i class="pr-mark"></i><div><b>Clinical evidence</b><span>Study behavior; do not diagnose people from conflict.</span></div></div>
+            <div><i class="pr-mark"></i><div><b>Tradition in context</b><span>Spiritual systems remain labeled by source and culture.</span></div></div>
+            <div><i class="pr-mark"></i><div><b>Safety before interpretation</b><span>Danger, illness, or loss of function requires qualified help.</span></div></div>
+          </section>
+          <section class="tabbar">
+            <button class="is-on" type="button"><b>Daily brief</b><span>Latest indexed research</span></button>
+            <button data-soon="The defense academy opens in a later build." type="button"><b>Defense academy</b><span>0/23 lessons complete</span></button>
+            <div class="tab-progress"><span>TRAINING PROGRESS</span><div class="bar-track"><div class="bar-fill" style="--bar-pct: 1"></div></div><span>0%</span></div>
+          </section>
+          <section class="chrono-row">
+            <div class="panel" style="border-color: #8b5cf640">
+              <span class="kicker is-violet">DAILY INTELLIGENCE BRIEF</span>
+              <h2 id="wt-date"></h2>
+              <div class="chips">
+                <button class="is-on" type="button">All signals</button>
+                <button type="button">Narcissism</button>
+                <button type="button">Personality</button>
+                <button type="button">Hungry ghosts</button>
+                <button type="button">Psychic defense</button>
+                <button type="button">Exorcism &amp; ethics</button>
+              </div>
+              <div class="empty-center">
+                <div class="glyph" style="background: #8b5cf615; border-color: #8b5cf655"></div>
+                <b>The research index is not yet connected.</b>
+                <span>Source-linked scholarship appears here once the indexing layer comes online. Publication titles will come from Crossref&rsquo;s scholarly index.</span>
+              </div>
+              <p class="panel-note">Publication titles and links come from scholarly indexes. Read the original work before relying on a finding.</p>
+            </div>
+            <div class="panel">
+              <span class="kicker is-violet">DAILY DEFENSIVE PROTOCOL</span>
+              <h2>Stabilize before you interpret</h2>
+              <ul class="wf-list">
+                <li><small>01</small><span class="wf-mark">&#9678;</span><div><b>Orient</b><span>Name the concrete issue in one sentence.</span></div></li>
+                <li><small>02</small><span class="wf-mark">&#9678;</span><div><b>Regulate</b><span>Sleep, eat, breathe, and lower physiological pressure.</span></div></li>
+                <li><small>03</small><span class="wf-mark">&#9678;</span><div><b>Separate</b><span>Write observation and interpretation in different columns.</span></div></li>
+                <li><small>04</small><span class="wf-mark">&#9678;</span><div><b>Verify</b><span>Preserve sources and check ordinary explanations.</span></div></li>
+                <li><small>05</small><span class="wf-mark">&#9678;</span><div><b>Act</b><span>Choose the smallest ethical, practical response.</span></div></li>
+              </ul>
+              <div class="warn-note">If anyone may be harmed, is severely confused, cannot sleep for an extended period, or is losing contact with reality, pause spiritual techniques and seek urgent qualified help.</div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ================= SENTINEL ================= -->
+        <div class="content" id="view-sentinel" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker is-amber">EVIDENCE-CENTERED SELF-ADVOCACY</span>
+              <h1>Sentinel</h1>
+              <p>Manage matters, citations, courts, deadlines, evidence, and drafting from one calm defensive command center.</p>
+            </div>
+            <div class="mp-actions">
+              <div class="pill-status" style="--pill-color: var(--amber)"><i></i>PRIVATE REGISTER CONNECTED</div>
+              <button class="ghost-btn" data-soon="Tickets arrive with the civic ledger build." type="button">+ Add ticket</button>
+              <button class="prime-btn" data-soon="Matters arrive with the register build." type="button">New matter</button>
+            </div>
+          </div>
+          <section class="principles" style="--pr-color: var(--amber)">
+            <div><i class="pr-mark"></i><div><b>Fact first</b><span>Use neutral language, exact dates, and preserved sources.</span></div></div>
+            <div><i class="pr-mark"></i><div><b>Deadlines control</b><span>Court dates always override optional election timing.</span></div></div>
+            <div><i class="pr-mark"></i><div><b>Timing stays separate</b><span>Symbolic planning is labeled and never presented as legal authority.</span></div></div>
+          </section>
+          <section class="strip">
+            <div class="strip-cell"><div><small>ACTIVE MATTERS</small><b>0</b></div><span>0 closed</span></div>
+            <div class="strip-cell"><div><small>OPEN CITATIONS</small><b>0</b></div><span>0 resolved</span></div>
+            <div class="strip-cell"><div><small>OUTSTANDING BALANCE</small><b>$0</b></div><span>Open and contested entries</span></div>
+            <div class="strip-cell"><div><small>NEXT AUTHORITATIVE DATE</small><b style="color: var(--amber)">Clear</b></div><span>No dated court items</span></div>
+          </section>
+          <section class="duo-wide">
+            <div class="panel">
+              <span class="kicker is-amber">MATTER REGISTER</span>
+              <h2>Cases and proceedings</h2>
+              <div class="empty-center">
+                <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
+                <b>No legal matters recorded.</b>
+                <span>Create a matter to organize deadlines, sources, documents, and citations.</span>
+              </div>
+            </div>
+            <div class="panel">
+              <span class="kicker is-amber">CIVIC LEDGER</span>
+              <h2>Tickets and court balances</h2>
+              <div class="empty-center">
+                <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
+                <b>No citations recorded.</b>
+                <span>Add each ticket, court, amount, and due date.</span>
+              </div>
+            </div>
+            <div class="panel">
+              <span class="kicker is-amber">DEFENSIVE WORKFLOW</span>
+              <h2>From event to filing</h2>
+              <ul class="wf-list">
+                <li><small>01</small><span class="wf-mark">&#10022;</span><div><b>Capture</b><span>Record the event in neutral language.</span></div></li>
+                <li><small>02</small><span class="wf-mark">&#10022;</span><div><b>Preserve</b><span>Upload original messages and documents.</span></div></li>
+                <li><small>03</small><span class="wf-mark">&#10022;</span><div><b>Verify</b><span>Confirm dates, sources, and uncertainty.</span></div></li>
+                <li><small>04</small><span class="wf-mark">&#10022;</span><div><b>Draft</b><span>Build a sourced working document.</span></div></li>
+                <li><small>05</small><span class="wf-mark">&#10022;</span><div><b>Review</b><span>Check court rules and factual claims.</span></div></li>
+                <li><small>06</small><span class="wf-mark">&#10022;</span><div><b>File</b><span>Record the authoritative deadline.</span></div></li>
+              </ul>
+              <div class="warn-note">Sentinel organizes information and working drafts. It does not replace an attorney, court rules, official notices, or jurisdiction-specific legal advice.</div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ================= SCRIPTORIUM ================= -->
+        <div class="content" id="view-scriptorium" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker is-amber">PRIVATE DOCUMENT INTELLIGENCE</span>
+              <h1>Scriptorium</h1>
+              <p>Compose, preserve, review, and export structured documents from your authorized field.</p>
+            </div>
+            <div class="mp-actions">
+              <div class="pill-status" style="--pill-color: var(--amber)"><i></i>PRIVATE LIBRARY CONNECTED</div>
+              <button class="prime-btn" id="scr-new" type="button">+ New document</button>
+            </div>
+          </div>
+          <section class="duo-wide">
+            <div class="panel">
+              <span class="kicker is-amber">TEMPLATES &middot; 6</span>
+              <div id="scr-templates">
+                <div class="tmpl" data-tmpl="Intelligence Brief"><small>ANALYSIS</small><b>Intelligence Brief</b><span>A concise finding, evidence basis, confidence statement, and action path.</span></div>
+                <div class="tmpl" data-tmpl="Structured Chronology"><small>RECORDS</small><b>Structured Chronology</b><span>A date-ordered record with sources, certainty, and unresolved gaps.</span></div>
+                <div class="tmpl" data-tmpl="Business Estimate"><small>BUSINESS</small><b>Business Estimate</b><span>A clean scope, itemized pricing, assumptions, and acceptance structure.</span></div>
+                <div class="tmpl" data-tmpl="Declaration Working Draft"><small>LEGAL SUPPORT</small><b>Declaration Working Draft</b><span>A fact-centered declaration outline with numbered paragraphs and review safeguards.</span></div>
+                <div class="tmpl" data-tmpl="Exhibit Index"><small>EVIDENCE</small><b>Exhibit Index</b><span>An organized register of exhibits with dates, descriptions, and authentication notes.</span></div>
+                <div class="tmpl" data-tmpl="Operational Plan"><small>ACTION</small><b>Operational Plan</b><span>A practical objective, constraints, sequence, ownership, and review cadence.</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <span class="kicker" style="display: flex; justify-content: space-between">
+                <span>NEW COMPOSITION</span>
+                <span style="display: flex; gap: 10px">
+                  <button class="chrono-open" data-soon="Text export arrives in a later build." type="button">EXPORT TEXT</button>
+                  <button class="chrono-open" id="scr-save" type="button">SAVE DRAFT &#10003;</button>
+                </span>
+              </span>
+              <div class="paper" style="margin-top: 16px">
+                <small>GZ / IAO &middot; WORKING DRAFT</small>
+                <input type="text" id="scr-title" placeholder="Untitled document" />
+                <textarea id="scr-body" placeholder="Begin writing, or select a template from the library&hellip;"></textarea>
+              </div>
+            </div>
+            <div class="panel">
+              <span class="kicker is-amber">DOCUMENT CONTROL</span>
+              <h2>Review field</h2>
+              <span class="kicker" style="color: var(--faint); display: block; margin-top: 14px">STATUS</span>
+              <div class="pill-status" style="margin-top: 8px; width: 100%">Working draft</div>
+              <span class="kicker" style="color: var(--faint); display: block; margin-top: 16px">INSERT SECTION</span>
+              <div class="rec-actions" style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+                <button class="ghost-btn scr-ins" type="button">+ Purpose and scope</button>
+                <button class="ghost-btn scr-ins" type="button">+ Known facts</button>
+                <button class="ghost-btn scr-ins" type="button">+ Source register</button>
+                <button class="ghost-btn scr-ins" type="button">+ Analysis</button>
+                <button class="ghost-btn scr-ins" type="button">+ Uncertainties</button>
+                <button class="ghost-btn scr-ins" type="button">+ Recommended actions</button>
+              </div>
+              <span class="kicker" style="color: var(--faint); display: block; margin-top: 18px">REVIEW READINESS</span>
+              <ul class="check-list">
+                <li class="is-done"><i></i>Document identified</li>
+                <li><i></i>Substantive content</li>
+                <li class="is-done"><i></i>Placeholders resolved</li>
+                <li><i></i>Review status advanced</li>
+              </ul>
+              <div class="warn-note">This studio supports drafting and organization. Court rules, factual claims, citations, signatures, and filing requirements require human review.</div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ================= OPERATIONS ================= -->
+        <div class="content" id="view-operations" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker">IMPROVISE &middot; ADAPT &middot; OVERCOME</span>
+              <h1>Operations</h1>
+              <p>Tasks, projects, decisions, and the dependencies between them.</p>
+            </div>
+            <div class="mp-actions">
+              <button class="prime-btn" data-soon="The operational register arrives in a later build." type="button">+ New operation</button>
+            </div>
+          </div>
+          <section class="panel">
+            <span class="kicker" style="display: flex; justify-content: space-between">
+              <span>PHONE &amp; DEVICE ALERTS</span>
+              <span style="color: var(--faint)">0 UPCOMING</span>
+            </span>
+            <h2>Notification Center</h2>
+            <p class="panel-sub">Active-session alerts plus phone-calendar handoff for reminders that must fire after the app is closed.</p>
+            <p class="panel-note" id="ops-alerts">&#9679; Browser alerts blocked</p>
+          </section>
+          <section class="duo-wide">
+            <div class="panel">
+              <span class="kicker" style="display: flex; justify-content: space-between">
+                <span>CURRENT DIRECTIVE</span>
+                <span style="color: var(--amber); border: 1px solid #d0ad6d55; border-radius: 4px; padding: 3px 8px">READY</span>
+              </span>
+              <h2>The active field is clear</h2>
+              <p class="oracle-read">Capture a new action when the next obligation enters the field.</p>
+              <div class="privacy-row"><span>0% complete</span><span>0 open actions</span></div>
+            </div>
+            <div class="panel">
+              <span class="kicker">ACTION REGISTER</span>
+              <h2>0 open actions</h2>
+              <div class="empty-center">
+                <div class="glyph"></div>
+                <b>Add the first operational action</b>
+                <span>Ready when you are &mdash; the register holds tasks, projects, and their dependencies.</span>
+              </div>
+            </div>
+            <div class="panel">
+              <span class="kicker">DECISION RECORD</span>
+              <h2>Choose the next review window</h2>
+              <div class="oracle-facts" style="margin-top: 16px">
+                <div><small>KNOWN</small><b>0 actions recorded</b></div>
+                <div><small>COMPLETE</small><b>0 actions resolved</b></div>
+                <div><small>PRIORITY</small><b>0 high-consequence actions</b></div>
+              </div>
+              <button class="ghost-btn" data-soon="Structured decisions arrive in a later build." type="button" style="margin-top: 16px; width: 100%">Open structured decision &rarr;</button>
+            </div>
+          </section>
+          <div class="mp-footer"><span><i></i>PRIVATE OPERATIONAL REGISTER CONNECTED</span></div>
+        </div>
+
+        <!-- ================= RESOURCES ================= -->
+        <div class="content" id="view-resources" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker">PRIVATE FINANCIAL INTELLIGENCE</span>
+              <h1>Resources</h1>
+              <p>Search real account activity, manage household ledgers, and understand the assumptions behind every position.</p>
+            </div>
+            <div class="mp-actions">
+              <button class="prime-btn" data-soon="Resource entries arrive with the ledger build." type="button">+ Add resource</button>
+            </div>
+          </div>
+          <section class="panel">
+            <span class="kicker" style="display: flex; justify-content: space-between">
+              <span>REAL FINANCIAL DATA LAYER</span>
+              <span style="display: flex; gap: 10px">
+                <button class="chrono-open" data-soon="Statement import arrives with the ledger build." type="button">IMPORT STATEMENT</button>
+                <button class="chrono-open" data-soon="Bank connections require a configured provider." type="button">+ CONNECT BANK</button>
+              </span>
+            </span>
+            <h2>Connected Accounts</h2>
+            <p class="panel-sub">Searchable transactions, balances, categories, and household scopes &mdash; with a secure provider boundary.</p>
+            <div class="empty-center" style="padding: 30px">
+              <b>No real accounts imported yet.</b>
+              <span>Import a bank CSV to activate balances and transaction intelligence.</span>
+            </div>
+            <div class="strip">
+              <div class="strip-cell"><div><small>VISIBLE INFLOW</small><b>$0.00</b></div></div>
+              <div class="strip-cell"><div><small>VISIBLE OUTFLOW</small><b>$0.00</b></div></div>
+              <div class="strip-cell"><div><small>NET MOVEMENT</small><b>$0.00</b></div></div>
+              <div class="strip-cell"><div><small>TRANSACTIONS</small><b>0</b></div></div>
+            </div>
+            <p class="panel-note">Live institution authorization requires a configured banking provider. Statement imports contain real user-provided account data and remain owner-isolated.</p>
+          </section>
+          <section class="ledger-tabs">
+            <button class="ledger-tab is-on" type="button"><span class="ledger-ava">PE</span><span><small>PRIVATE LEDGER</small><b>Personal</b></span></button>
+            <button class="ledger-tab" type="button"><span class="ledger-ava" id="res-op-ava">OP</span><span><small>PRIVATE LEDGER</small><b id="res-op-name">Operator</b></span></button>
+            <button class="ledger-tab" type="button"><span class="ledger-ava">SH</span><span><small>PRIVATE LEDGER</small><b>Shared</b></span></button>
+          </section>
+          <section class="stat-row">
+            <div class="stat-card" style="--card-color: var(--gold-soft)"><small>RECORDED INCOME</small><b>$0</b><span>0 entries</span></div>
+            <div class="stat-card" style="--card-color: var(--amber)"><small>OUTFLOW + OBLIGATIONS</small><b>$0</b><span>0 obligations open</span></div>
+            <div class="stat-card" style="--card-color: var(--m3)"><small>NET RECORDED POSITION</small><b>$0</b><span>Income less recorded outflow</span></div>
+            <div class="stat-card" style="--card-color: var(--green)"><small>LEDGER INTEGRITY</small><b>100%</b><span>0 amounts still planned</span></div>
+          </section>
+        </div>
+
+        <!-- ================= ORACLE ================= -->
+        <div class="content" id="view-oracle" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker is-violet">CROSS-FIELD ANALYSIS</span>
+              <h1>Oracle</h1>
+              <p>Synthesis across every module. Patterns sharpen as records, actions, and chronology accumulate.</p>
+            </div>
+            <div class="mp-actions"><div class="pill-status" style="--pill-color: var(--violet)"><i></i>SYNTHESIS ONLINE</div></div>
+          </div>
+          <section class="chrono-row">
+            <div class="panel oracle-panel">
+              <div class="oracle-mark" aria-hidden="true"></div>
+              <span class="kicker is-violet">ORACLE SYNTHESIS</span>
+              <h2>What deserves attention?</h2>
+              <p class="oracle-read" id="o2-read"></p>
+              <div class="oracle-facts">
+                <div><small>FINDING</small><b id="o2-finding"></b></div>
+                <div><small>BASIS</small><b id="o2-basis"></b></div>
+                <div><small>CONFIDENCE</small><b>100%</b></div>
+              </div>
+              <button class="ghost-btn" data-soon="Interrogation deepens as the field accumulates signals." type="button" style="margin-top: 16px; width: 100%">&#10022; Interrogate this finding &rarr;</button>
+            </div>
+            <div class="panel">
+              <span class="kicker is-violet">SYNTHESIS BASIS</span>
+              <h2>Signals in scope</h2>
+              <div class="bar-row"><small>Vault records</small><div class="bar-track"><div class="bar-fill" id="o2-vault-bar" style="--bar-pct: 4; --bar-color: var(--violet)"></div></div><b id="o2-vault">0</b></div>
+              <div class="bar-row"><small>Operations</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2; --bar-color: var(--violet)"></div></div><b>0</b></div>
+              <div class="bar-row"><small>Chronology</small><div class="bar-track"><div class="bar-fill" id="o2-chrono-bar" style="--bar-pct: 2; --bar-color: var(--violet)"></div></div><b id="o2-chrono">0</b></div>
+              <div class="privacy-row" style="justify-content: flex-start"><span><i></i>Observation is separated from inference</span></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ================= LIGHT MODULES ================= -->
+        <div class="content" id="view-constellations" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker is-violet">PEOPLE &amp; RELATIONS</span>
+              <h1>Constellations</h1>
+              <p>Profiles, relationships, and the living map of the people in your field.</p>
+            </div>
+            <div class="mp-actions"><button class="prime-btn" data-soon="Profiles and relationships arrive with the Constellations build." type="button">+ Add a person</button></div>
+          </div>
+          <section class="panel"><div class="empty-center"><div class="glyph" style="background: #8b5cf615; border-color: #8b5cf655"></div><b>No people mapped yet.</b><span>Add the first person and the constellation begins to form.</span></div></section>
+        </div>
+
+        <div class="content" id="view-thework" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker">GRADE JOURNALS</span>
+              <h1>The Work</h1>
+              <p>Practice journals, grades, and disciplined reflection over time.</p>
+            </div>
+            <div class="mp-actions"><button class="prime-btn" data-soon="Journals arrive with The Work build." type="button">+ Open a journal</button></div>
+          </div>
+          <section class="panel"><div class="empty-center"><div class="glyph"></div><b>No journals opened.</b><span>The first entry establishes the practice record.</span></div></section>
+        </div>
+
+        <div class="content" id="view-atlas" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker is-amber">CORRESPONDENCES</span>
+              <h1>The Atlas</h1>
+              <p>Symbolic correspondences, tables, and reference lattices.</p>
+            </div>
+            <div class="mp-actions"><button class="prime-btn" data-soon="The correspondence lattice arrives with the Atlas build." type="button">+ New entry</button></div>
+          </div>
+          <section class="panel"><div class="empty-center"><div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div><b>No correspondences indexed.</b><span>The atlas fills as reference systems are recorded.</span></div></section>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="capture-modal" hidden>
+      <form class="gate-panel" id="capture-form">
+        <h3 class="modal-title">Capture into the field.</h3>
+        <p class="modal-sub">Sealed to the vault under your identity. Private by construction.</p>
+        <label>
+          Signal
+          <input type="text" id="capture-title" placeholder="Event, obligation, decision, or source" required />
+        </label>
+        <label>
+          Details
+          <textarea id="capture-body" placeholder="Optional context" style="border: 1px solid var(--line); background: transparent; color: var(--paper); padding: 11px 14px; min-height: 80px; resize: vertical; font: 400 13px Georgia, serif"></textarea>
+        </label>
+        <button class="entry-signin" type="submit" id="capture-submit">Seal record</button>
+        <button class="modal-cancel" type="button" id="capture-cancel">Cancel</button>
+      </form>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+
     <script src="script.js?v=2"></script>
     <script>
       (async function () {
@@ -147,87 +892,274 @@
           return;
         }
 
-        const { data } = await GZ.client.auth.getSession();
-        if (!data.session) {
+        /* localhost-only preview mode: app.html?mock=1 — never active in production */
+        if (location.hostname === "localhost" && location.search.includes("mock=1")) {
+          const demo = [
+            { id: "d1", title: "First sealed record", body: "A demonstration entry held privately in the vault.", created_at: new Date().toISOString() },
+          ];
+          GZ.client = {
+            auth: {
+              getSession: async () => ({ data: { session: { user: { email: "operator@gziao.test", created_at: "2026-08-01T00:00:00Z" } } } }),
+              onAuthStateChange: () => {},
+              signOut: async () => location.replace("signin.html"),
+            },
+            from: () => ({
+              select: () => ({ order: async () => ({ data: demo.slice(), error: null }) }),
+              insert: (row) => ({
+                select: () => ({
+                  single: async () => ({ data: { ...row, id: String(Math.random()), created_at: new Date().toISOString() }, error: null }),
+                }),
+              }),
+              delete: () => ({ eq: async () => ({ error: null }) }),
+            }),
+          };
+        }
+
+        const { data: sessionData } = await GZ.client.auth.getSession();
+        if (!sessionData.session) {
           location.replace("signin.html");
           return;
         }
-        const user = data.session.user;
+        const user = sessionData.session.user;
 
         GZ.client.auth.onAuthStateChange((_event, session) => {
           if (!session) location.replace("signin.html");
         });
 
-        document.getElementById("deck-identity").textContent = user.email;
-        document.getElementById("deck-signout").addEventListener("click", () => {
-          GZ.client.auth.signOut();
+        /* ---------- helpers ---------- */
+        const $ = (id) => document.getElementById(id);
+        const dayMs = 86400000;
+        let toastTimer;
+
+        function toast(message) {
+          const el = $("toast");
+          el.textContent = message;
+          el.hidden = false;
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => (el.hidden = true), 3200);
+        }
+
+        /* ---------- identity ---------- */
+        const handle = user.email.split("@")[0];
+        $("user-handle").textContent = handle;
+        $("user-avatar").textContent = handle.slice(0, 2).toUpperCase();
+        $("chip-operator").textContent = handle;
+        $("signout").addEventListener("click", async () => {
+          await GZ.client.auth.signOut();
+          location.replace("signin.html");
         });
 
-        /* ---- command ---- */
+        /* ---------- clock ---------- */
+        function tick() {
+          const now = new Date();
+          const time = now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+          const part = now.getHours() < 12 ? "MORNING" : now.getHours() < 18 ? "AFTERNOON" : "EVENING";
+          $("top-time").textContent = time;
+          $("strip-time").textContent = time;
+          $("now-time").textContent = time;
+          $("tl-now").textContent = time;
+          $("hero-kicker-text").textContent =
+            part + " FIELD · " + now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toUpperCase();
+        }
+        tick();
+        setInterval(tick, 30000);
+        try {
+          $("strip-tz").textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        } catch (error) {
+          $("strip-tz").textContent = "Local time";
+        }
+
+        /* ---------- AION ---------- */
         const now = new Date();
         const startOfYear = new Date(now.getFullYear(), 0, 1);
-        const endOfYear = new Date(now.getFullYear() + 1, 0, 1);
-        const dayMs = 86400000;
+        const daysInYear = Math.round((new Date(now.getFullYear() + 1, 0, 1) - startOfYear) / dayMs);
         const doy = Math.floor((now - startOfYear) / dayMs) + 1;
-        const daysInYear = Math.round((endOfYear - startOfYear) / dayMs);
-
-        document.getElementById("deck-greeting").textContent =
-          now.getHours() < 12
-            ? "Morning command."
-            : now.getHours() < 18
-              ? "Afternoon command."
-              : "Evening command.";
-        document.getElementById("command-brief").innerHTML =
-          "Today is <b>" +
-          now.toLocaleDateString(undefined, {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          }) +
-          "</b>. The field is open.";
-        document.getElementById("command-doy").textContent = doy;
-        document.getElementById("command-week").textContent = Math.ceil(doy / 7);
-        document.getElementById("command-remaining").textContent = daysInYear - doy;
-
-        /* ---- aion ---- */
         const rulers = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
         const ruler = rulers[now.getDay()];
         const synodic = 29.53058867;
-        const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
-        const age = ((now.getTime() - knownNewMoon) / dayMs) % synodic;
+        const age = ((now.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / dayMs) % synodic;
         const phaseNames = [
-          [1.85, "New"],
-          [5.54, "Waxing crescent"],
-          [9.23, "First quarter"],
-          [12.92, "Waxing gibbous"],
-          [16.61, "Full"],
-          [20.3, "Waning gibbous"],
-          [23.99, "Last quarter"],
-          [27.68, "Waning crescent"],
-          [Infinity, "New"],
+          [1.85, "New"], [5.54, "Waxing crescent"], [9.23, "First quarter"], [12.92, "Waxing gibbous"],
+          [16.61, "Full"], [20.3, "Waning gibbous"], [23.99, "Last quarter"], [27.68, "Waning crescent"], [Infinity, "New"],
         ];
         const phase = phaseNames.find(([limit]) => age < limit)[1];
+        const illumination = Math.round(((1 - Math.cos((2 * Math.PI * age) / synodic)) / 2) * 100);
+        const daysInside = Math.max(1, Math.floor((now - new Date(user.created_at)) / dayMs) + 1);
 
-        document.getElementById("aion-ruler").textContent = ruler;
-        document.getElementById("aion-phase").textContent = phase;
-        document.getElementById("aion-age").textContent = Math.floor(age) + 1;
-        document.getElementById("aion-brief").innerHTML =
-          "The day belongs to <b>" +
-          ruler +
-          "</b> under a <b>" +
-          phase.toLowerCase() +
-          "</b> moon.";
+        $("aion-ruler").textContent = ruler;
+        $("aion-phase").textContent = phase;
+        $("aion-illum").textContent = illumination + "% illuminated";
+        $("aion-age").textContent = Math.floor(age) + 1;
+        $("aion-doy").textContent = "Day " + doy;
+        $("aion-remain").textContent = daysInYear - doy + " days remain";
+        $("aion-read").textContent =
+          "The day belongs to " + ruler + " under a " + phase.toLowerCase() + " moon. Solar station " + doy + " of " + daysInYear + ".";
+        $("aion-s1").textContent = doy;
+        $("aion-s2").textContent = Math.ceil(doy / 7);
+        $("aion-s3").textContent = daysInYear - doy;
+        $("aion-s4").textContent = daysInside;
 
-        /* ---- vault ---- */
-        const vaultForm = document.getElementById("vault-form");
-        const vaultList = document.getElementById("vault-list");
-        const vaultStatus = document.getElementById("vault-status");
+        /* ---------- data ---------- */
         let records = [];
+        let latticeOk = true;
 
-        function renderVault() {
-          vaultList.innerHTML = "";
-          vaultStatus.textContent = records.length ? "" : "The vault is empty.";
+        async function loadRecords() {
+          const { data: rows, error } = await GZ.client
+            .from("vault_records")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (error) {
+            latticeOk = false;
+            records = [];
+          } else {
+            latticeOk = true;
+            records = rows;
+          }
+        }
+
+        /* ---------- renderers ---------- */
+        function renderStrip() {
+          $("strip-lattice").textContent = latticeOk ? "Synchronized" : "Degraded";
+          $("strip-records").textContent = records.length + " records indexed";
+        }
+
+        function renderRecommendation() {
+          const empty = records.length === 0;
+          const count = Math.min(3, records.length);
+          $("rec-cat").textContent = empty ? "FIELD · FIRST LIGHT" : "FIELD · INFORMATION HYGIENE";
+          $("rec-pct").textContent = empty ? "100%" : "84%";
+          $("rec-title").textContent = empty
+            ? "Seal the first record into the vault"
+            : "Review " + count + " recent source" + (count === 1 ? "" : "s") + " together";
+          $("rec-body").textContent = empty
+            ? "The pattern memory needs at least one preserved record before recommendations can anchor to anything real."
+            : "A brief review can separate what the records directly show from assumptions and make later recommendations more dependable.";
+          $("rec-why").textContent = empty
+            ? "The vault is currently empty, so the highest-leverage move is establishing the first source of record."
+            : records.length + " record" + (records.length === 1 ? "" : "s") + " now sit in the vault; periodic review keeps observation separated from inference.";
+          $("rec-primary").textContent = empty ? "▶ Begin capture" : "▶ Play briefing";
+          $("rec-secondary").textContent = "Open the vault ›";
+        }
+
+        function renderDirective() {
+          const empty = records.length === 0;
+          $("directive-kicker").textContent = empty ? "CLEAR FIELD" : "ACTIVE FIELD";
+          $("directive-state").textContent = empty ? "Field clear" : "Field holding " + records.length;
+          $("field-state").textContent = empty ? "Field clear" : "Field active";
+          $("directive-title").textContent = empty
+            ? "Capture the next meaningful signal."
+            : "Review the latest sealed record.";
+          $("directive-copy").textContent = empty
+            ? "No unresolved priority currently dominates the private field. Record the next event, obligation, decision, or source when it appears."
+            : "“" + records[0].title + "” is the newest record in the field. Confirm it is filed where it belongs, then capture what comes next.";
+          $("directive-depends").textContent = "Nothing blocked";
+          $("directive-unlocks").textContent = empty ? "Future intelligence" : "Pattern memory";
+        }
+
+        function renderReadiness() {
+          $("ready-count").textContent = records.length;
+          $("ready-cap").textContent = records.length + " ready";
+          $("ready-ring").style.setProperty("--ring-pct", records.length ? 100 : 12);
+        }
+
+        function renderPulse() {
+          const pulse = latticeOk ? 100 : 40;
+          $("pulse-value").textContent = pulse;
+          $("pulse-ring").style.setProperty("--ring-pct", pulse);
+          $("pulse-title").textContent = latticeOk ? "The field is coherent." : "The field is degraded.";
+          const groups = records.length ? 1 : 0;
+          $("pulse-sub").textContent = latticeOk
+            ? groups + " source group" + (groups === 1 ? " is" : "s are") + " participating in the private intelligence layer."
+            : "The record lattice is unreachable. Data returns when the connection is restored.";
+          $("pulse-groups").textContent = groups;
+          $("pulse-files").textContent = records.length;
+          $("pulse-review").textContent = 0;
+        }
+
+        function renderIntake() {
+          const row = $("evi-row");
+          row.innerHTML = "";
+          if (!records.length) {
+            const empty = document.createElement("div");
+            empty.className = "evi-empty";
+            empty.textContent = "The intake is quiet. Capture evidence and it appears here, source-aware.";
+            row.append(empty);
+            return;
+          }
+          for (const record of records.slice(0, 5)) {
+            const card = document.createElement("article");
+            card.className = "evi-card";
+            const kicker = document.createElement("small");
+            kicker.textContent = "VAULT RECORD · SEALED";
+            const title = document.createElement("strong");
+            title.textContent = record.title;
+            const body = document.createElement("p");
+            body.textContent = record.body || "No further detail recorded.";
+            const stamp = document.createElement("time");
+            stamp.textContent = new Date(record.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+            card.append(kicker, title, body, stamp);
+            row.append(card);
+          }
+        }
+
+        function renderChronology() {
+          const list = $("chrono-list");
+          list.innerHTML = "";
+          const today = new Date().toDateString();
+          const todays = records
+            .filter((record) => new Date(record.created_at).toDateString() === today)
+            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+          if (!todays.length) {
+            const li = document.createElement("li");
+            li.className = "chrono-empty";
+            li.style.display = "block";
+            li.textContent = "No movement recorded today. Sealed records appear here as the day unfolds.";
+            list.append(li);
+            return;
+          }
+          for (const record of todays) {
+            const li = document.createElement("li");
+            const time = document.createElement("span");
+            time.className = "chrono-time";
+            time.textContent = new Date(record.created_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+            const dot = document.createElement("i");
+            dot.className = "chrono-dot";
+            const title = document.createElement("strong");
+            title.textContent = "Sealed record: " + record.title;
+            const sub = document.createElement("span");
+            sub.textContent = "Vault · Preserved";
+            const status = document.createElement("b");
+            status.className = "chrono-status is-complete";
+            status.textContent = "COMPLETE";
+            li.append(time, dot, title, sub, status);
+            list.append(li);
+          }
+        }
+
+        function renderOracle() {
+          const empty = records.length === 0;
+          $("oracle-read").textContent = empty
+            ? "No unresolved priority currently dominates the private field. Record the next event, obligation, decision, or source when it appears."
+            : "The field holds " + records.length + " sealed record" + (records.length === 1 ? "" : "s") + ". The newest, “" + records[0].title + "”, is the current center of gravity.";
+          $("oracle-finding").textContent = empty ? "Clear field" : "Active field";
+          $("oracle-basis").textContent = records.length + " signal" + (records.length === 1 ? "" : "s");
+          $("oracle-confidence").textContent = "100%";
+        }
+
+        function renderStats() {
+          $("stat-review").textContent = records.length;
+          $("stat-review-sub").textContent = records.length ? records.length + " sealed & filed" : "Vault field clear";
+        }
+
+        function renderVaultList() {
+          const list = $("vault-list");
+          const status = $("vault-status");
+          list.innerHTML = "";
+          status.textContent = latticeOk
+            ? records.length
+              ? ""
+              : "The vault is empty."
+            : "Vault offline: the record lattice is unreachable.";
           for (const record of records) {
             const item = document.createElement("li");
             const title = document.createElement("b");
@@ -244,81 +1176,362 @@
             remove.type = "button";
             remove.textContent = "Destroy";
             remove.addEventListener("click", async () => {
-              const { error } = await GZ.client
-                .from("vault_records")
-                .delete()
-                .eq("id", record.id);
+              const { error } = await GZ.client.from("vault_records").delete().eq("id", record.id);
               if (!error) {
-                records = records.filter((r) => r.id !== record.id);
-                renderVault();
-                renderOracle();
+                records = records.filter((held) => held.id !== record.id);
+                renderAll();
+                toast("Record destroyed.");
               }
             });
             item.append(remove);
-            vaultList.append(item);
+            list.append(item);
           }
         }
 
-        async function loadVault() {
-          const { data: rows, error } = await GZ.client
-            .from("vault_records")
-            .select("*")
-            .order("created_at", { ascending: false });
-          if (error) {
-            vaultStatus.textContent =
-              "Vault offline: " + error.message + " (run the SQL in SETUP.md).";
-            return;
+        function renderIntegrity() {
+          $("vi-total").textContent = records.length;
+          $("vi-verified").textContent = records.length;
+          $("cmd-footer-mid").textContent =
+            "1 PROFILE · " + records.length + " RECORD" + (records.length === 1 ? "" : "S") + " · OWNER-ISOLATED";
+          const holder = $("vi-rows");
+          holder.innerHTML = "";
+          if (!records.length) return;
+          const table = document.createElement("table");
+          table.className = "table-lite";
+          table.innerHTML =
+            "<thead><tr><th>NAME</th><th>CLASSIFICATION</th><th>INTEGRITY</th><th>MODIFIED</th></tr></thead>";
+          const body = document.createElement("tbody");
+          for (const record of records.slice(0, 3)) {
+            const row = document.createElement("tr");
+            const name = document.createElement("td");
+            name.textContent = record.title;
+            const cls = document.createElement("td");
+            cls.className = "t-dim";
+            cls.textContent = "User-entered";
+            const integ = document.createElement("td");
+            integ.className = "t-dim";
+            integ.textContent = "Original preserved";
+            const mod = document.createElement("td");
+            mod.className = "t-dim";
+            mod.textContent = new Date(record.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+            row.append(name, cls, integ, mod);
+            body.append(row);
           }
-          records = rows;
-          renderVault();
+          table.append(body);
+          holder.append(table);
+        }
+
+        function renderTimelineView() {
+          $("tl-chip-records").textContent = records.length;
+          $("tl-chip-vault").textContent = records.length;
+          $("fc-records").textContent = records.length;
+          $("fc-vault").textContent = records.length;
+          const pct = Math.min(100, records.length * 12) || 4;
+          $("fc-records-bar").style.setProperty("--bar-pct", pct);
+          $("fc-vault-bar").style.setProperty("--bar-pct", pct);
+          const list = $("tl-list");
+          list.innerHTML = "";
+          $("tl-empty").hidden = records.length > 0;
+          for (const record of records.slice(0, 12)) {
+            const li = document.createElement("li");
+            const time = document.createElement("span");
+            time.className = "chrono-time";
+            time.textContent = new Date(record.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+            const dot = document.createElement("i");
+            dot.className = "chrono-dot";
+            const title = document.createElement("strong");
+            title.textContent = record.title;
+            const sub = document.createElement("span");
+            sub.textContent =
+              "Vault · " + new Date(record.created_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+            const status = document.createElement("b");
+            status.className = "chrono-status is-complete";
+            status.textContent = "SEALED";
+            li.append(time, dot, title, sub, status);
+            list.append(li);
+          }
+        }
+
+        function renderOracleView() {
+          const empty = records.length === 0;
+          $("o2-read").textContent = empty
+            ? "No unresolved priority currently dominates the private field. Record the next event, obligation, decision, or source when it appears."
+            : "The field holds " + records.length + " sealed record" + (records.length === 1 ? "" : "s") + ". The newest, “" + records[0].title + "”, is the current center of gravity.";
+          $("o2-finding").textContent = empty ? "Clear field" : "Active field";
+          $("o2-basis").textContent = records.length + " signal" + (records.length === 1 ? "" : "s");
+          $("o2-vault").textContent = records.length;
+          const today = new Date().toDateString();
+          const todays = records.filter((record) => new Date(record.created_at).toDateString() === today).length;
+          $("o2-chrono").textContent = todays;
+          const pct = Math.min(100, records.length * 12) || 4;
+          $("o2-vault-bar").style.setProperty("--bar-pct", pct);
+          $("o2-chrono-bar").style.setProperty("--bar-pct", Math.min(100, todays * 12) || 2);
+        }
+
+        function renderAll() {
+          renderStrip();
+          renderRecommendation();
+          renderDirective();
+          renderReadiness();
+          renderPulse();
+          renderIntake();
+          renderChronology();
           renderOracle();
+          renderStats();
+          renderVaultList();
+          renderIntegrity();
+          renderTimelineView();
+          renderOracleView();
         }
 
-        vaultForm.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          const title = document.getElementById("vault-title");
-          const body = document.getElementById("vault-body");
+        /* ---------- router ---------- */
+        const MODULES = {
+          command: { num: "01", name: "Command", desc: "Daily intelligence" },
+          timeline: { num: "02", name: "Timeline", desc: "Chronology" },
+          watchtower: { num: "03", name: "Watchtower", desc: "Brief & academy" },
+          sentinel: { num: "04", name: "Sentinel", desc: "Cases & citations" },
+          constellations: { num: "05", name: "Constellations", desc: "People & relations" },
+          thework: { num: "06", name: "The Work", desc: "Grade journals" },
+          aion: { num: "07", name: "AION", desc: "Timing systems" },
+          operations: { num: "08", name: "Operations", desc: "Tasks & decisions" },
+          resources: { num: "09", name: "Resources", desc: "Financial field" },
+          vault: { num: "10", name: "The Vault", desc: "Documents" },
+          scriptorium: { num: "11", name: "Scriptorium", desc: "Document studio" },
+          atlas: { num: "12", name: "The Atlas", desc: "Correspondences" },
+          oracle: { num: "13", name: "Oracle", desc: "Analysis" },
+        };
+        const BUILT = {
+          command: "view-command",
+          timeline: "view-timeline",
+          watchtower: "view-watchtower",
+          sentinel: "view-sentinel",
+          constellations: "view-constellations",
+          thework: "view-thework",
+          aion: "view-aion",
+          operations: "view-operations",
+          resources: "view-resources",
+          vault: "view-vault",
+          scriptorium: "view-scriptorium",
+          atlas: "view-atlas",
+          oracle: "view-oracle",
+        };
+
+        function setView(id) {
+          const module = MODULES[id] || MODULES.command;
+          const target = BUILT[id] || "view-command";
+          for (const view of Object.values(BUILT)) {
+            $(view).hidden = view !== target;
+          }
+          document.querySelectorAll(".side-item").forEach((item) => {
+            item.classList.toggle("is-active", item.dataset.view === id);
+          });
+          $("crumb-num").textContent = module.num;
+          $("crumb-name").textContent = module.name;
+          $("crumb-desc").textContent = module.desc;
+          $("side").classList.remove("is-open");
+          if (location.hash !== "#/" + id) history.replaceState(null, "", "#/" + id);
+          window.scrollTo(0, 0);
+        }
+
+        document.querySelectorAll(".side-item").forEach((item) => {
+          item.addEventListener("click", () => setView(item.dataset.view));
+        });
+        document.querySelectorAll("[data-goto]").forEach((button) => {
+          button.addEventListener("click", () => setView(button.dataset.goto));
+        });
+        window.addEventListener("hashchange", () => {
+          const id = location.hash.replace("#/", "");
+          if (MODULES[id]) setView(id);
+        });
+
+        /* ---------- capture modal ---------- */
+        const modal = $("capture-modal");
+        function openCapture() {
+          modal.hidden = false;
+          $("capture-title").focus();
+        }
+        document.querySelectorAll("[data-capture]").forEach((button) => {
+          button.addEventListener("click", openCapture);
+        });
+        $("cap-open").addEventListener("click", openCapture);
+        $("capture-cancel").addEventListener("click", () => (modal.hidden = true));
+        modal.addEventListener("click", (event) => {
+          if (event.target === modal) modal.hidden = true;
+        });
+
+        async function seal(titleValue, bodyValue) {
           const { data: inserted, error } = await GZ.client
             .from("vault_records")
-            .insert({ title: title.value.trim(), body: body.value.trim() || null })
+            .insert({ title: titleValue, body: bodyValue || null })
             .select()
             .single();
           if (error) {
-            vaultStatus.textContent = "Seal failed: " + error.message;
-            return;
+            toast("Seal failed: " + error.message);
+            return false;
           }
           records.unshift(inserted);
-          title.value = "";
-          body.value = "";
-          renderVault();
-          renderOracle();
-        });
-
-        /* ---- oracle ---- */
-        function renderOracle() {
-          const tenure = Math.max(
-            1,
-            Math.floor((now - new Date(user.created_at)) / dayMs) + 1
-          );
-          document.getElementById("oracle-records").textContent = records.length;
-          document.getElementById("oracle-latest").textContent = records.length
-            ? new Date(records[0].created_at).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-              })
-            : "—";
-          document.getElementById("oracle-tenure").textContent = tenure;
-          document.getElementById("oracle-brief").innerHTML = records.length
-            ? "The oracle reads <b>" +
-              records.length +
-              " record" +
-              (records.length === 1 ? "" : "s") +
-              "</b> across the field. Patterns sharpen as the vault grows."
-            : "The oracle is listening. Seal records into the vault and cross-field patterns will begin to surface.";
+          renderAll();
+          return true;
         }
 
-        renderOracle();
-        loadVault();
+        $("capture-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          $("capture-submit").disabled = true;
+          const ok = await seal($("capture-title").value.trim(), $("capture-body").value.trim());
+          $("capture-submit").disabled = false;
+          if (ok) {
+            $("capture-title").value = "";
+            $("capture-body").value = "";
+            modal.hidden = true;
+            toast("Record sealed into the vault.");
+          }
+        });
+
+        $("vault-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const ok = await seal($("vault-title").value.trim(), $("vault-body").value.trim());
+          if (ok) {
+            $("vault-title").value = "";
+            $("vault-body").value = "";
+            toast("Record sealed into the vault.");
+          }
+        });
+
+        /* ---------- recommendation + misc controls ---------- */
+        $("rec-primary").addEventListener("click", () => {
+          if (records.length === 0) openCapture();
+          else toast("Briefings come online as the pattern memory grows.");
+        });
+        $("rec-secondary").addEventListener("click", () => setView("vault"));
+        $("rec-chips").addEventListener("click", (event) => {
+          if (event.target.tagName !== "BUTTON") return;
+          document.querySelectorAll("#rec-chips button").forEach((chip) => chip.classList.remove("is-on"));
+          event.target.classList.add("is-on");
+        });
+        $("menu-toggle").addEventListener("click", () => $("side").classList.toggle("is-open"));
+        $("guide-btn").addEventListener("click", () => toast("The field guide arrives with a later build."));
+        $("configure-btn").addEventListener("click", () => toast("Configuration opens as more layers come online."));
+        $("horizon-seg").addEventListener("click", (event) => {
+          if (event.target.tagName !== "BUTTON") return;
+          document.querySelectorAll("#horizon-seg button").forEach((button) => button.classList.remove("is-on"));
+          event.target.classList.add("is-on");
+          if (event.target.textContent !== "NOW") toast("Extended horizons unlock as chronology accumulates.");
+        });
+        document.querySelectorAll("[data-soon]").forEach((button) => {
+          button.addEventListener("click", () => toast(button.dataset.soon));
+        });
+
+        /* ---------- module page wiring ---------- */
+        $("wt-date").textContent = new Date().toLocaleDateString(undefined, {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        });
+        $("ops-alerts").textContent =
+          "● Browser alerts " +
+          (typeof Notification !== "undefined" && Notification.permission === "granted" ? "enabled" : "blocked");
+        $("res-op-name").textContent = handle;
+        $("res-op-ava").textContent = handle.slice(0, 2).toUpperCase();
+
+        document.querySelectorAll(".tmpl").forEach((template) => {
+          template.style.cursor = "pointer";
+          template.addEventListener("click", () => {
+            $("scr-title").value = template.dataset.tmpl;
+            $("scr-body").value =
+              "## Purpose and scope\n\n## Known facts\n\n## Source register\n\n## Analysis\n\n## Uncertainties\n\n## Recommended actions\n";
+            toast("Template loaded: " + template.dataset.tmpl);
+          });
+        });
+        $("scr-new").addEventListener("click", () => {
+          $("scr-title").value = "";
+          $("scr-body").value = "";
+          $("scr-title").focus();
+        });
+        $("scr-save").addEventListener("click", async () => {
+          const title = $("scr-title").value.trim();
+          if (!title) {
+            toast("Give the document a title first.");
+            return;
+          }
+          const ok = await seal("Draft: " + title, $("scr-body").value.trim());
+          if (ok) toast("Draft preserved in the vault.");
+        });
+        document.querySelectorAll(".scr-ins").forEach((button) => {
+          button.addEventListener("click", () => {
+            const section = button.textContent.replace("+ ", "").trim();
+            $("scr-body").value = ($("scr-body").value + "\n\n## " + section + "\n").trimStart();
+          });
+        });
+
+        /* ---------- search palette ---------- */
+        const search = $("cmd-search");
+        const drop = $("search-drop");
+
+        function renderSearch() {
+          const query = search.value.trim().toLowerCase();
+          drop.innerHTML = "";
+          if (!query) {
+            drop.hidden = true;
+            return;
+          }
+          const hits = Object.entries(MODULES).filter(([, module]) =>
+            (module.name + " " + module.desc).toLowerCase().includes(query)
+          );
+          if (!hits.length) {
+            drop.hidden = true;
+            return;
+          }
+          hits.slice(0, 6).forEach(([id, module], index) => {
+            const item = document.createElement("button");
+            item.type = "button";
+            if (index === 0) item.classList.add("is-hot");
+            const num = document.createElement("small");
+            num.textContent = module.num;
+            const name = document.createElement("b");
+            name.textContent = module.name;
+            const desc = document.createElement("span");
+            desc.textContent = module.desc;
+            item.append(num, name, desc);
+            item.addEventListener("mousedown", (event) => {
+              event.preventDefault();
+              setView(id);
+              search.value = "";
+              drop.hidden = true;
+              search.blur();
+            });
+            drop.append(item);
+          });
+          drop.hidden = false;
+        }
+
+        search.addEventListener("input", renderSearch);
+        search.addEventListener("blur", () => setTimeout(() => (drop.hidden = true), 150));
+        search.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            const first = drop.querySelector("button");
+            if (first) {
+              event.preventDefault();
+              first.dispatchEvent(new Event("mousedown"));
+            }
+          }
+          if (event.key === "Escape") {
+            search.value = "";
+            drop.hidden = true;
+            search.blur();
+          }
+        });
+        window.addEventListener("keydown", (event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+            event.preventDefault();
+            search.focus();
+          }
+        });
+
+        /* ---------- boot ---------- */
+        await loadRecords();
+        renderAll();
+        const initial = location.hash.replace("#/", "");
+        setView(MODULES[initial] ? initial : "command");
       })();
     </script>
   </body>
