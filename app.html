@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=8" />
+    <link rel="stylesheet" href="command.css?v=10" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -38,18 +38,23 @@
     <script src="study-data.js?v=1"></script>
   </head>
   <body class="command-body">
-    <div class="shell">
+    <div class="shell" id="shell">
       <aside class="side" id="side">
         <div class="side-head">
-          <div class="brand-mark" aria-hidden="true">
-            <span>G</span>
-            <i></i>
-            <span>Z</span>
-          </div>
-          <div>
-            <strong style="letter-spacing: 0.16em; font: 600 12px Georgia, serif">GIMEL ZAYIN</strong>
-            <small style="color: var(--amber); letter-spacing: 0.45em; font-size: 8px; display: block">I&middot;A&middot;O</small>
-          </div>
+          <button class="side-home" id="side-home" type="button" aria-label="Go to Command">
+            <div class="brand-mark" aria-hidden="true">
+              <span>G</span>
+              <i></i>
+              <span>Z</span>
+            </div>
+            <div class="side-home-copy">
+              <strong style="letter-spacing: 0.16em; font: 600 12px Georgia, serif">GIMEL ZAYIN</strong>
+              <small style="color: var(--amber); letter-spacing: 0.45em; font-size: 8px; display: block">I&middot;A&middot;O</small>
+            </div>
+          </button>
+          <button class="side-collapse" id="side-collapse" type="button" aria-label="Collapse sidebar">
+            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M10.5 3 6 8l4.5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
 
         <div class="side-sys">
@@ -1000,18 +1005,24 @@
           <span hidden id="o2-vault-bar"></span><span hidden id="o2-chrono-bar"></span>
         </div>
 
-        <!-- ================= LIGHT MODULES ================= -->
+        <!-- ================= CONSTELLATIONS ================= -->
         <div class="content" id="view-constellations" hidden>
           <div class="mp-head">
             <div class="mp-head-copy">
               <span class="kicker is-violet">PRIVATE PROFILES</span>
               <h1>Constellations</h1>
-              <p>People, relationships, source records, and calculated systems.</p>
+              <p>People, relationships, and the important dates that shape your field.</p>
             </div>
-            <div class="mp-actions"><button class="prime-btn" data-soon="Sourced private profiles arrive with the Constellations build." type="button">+ Add person</button></div>
+            <div class="mp-actions"><button class="prime-btn" id="con-add" type="button">+ Add person</button></div>
           </div>
-          <section class="profile-grid">
-            <div class="profile-card is-ghost" data-soon="Sourced private profiles arrive with the Constellations build.">
+          <section class="strip">
+            <div class="strip-cell"><div><small>PROFILES</small><b id="con-total">0</b></div><span id="con-total-sub">In your field</span></div>
+            <div class="strip-cell"><div><small>SHARED</small><b id="con-shared">0</b></div><span>Visible to your household</span></div>
+            <div class="strip-cell"><div><small>UPCOMING BIRTHDAYS</small><b id="con-upcoming">0</b></div><span>Within 30 days</span></div>
+            <div class="strip-cell"><div><small>NEXT DATE</small><b id="con-next">Clear</b></div><span id="con-next-sub">No dated profiles yet</span></div>
+          </section>
+          <section class="profile-grid" id="con-grid" style="margin-top: 18px">
+            <div class="profile-card is-ghost" id="con-add-ghost">
               <div>
                 <div class="pr-mark" style="margin: 0 auto 18px; width: 44px; height: 44px; --pr-color: var(--violet)"></div>
                 <h3 style="font-size: 18px">Add a person</h3>
@@ -1019,7 +1030,7 @@
               </div>
             </div>
           </section>
-          <div class="mp-footer" style="justify-content: center"><span>0 PRIVATE PROFILES CONNECTED &middot; OPEN A DOSSIER FOR CHARTS AND INTELLIGENCE DATA</span></div>
+          <div class="mp-footer" style="justify-content: center"><span id="con-footer">0 PRIVATE PROFILES CONNECTED</span></div>
         </div>
 
         <div class="content" id="view-thework" hidden>
@@ -1301,6 +1312,69 @@
       </form>
     </div>
 
+    <div class="modal" id="person-modal" hidden>
+      <form class="gate-panel" id="person-form" style="width: min(560px, 100%)">
+        <h3 class="modal-title" id="person-form-heading">Add a person.</h3>
+        <p class="modal-sub">A private profile, sourced by you. Only you can see it unless you share it.</p>
+        <label>
+          Name
+          <input type="text" id="person-name" placeholder="Full name or how you know them" required />
+        </label>
+        <label>
+          Relation
+          <input type="text" id="person-relation" placeholder="Partner, sibling, friend, colleague&hellip;" />
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
+          <label>
+            Birth date
+            <input type="date" id="person-birth-date" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 44px; padding: 0 14px; font: 400 13px Georgia, serif" />
+          </label>
+          <label>
+            Birth time
+            <input type="time" id="person-birth-time" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 44px; padding: 0 14px; font: 400 13px Georgia, serif" />
+          </label>
+        </div>
+        <label>
+          Birth place
+          <input type="text" id="person-birth-place" placeholder="City, region, country" />
+        </label>
+        <label>
+          Notes
+          <textarea id="person-notes" placeholder="Context, history, trust and boundary notes&hellip;" style="border: 1px solid var(--line); background: transparent; color: var(--paper); padding: 11px 14px; min-height: 90px; resize: vertical; font: 400 13px Georgia, serif"></textarea>
+        </label>
+        <div class="share-row">
+          <label class="share-toggle">
+            <input type="checkbox" id="person-shared" />
+            <span></span>
+            Share to the relationship field
+          </label>
+          <small>Private by default. You can share or unshare at any time.</small>
+        </div>
+        <button class="entry-signin" type="submit" id="person-submit">Seal profile</button>
+        <button class="modal-cancel" type="button" id="person-cancel">Cancel</button>
+      </form>
+    </div>
+
+    <div class="modal" id="person-detail-modal" hidden>
+      <div class="gate-panel" style="width: min(560px, 100%); text-align: left">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 6px">
+          <div class="profile-ava" id="pd-ava" style="margin: 0"></div>
+          <div>
+            <h3 class="modal-title" id="pd-name" style="margin: 0"></h3>
+            <span class="p-kicker" id="pd-relation" style="display: block; margin: 4px 0 0"></span>
+          </div>
+        </div>
+        <div class="profile-facts" id="pd-facts" style="margin-top: 18px"></div>
+        <p class="panel-sub" id="pd-notes" style="margin-top: 16px; white-space: pre-wrap"></p>
+        <div class="rec-actions" style="margin-top: 20px">
+          <button class="ghost-btn" id="pd-share" type="button"></button>
+          <button class="ghost-btn" id="pd-edit" type="button">Edit profile</button>
+          <button class="ghost-btn is-destroy" id="pd-delete" type="button" style="border-color: #d9818155; color: #d98181">Destroy</button>
+        </div>
+        <button class="modal-cancel" type="button" id="pd-close">Close</button>
+      </div>
+    </div>
+
     <div class="toast" id="toast" hidden></div>
 
     <script src="script.js?v=2"></script>
@@ -1313,13 +1387,16 @@
 
         /* localhost-only preview mode: app.html?mock=1 — never active in production */
         if (location.hostname === "localhost" && location.search.includes("mock=1")) {
-          const demo = [
-            {
-              id: "d1", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
-              title: "First sealed record", body: "A demonstration entry held privately in the vault.",
-              created_at: new Date().toISOString(),
-            },
-          ];
+          const store = {
+            records: [
+              {
+                id: "d1", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
+                title: "First sealed record", body: "A demonstration entry held privately in the vault.",
+                created_at: new Date().toISOString(),
+              },
+            ],
+            people: [],
+          };
           GZ.client = {
             auth: {
               getSession: async () => ({
@@ -1328,49 +1405,52 @@
               onAuthStateChange: () => {},
               signOut: async () => location.replace("signin.html"),
             },
-            from: (table) => ({
-              select: () => {
-                const chain = {
-                  order: async () => ({ data: demo.slice(), error: null }),
-                  eq: () => chain,
-                  maybeSingle: async () =>
-                    table === "profiles"
-                      ? { data: { display_name: "operator", household_id: "mock-household" }, error: null }
-                      : { data: null, error: null },
-                };
-                return chain;
-              },
-              insert: (row) => ({
-                select: () => ({
-                  single: async () => {
-                    const inserted = {
-                      owner_id: "mock-user", visibility: "private", grade: null, ...row,
-                      id: String(Math.random()), created_at: new Date().toISOString(),
-                    };
-                    demo.unshift(inserted);
-                    return { data: inserted, error: null };
-                  },
-                }),
-              }),
-              update: (patch) => ({
-                eq: (_col, id) => ({
+            from: (table) => {
+              const rows = store[table] || (store[table] = []);
+              return {
+                select: () => {
+                  const chain = {
+                    order: async () => ({ data: rows.slice(), error: null }),
+                    eq: () => chain,
+                    maybeSingle: async () =>
+                      table === "profiles"
+                        ? { data: { display_name: "operator", household_id: "mock-household" }, error: null }
+                        : { data: null, error: null },
+                  };
+                  return chain;
+                },
+                insert: (row) => ({
                   select: () => ({
                     single: async () => {
-                      const row = demo.find((r) => r.id === id);
-                      Object.assign(row, patch);
-                      return { data: { ...row }, error: null };
+                      const inserted = {
+                        owner_id: "mock-user", visibility: "private", grade: null, ...row,
+                        id: String(Math.random()), created_at: new Date().toISOString(),
+                      };
+                      rows.unshift(inserted);
+                      return { data: inserted, error: null };
                     },
                   }),
                 }),
-              }),
-              delete: () => ({
-                eq: async (_col, id) => {
-                  const i = demo.findIndex((r) => r.id === id);
-                  if (i > -1) demo.splice(i, 1);
-                  return { error: null };
-                },
-              }),
-            }),
+                update: (patch) => ({
+                  eq: (_col, id) => ({
+                    select: () => ({
+                      single: async () => {
+                        const row = rows.find((r) => r.id === id);
+                        Object.assign(row, patch);
+                        return { data: { ...row }, error: null };
+                      },
+                    }),
+                  }),
+                }),
+                delete: () => ({
+                  eq: async (_col, id) => {
+                    const i = rows.findIndex((r) => r.id === id);
+                    if (i > -1) rows.splice(i, 1);
+                    return { error: null };
+                  },
+                }),
+              };
+            },
           };
         }
 
@@ -1476,6 +1556,7 @@
         /* ---------- data ---------- */
         let records = [];
         let latticeOk = true;
+        let people = [];
 
         async function loadRecords() {
           const { data: rows, error } = await GZ.client
@@ -1493,6 +1574,14 @@
 
         const isMine = (record) => !record.owner_id || record.owner_id === user.id;
         const isShared = (record) => record.visibility === "shared";
+
+        async function loadPeople() {
+          const { data: rows, error } = await GZ.client
+            .from("people")
+            .select("*")
+            .order("display_name", { ascending: true });
+          people = error ? [] : rows || [];
+        }
 
         /* ---------- renderers ---------- */
         function renderStrip() {
@@ -2022,6 +2111,7 @@
           renderTimelineView();
           renderOracleView();
           renderTempleView();
+          renderConstellations();
         }
 
         /* ---------- router ---------- */
@@ -2193,6 +2283,244 @@
           }
         });
 
+        /* ---------- constellations ---------- */
+        function initials(name) {
+          const parts = name.trim().split(/\s+/).slice(0, 2);
+          return parts.map((part) => part[0].toUpperCase()).join("") || "?";
+        }
+
+        function nextBirthdayInfo(birthDateStr) {
+          if (!birthDateStr) return null;
+          const [year, month, day] = birthDateStr.split("-").map(Number);
+          const today = new Date();
+          const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          let next = new Date(today.getFullYear(), month - 1, day);
+          if (next < todayMidnight) next = new Date(today.getFullYear() + 1, month - 1, day);
+          const days = Math.round((next - todayMidnight) / dayMs);
+          return { days, turningAge: next.getFullYear() - year };
+        }
+
+        function renderConstellations() {
+          const grid = $("con-grid");
+          const ghost = $("con-add-ghost");
+          grid.innerHTML = "";
+
+          const sharedCount = people.filter(isShared).length;
+          $("con-total").textContent = people.length;
+          $("con-total-sub").textContent = people.length ? "In your field" : "None added yet";
+          $("con-shared").textContent = sharedCount;
+
+          const dated = people
+            .map((person) => ({ person, info: nextBirthdayInfo(person.birth_date) }))
+            .filter((entry) => entry.info)
+            .sort((a, b) => a.info.days - b.info.days);
+          $("con-upcoming").textContent = dated.filter((entry) => entry.info.days <= 30).length;
+
+          if (dated.length) {
+            $("con-next").textContent = dated[0].person.display_name;
+            $("con-next-sub").textContent =
+              dated[0].info.days === 0
+                ? "Birthday is today"
+                : dated[0].info.days + " day" + (dated[0].info.days === 1 ? "" : "s") + " away";
+          } else {
+            $("con-next").textContent = "Clear";
+            $("con-next-sub").textContent = "No dated profiles yet";
+          }
+
+          for (const person of people) {
+            const card = document.createElement("div");
+            card.className = "profile-card";
+            card.style.cursor = "pointer";
+
+            const ava = document.createElement("div");
+            ava.className = "profile-ava";
+            ava.textContent = initials(person.display_name);
+
+            const kicker = document.createElement("span");
+            kicker.className = "p-kicker";
+            kicker.textContent = (person.relation || "Connection").toUpperCase();
+
+            const h3 = document.createElement("h3");
+            h3.textContent = person.display_name;
+            if (isShared(person)) {
+              const badge = document.createElement("i");
+              badge.className = "share-badge";
+              badge.textContent = "SHARED";
+              h3.append(badge);
+            }
+
+            card.append(ava, kicker, h3);
+
+            const info = nextBirthdayInfo(person.birth_date);
+            if (info) {
+              const facts = document.createElement("div");
+              facts.className = "profile-facts";
+              const b1 = document.createElement("b");
+              b1.textContent = info.days === 0 ? "Today" : info.days + "d";
+              const small1 = document.createElement("small");
+              small1.textContent = "NEXT BIRTHDAY";
+              const d1 = document.createElement("div");
+              d1.append(b1, small1);
+              const b2 = document.createElement("b");
+              b2.textContent = "Turns " + info.turningAge;
+              const small2 = document.createElement("small");
+              small2.textContent = "ON THAT DAY";
+              const d2 = document.createElement("div");
+              d2.append(b2, small2);
+              facts.append(d1, d2);
+              card.append(facts);
+            }
+
+            card.addEventListener("click", () => openPersonDetail(person));
+            grid.append(card);
+          }
+          grid.append(ghost);
+
+          $("con-footer").textContent =
+            people.length + " PRIVATE PROFILE" + (people.length === 1 ? "" : "S") + " CONNECTED" +
+            (sharedCount ? " · " + sharedCount + " SHARED" : "");
+        }
+
+        let editingPersonId = null;
+        function openPersonForm(existing) {
+          editingPersonId = existing ? existing.id : null;
+          $("person-form-heading").textContent = existing ? "Edit profile." : "Add a person.";
+          $("person-name").value = existing ? existing.display_name : "";
+          $("person-relation").value = existing ? existing.relation || "" : "";
+          $("person-birth-date").value = existing ? existing.birth_date || "" : "";
+          $("person-birth-time").value = existing && existing.birth_time_known ? existing.birth_time || "" : "";
+          $("person-birth-place").value = existing ? existing.birth_place || "" : "";
+          $("person-notes").value = existing ? existing.notes || "" : "";
+          $("person-shared").checked = existing ? isShared(existing) : false;
+          $("person-detail-modal").hidden = true;
+          $("person-modal").hidden = false;
+          $("person-name").focus();
+        }
+
+        $("con-add").addEventListener("click", () => openPersonForm(null));
+        $("con-add-ghost").addEventListener("click", () => openPersonForm(null));
+        $("person-cancel").addEventListener("click", () => ($("person-modal").hidden = true));
+        $("person-modal").addEventListener("click", (event) => {
+          if (event.target === $("person-modal")) $("person-modal").hidden = true;
+        });
+
+        $("person-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const timeValue = $("person-birth-time").value;
+          const shared = $("person-shared").checked;
+          const row = {
+            display_name: $("person-name").value.trim(),
+            relation: $("person-relation").value.trim() || null,
+            birth_date: $("person-birth-date").value || null,
+            birth_time: timeValue || null,
+            birth_time_known: Boolean(timeValue),
+            birth_place: $("person-birth-place").value.trim() || null,
+            notes: $("person-notes").value.trim() || null,
+            visibility: shared ? "shared" : "private",
+            household_id: shared ? profile.household_id : null,
+          };
+          $("person-submit").disabled = true;
+          const result = editingPersonId
+            ? await GZ.client.from("people").update(row).eq("id", editingPersonId).select().single()
+            : await GZ.client.from("people").insert(row).select().single();
+          $("person-submit").disabled = false;
+          if (result.error) {
+            toast("Could not save profile: " + result.error.message);
+            return;
+          }
+          if (editingPersonId) {
+            const index = people.findIndex((person) => person.id === editingPersonId);
+            if (index > -1) people[index] = result.data;
+          } else {
+            people.push(result.data);
+          }
+          people.sort((a, b) => a.display_name.localeCompare(b.display_name));
+          $("person-modal").hidden = true;
+          renderConstellations();
+          toast(editingPersonId ? "Profile updated." : "Profile sealed.");
+        });
+
+        let detailPerson = null;
+        function openPersonDetail(person) {
+          detailPerson = person;
+          $("pd-ava").textContent = initials(person.display_name);
+          $("pd-name").textContent = person.display_name;
+          $("pd-relation").textContent = (person.relation || "Connection").toUpperCase();
+
+          const facts = $("pd-facts");
+          facts.innerHTML = "";
+          function addFact(label, value) {
+            const div = document.createElement("div");
+            const b = document.createElement("b");
+            b.textContent = value;
+            const small = document.createElement("small");
+            small.textContent = label;
+            div.append(b, small);
+            facts.append(div);
+          }
+          if (person.birth_date) {
+            addFact(
+              "BORN",
+              new Date(person.birth_date + "T00:00:00").toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            );
+            const info = nextBirthdayInfo(person.birth_date);
+            if (info) addFact("NEXT BIRTHDAY", info.days === 0 ? "Today" : info.days + " days");
+          }
+          if (person.birth_time_known && person.birth_time) addFact("BIRTH TIME", person.birth_time);
+          if (person.birth_place) addFact("BIRTHPLACE", person.birth_place);
+          if (!facts.children.length) addFact("BIRTH DATA", "Not yet recorded");
+
+          $("pd-notes").textContent = person.notes || "No notes recorded yet.";
+
+          const mine = isMine(person);
+          $("pd-share").hidden = !mine;
+          $("pd-share").textContent = isShared(person) ? "Make private" : "Share to relationship field";
+          $("pd-edit").hidden = !mine;
+          $("pd-delete").hidden = !mine;
+
+          $("person-detail-modal").hidden = false;
+        }
+
+        $("pd-close").addEventListener("click", () => ($("person-detail-modal").hidden = true));
+        $("person-detail-modal").addEventListener("click", (event) => {
+          if (event.target === $("person-detail-modal")) $("person-detail-modal").hidden = true;
+        });
+        $("pd-share").addEventListener("click", async () => {
+          const shared = !isShared(detailPerson);
+          const { data, error } = await GZ.client
+            .from("people")
+            .update({ visibility: shared ? "shared" : "private", household_id: shared ? profile.household_id : null })
+            .eq("id", detailPerson.id)
+            .select()
+            .single();
+          if (error) {
+            toast("Could not update sharing: " + error.message);
+            return;
+          }
+          const index = people.findIndex((person) => person.id === detailPerson.id);
+          if (index > -1) people[index] = data;
+          detailPerson = data;
+          renderConstellations();
+          openPersonDetail(data);
+          toast(shared ? "Shared to the relationship field." : "Returned to private.");
+        });
+        $("pd-edit").addEventListener("click", () => openPersonForm(detailPerson));
+        $("pd-delete").addEventListener("click", async () => {
+          const { error } = await GZ.client.from("people").delete().eq("id", detailPerson.id);
+          if (error) {
+            toast("Could not destroy profile: " + error.message);
+            return;
+          }
+          people = people.filter((person) => person.id !== detailPerson.id);
+          $("person-detail-modal").hidden = true;
+          renderConstellations();
+          toast("Profile destroyed.");
+        });
+
         /* ---------- recommendation + misc controls ---------- */
         $("rec-primary").addEventListener("click", () => {
           if (records.length === 0) openCapture();
@@ -2205,6 +2533,19 @@
           event.target.classList.add("is-on");
         });
         $("menu-toggle").addEventListener("click", () => $("side").classList.toggle("is-open"));
+
+        $("side-home").addEventListener("click", () => setView("command"));
+
+        function setSidebarCollapsed(collapsed) {
+          $("shell").classList.toggle("is-collapsed", collapsed);
+          $("side").classList.toggle("is-collapsed", collapsed);
+          $("side-collapse").setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+          localStorage.setItem("gz-side-collapsed", collapsed ? "1" : "0");
+        }
+        $("side-collapse").addEventListener("click", () => {
+          setSidebarCollapsed(!$("side").classList.contains("is-collapsed"));
+        });
+        setSidebarCollapsed(localStorage.getItem("gz-side-collapsed") === "1");
         $("guide-btn").addEventListener("click", () => toast("The field guide arrives with a later build."));
         $("configure-btn").addEventListener("click", () => toast("Configuration opens as more layers come online."));
         $("horizon-seg").addEventListener("click", (event) => {
@@ -2292,7 +2633,7 @@
           });
         });
         $("or-rescan").addEventListener("click", async () => {
-          await loadRecords();
+          await Promise.all([loadRecords(), loadPeople()]);
           renderAll();
           toast("Field re-scanned.");
         });
@@ -2700,7 +3041,7 @@
         });
 
         /* ---------- boot ---------- */
-        await loadRecords();
+        await Promise.all([loadRecords(), loadPeople()]);
         renderAll();
         const initial = location.hash.replace("#/", "");
         setView(MODULES[initial] ? initial : "command");

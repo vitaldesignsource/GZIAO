@@ -46,13 +46,125 @@ body.command-body {
   z-index: 20;
 }
 
+.shell {
+  transition: grid-template-columns 0.22s var(--ease, ease);
+}
+
+.side {
+  transition: width 0.22s var(--ease, ease);
+}
+
 .side-head {
   min-height: 88px;
-  padding: 0 22px;
+  padding: 0 14px 0 22px;
   border-bottom: 1px solid var(--panel-line);
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.side-home {
+  border: 0;
+  background: none;
+  color: inherit;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
   gap: 14px;
+  cursor: pointer;
+  min-width: 0;
+  text-align: left;
+  font: inherit;
+  transition: background 0.2s var(--ease, ease);
+}
+
+.side-home:hover {
+  background: #63dfca0f;
+}
+
+.side-home-copy {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.side-collapse {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--panel-line-bright);
+  border-radius: 50%;
+  background: var(--side-bg);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: color 0.2s var(--ease, ease), border-color 0.2s var(--ease, ease), transform 0.22s var(--ease, ease);
+}
+
+.side-collapse:hover {
+  color: var(--gold);
+  border-color: var(--gold-soft);
+}
+
+.side-collapse svg {
+  transition: transform 0.22s var(--ease, ease);
+}
+
+@media (max-width: 900px) {
+  .side-collapse {
+    display: none;
+  }
+}
+
+/* collapsed rail — desktop only; mobile keeps its existing slide-out drawer */
+@media (min-width: 901px) {
+  .shell.is-collapsed {
+    grid-template-columns: 76px 1fr;
+  }
+
+  .side.is-collapsed {
+    width: 76px;
+  }
+
+  .side.is-collapsed .side-head {
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: 14px 0;
+    min-height: 0;
+  }
+
+  .side.is-collapsed .side-home {
+    margin: 0;
+    padding: 4px;
+  }
+
+  .side.is-collapsed .side-home-copy,
+  .side.is-collapsed .side-sys,
+  .side.is-collapsed nav,
+  .side.is-collapsed .side-doctrine,
+  .side.is-collapsed .side-user-copy,
+  .side.is-collapsed .side-signout,
+  .side.is-collapsed .side-field {
+    display: none;
+  }
+
+  .side.is-collapsed .side-collapse svg {
+    transform: rotate(180deg);
+  }
+
+  .side.is-collapsed .side-foot {
+    padding: 16px 0 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .side.is-collapsed .side-user {
+    margin-top: 0;
+  }
 }
 
 .side-sys {
