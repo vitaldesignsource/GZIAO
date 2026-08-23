@@ -10,7 +10,7 @@
     <link rel="icon" href="favicon.svg" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=4" />
+    <link rel="stylesheet" href="command.css?v=5" />
     <script>
       (function () {
         try {
@@ -440,10 +440,26 @@
 
         <!-- ================= AION VIEW ================= -->
         <div class="content" id="view-aion" hidden>
-          <section class="panel">
-            <span class="kicker is-amber">MODULE 07 &middot; UNDERSTAND</span>
-            <h2>AION &middot; Timing systems</h2>
-            <p class="panel-sub" id="aion-read"></p>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker is-amber">DETERMINISTIC TIMING LABORATORY</span>
+              <h1>AION</h1>
+              <p id="aion-read"></p>
+            </div>
+            <div class="mp-actions"><div class="pill-status"><i></i>SOLAR ENGINE ONLINE</div></div>
+          </div>
+          <section class="panel" style="border-color: #d0ad6d44">
+            <span class="kicker is-amber">CALCULATION INTAKE</span>
+            <h2>Cast a celestial field</h2>
+            <p class="panel-sub">Resolve tropical and Lahiri sidereal solar and lunar layers, then preserve the result as a named chart.</p>
+            <div class="intake">
+              <label>SAVED PROFILE<input type="text" value="Manual field" disabled /></label>
+              <label>SUBJECT<input type="text" value="Current field" disabled /></label>
+              <label>LOCAL DATE<input type="date" id="aion-date" /></label>
+              <label>LOCAL TIME<input type="time" id="aion-time" /></label>
+              <label>UTC OFFSET<input type="text" id="aion-utc" /></label>
+              <button class="prime-btn" data-soon="The full planetary ephemeris engine arrives in a later build. Sun and Moon layers are live above." type="button">Cast field &rarr;</button>
+            </div>
           </section>
           <section class="strip">
             <div class="strip-cell"><div><small>DAY RULER</small><b id="aion-ruler"></b></div><span>Chaldean order</span></div>
@@ -457,6 +473,72 @@
             <div class="stat-card" style="--card-color: var(--m3)"><small>DAYS REMAIN</small><b id="aion-s3">0</b><span>until year turn</span></div>
             <div class="stat-card" style="--card-color: var(--violet)"><small>DAYS INSIDE</small><b id="aion-s4">0</b><span>since identity sealed</span></div>
           </section>
+          <section class="panel" style="border-color: #d0ad6d44">
+            <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+              <span>AION ELECTION LABORATORY</span>
+              <span style="color: var(--faint)">PERSONAL ANCHOR: NOT YET SET</span>
+            </span>
+            <h2>Election Planner</h2>
+            <p class="panel-sub">Scan candidate windows, compare the layers, preserve constraints, then elect a time into your private schedule.</p>
+            <div class="intake" style="grid-template-columns: 2fr 2fr 1fr 1fr auto">
+              <label>ACTION OR EVENT<input type="text" placeholder="File a document, launch a project, hold a conversation&hellip;" /></label>
+              <label>DESIRED QUALITY / INTENT<input type="text" placeholder="Clear communication, durable agreement, strong defense&hellip;" /></label>
+              <label>SCAN BEGINS<input type="date" id="aion-scan" /></label>
+              <label>FORECAST SPAN<input type="text" value="7 days" disabled /></label>
+              <button class="prime-btn" data-soon="Election scanning activates once a natal anchor profile is set." type="button">Scan windows</button>
+            </div>
+            <p class="panel-note" style="margin-top: 14px">0 elected or candidate times stored</p>
+          </section>
+          <section class="duo-wide">
+            <div class="panel" style="border-color: #d0ad6d44">
+              <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+                <span>LIVE DUAL-LUMINARY CHART</span>
+                <span style="color: var(--gold)">&#9670; Deterministic output</span>
+              </span>
+              <h2>Awaiting calculation</h2>
+              <svg class="zwheel" viewBox="0 0 300 300" aria-hidden="true">
+                <circle cx="150" cy="150" r="140" />
+                <circle cx="150" cy="150" r="96" />
+                <circle cx="150" cy="150" r="42" style="fill: #0d121a; stroke: #d0ad6d88" />
+                <text x="150" y="146" class="z-core">AION</text>
+                <text x="150" y="162" class="z-core" style="font-size: 8px; fill: #91a8b6">FIELD</text>
+                <text x="150" y="42">&#9800;</text><text x="209" y="58">&#9801;</text><text x="252" y="100">&#9802;</text>
+                <text x="268" y="159">&#9803;</text><text x="252" y="218">&#9804;</text><text x="209" y="260">&#9805;</text>
+                <text x="150" y="276">&#9806;</text><text x="91" y="260">&#9807;</text><text x="48" y="218">&#9808;</text>
+                <text x="32" y="159">&#9809;</text><text x="48" y="100">&#9810;</text><text x="91" y="58">&#9811;</text>
+              </svg>
+              <div class="privacy-row">
+                <span>COORDINATE &middot; <b style="color: var(--paper)">Apparent geocentric</b></span>
+                <span>ZODIACS &middot; <b style="color: var(--paper)">Tropical + Sidereal</b></span>
+                <span>MODULE &middot; <b style="color: var(--paper)">Sun + Moon</b></span>
+              </div>
+            </div>
+            <div class="panel" style="border-color: #d0ad6d44">
+              <span class="kicker is-amber">COMPARISON FIELD</span>
+              <h2>System layers</h2>
+              <ul class="layer-list">
+                <li><i style="--layer-color: var(--amber)"></i><div><b>Western Tropical</b><span>Natal &middot; Transits &middot; Synastry</span></div><em>SOLAR LIVE</em></li>
+                <li><i style="--layer-color: #e08baf"></i><div><b>Western Sidereal</b><span>Selectable ayanamsha</span></div><em>SOLAR LIVE</em></li>
+                <li><i style="--layer-color: var(--violet)"></i><div><b>Jyotish</b><span>R&#257;&#347;i &middot; Nakshatra &middot; Da&#347;&#257;</span></div><em>ARCHITECTURE READY</em></li>
+                <li><i style="--layer-color: var(--green)"></i><div><b>Taoist Cycles</b><span>Five phases &middot; Stems &middot; Branches</span></div><em>ATLAS LINKED</em></li>
+              </ul>
+              <div class="warn-note">Traditions remain distinct. Tropical and sidereal values are calculated independently and synthesis remains labeled.</div>
+            </div>
+            <div class="panel" style="border-color: #d0ad6d44">
+              <span class="kicker is-amber">CELESTIAL INTELLIGENCE</span>
+              <h2>No field cast</h2>
+              <div class="empty-center">
+                <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
+                <span>Enter a date, time, and UTC offset to activate the live calculation layers.</span>
+              </div>
+            </div>
+          </section>
+          <section class="panel" style="border-color: #d0ad6d44">
+            <span class="kicker is-amber" style="display: flex; justify-content: space-between"><span>CHART MEMORY</span><b style="color: var(--amber); font: 400 22px Georgia, serif">00</b></span>
+            <h2>Saved casts</h2>
+            <p class="panel-sub">Named charts remain linked to their source profile and can be compared later. None saved yet.</p>
+          </section>
+          <div class="mp-footer"><span>LIVE SOLAR + LUNAR CALCULATION &middot; FULL PLANETARY EPHEMERIS AND HOUSES REMAIN IN DEVELOPMENT</span></div>
         </div>
 
         <!-- ================= TIMELINE / CHRONOSCOPE ================= -->
@@ -790,77 +872,230 @@
             <div class="stat-card" style="--card-color: var(--m3)"><small>NET RECORDED POSITION</small><b>$0</b><span>Income less recorded outflow</span></div>
             <div class="stat-card" style="--card-color: var(--green)"><small>LEDGER INTEGRITY</small><b>100%</b><span>0 amounts still planned</span></div>
           </section>
+          <section class="chrono-row">
+            <div class="panel">
+              <span class="kicker" style="display: flex; justify-content: space-between"><span>PRIVATE REGISTER &middot; PERSONAL</span><span style="color: var(--faint)">0 ENTRIES</span></span>
+              <h2>Financial ledger</h2>
+              <div class="empty-center">
+                <div class="glyph"></div>
+                <b>Personal has no recorded entries.</b>
+                <span>Add income, expenses, obligations, or assets to this private ledger.</span>
+                <div style="margin-top: 18px"><button class="ghost-btn" data-soon="Ledger entries arrive with the Resources build." type="button">+ Add first entry</button></div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 18px">
+              <div class="panel">
+                <span class="kicker">COMPOSITION</span>
+                <h2>Resource field</h2>
+                <div class="bar-row"><small>Income</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2"></div></div><b>$0</b></div>
+                <div class="bar-row"><small>Outflow</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2; --bar-color: var(--amber)"></div></div><b>$0</b></div>
+                <div class="bar-row"><small>Assets</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2; --bar-color: var(--m3)"></div></div><b>$0</b></div>
+                <p class="panel-note">Recorded values only. No bank connection or inferred balances.</p>
+              </div>
+              <div class="panel">
+                <span class="kicker">UPCOMING</span>
+                <h2>Open obligations</h2>
+                <p class="panel-sub" style="text-align: center; padding: 24px 0">No open obligations.</p>
+              </div>
+            </div>
+          </section>
+          <div class="mp-footer"><span><i></i>PRIVATE FINANCIAL LEDGER CONNECTED &middot; TAP AN ENTRY TO ADVANCE ITS STATUS</span></div>
         </div>
 
         <!-- ================= ORACLE ================= -->
         <div class="content" id="view-oracle" hidden>
           <div class="mp-head">
             <div class="mp-head-copy">
-              <span class="kicker is-violet">CROSS-FIELD ANALYSIS</span>
-              <h1>Oracle</h1>
-              <p>Synthesis across every module. Patterns sharpen as records, actions, and chronology accumulate.</p>
+              <span class="kicker is-violet">AI-READY &middot; EXPLAINABLE PRIVATE SYNTHESIS</span>
+              <h1>Oracle Intelligence</h1>
+              <p>Interrogate authorized metadata, inspect ranked connections, and keep every inference visibly separate from stored facts.</p>
             </div>
-            <div class="mp-actions"><div class="pill-status" style="--pill-color: var(--violet)"><i></i>SYNTHESIS ONLINE</div></div>
+            <div class="mp-actions"><div class="pill-status"><i></i><span id="or-indexed">0 PRIVATE SIGNALS INDEXED</span></div></div>
           </div>
-          <section class="chrono-row">
-            <div class="panel oracle-panel">
-              <div class="oracle-mark" aria-hidden="true"></div>
-              <span class="kicker is-violet">ORACLE SYNTHESIS</span>
-              <h2>What deserves attention?</h2>
-              <p class="oracle-read" id="o2-read"></p>
-              <div class="oracle-facts">
-                <div><small>FINDING</small><b id="o2-finding"></b></div>
-                <div><small>BASIS</small><b id="o2-basis"></b></div>
-                <div><small>CONFIDENCE</small><b>100%</b></div>
+          <section class="mod-index">
+            <div><b>Operations</b><span>0 indexed</span></div>
+            <div><b>Chronology</b><span id="or-mi-chrono">0 indexed</span></div>
+            <div><b>Resources</b><span>0 indexed</span></div>
+            <div><b>Vault</b><span id="or-mi-vault">0 indexed</span></div>
+            <div><b>Scriptorium</b><span id="or-mi-script">0 indexed</span></div>
+            <div><b>Constellations</b><span>0 indexed</span></div>
+            <div><b>Sentinel</b><span>0 indexed</span></div>
+          </section>
+          <section class="panel">
+            <span class="kicker is-violet" style="display: flex; justify-content: space-between">
+              <span>CROSS-FIELD PATTERN MONITOR</span>
+              <button class="chrono-open" id="or-rescan" type="button">&#8635; RE-SCAN FIELD</button>
+            </span>
+            <h2>Priority Connections</h2>
+            <p class="panel-sub">People, things, sources, schedules, and events ranked by consequence, recurrence, and evidentiary strength.</p>
+            <div id="or-findings" style="margin-top: 16px"></div>
+            <p class="panel-note">Scores prioritize review; they do not prove causation, intent, diagnosis, or prediction.</p>
+          </section>
+          <section class="duo-wide">
+            <div class="panel ring-panel">
+              <span class="kicker is-violet">ACTIVE LENS</span>
+              <h2>Whole field</h2>
+              <p class="panel-sub">Oracle weighs deadlines, stated priority, financial status, record certainty, document classification, and draft readiness.</p>
+              <div class="ring-wrap" style="margin-top: 20px">
+                <div class="ring" id="or-conf-ring" style="--ring-color: var(--violet); --ring-pct: 60">
+                  <div class="ring-value"><b id="or-conf">60%</b><small>CONFIDENCE</small></div>
+                </div>
               </div>
-              <button class="ghost-btn" data-soon="Interrogation deepens as the field accumulates signals." type="button" style="margin-top: 16px; width: 100%">&#10022; Interrogate this finding &rarr;</button>
+              <ul class="lens-legend">
+                <li><i style="--legend-color: var(--gold)"></i>Stored fact</li>
+                <li><i style="--legend-color: var(--violet)"></i>Priority inference</li>
+                <li><i style="--legend-color: var(--amber)"></i>Uncertainty</li>
+              </ul>
+            </div>
+            <div>
+              <div class="ask-box">
+                <span style="color: var(--gold)">&#10022;</span>
+                <input type="text" id="or-ask" placeholder="What deserves my attention now?" />
+                <button class="prime-btn" id="or-analyze" type="button">Analyze field &rarr;</button>
+              </div>
+              <div class="ask-chips">
+                <button type="button">What is overdue or time-sensitive?</button>
+                <button type="button">Where are my financial constraints?</button>
+                <button type="button">Which documents need review?</button>
+                <button type="button">What uncertainty remains?</button>
+              </div>
+              <div class="panel oracle-panel" style="margin-top: 14px">
+                <span class="kicker is-violet">ORACLE SYNTHESIS</span>
+                <h2 id="o2-read" style="font-size: 26px; line-height: 1.25"></h2>
+                <p class="panel-sub" id="or-detail"></p>
+                <div class="oracle-facts" style="margin-top: 16px; flex-direction: row; flex-wrap: wrap; gap: 26px">
+                  <div><small>LENS</small><b>Whole field</b></div>
+                  <div><small>BASIS</small><b id="o2-basis"></b></div>
+                  <div><small>CONFIDENCE</small><b id="or-conf2">60%</b></div>
+                  <div><small>ACTIONS</small><b>1</b></div>
+                </div>
+                <div class="privacy-row" style="margin-top: 18px"><span>RECOMMENDED ACTION PATH</span><span>HUMAN-CONTROLLED</span></div>
+                <p class="panel-sub" id="or-action" style="margin-top: 8px"></p>
+                <p class="panel-note">This is deterministic metadata synthesis. It distinguishes stored facts from inferred priority and does not make legal, financial, medical, or predictive claims.</p>
+              </div>
             </div>
             <div class="panel">
-              <span class="kicker is-violet">SYNTHESIS BASIS</span>
-              <h2>Signals in scope</h2>
-              <div class="bar-row"><small>Vault records</small><div class="bar-track"><div class="bar-fill" id="o2-vault-bar" style="--bar-pct: 4; --bar-color: var(--violet)"></div></div><b id="o2-vault">0</b></div>
-              <div class="bar-row"><small>Operations</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2; --bar-color: var(--violet)"></div></div><b>0</b></div>
-              <div class="bar-row"><small>Chronology</small><div class="bar-track"><div class="bar-fill" id="o2-chrono-bar" style="--bar-pct: 2; --bar-color: var(--violet)"></div></div><b id="o2-chrono">0</b></div>
-              <div class="privacy-row" style="justify-content: flex-start"><span><i></i>Observation is separated from inference</span></div>
+              <span class="kicker is-violet">EVIDENCE LATTICE</span>
+              <h2>Basis signals</h2>
+              <div id="or-evidence"></div>
+              <div class="empty-center" id="or-evidence-empty">
+                <div class="glyph" style="background: #8b5cf615; border-color: #8b5cf655"></div>
+                <b>No priority evidence</b>
+                <span>Capture more private records to deepen synthesis.</span>
+              </div>
             </div>
           </section>
+          <span hidden id="o2-finding"></span><span hidden id="o2-vault"></span><span hidden id="o2-chrono"></span>
+          <span hidden id="o2-vault-bar"></span><span hidden id="o2-chrono-bar"></span>
         </div>
 
         <!-- ================= LIGHT MODULES ================= -->
         <div class="content" id="view-constellations" hidden>
           <div class="mp-head">
             <div class="mp-head-copy">
-              <span class="kicker is-violet">PEOPLE &amp; RELATIONS</span>
+              <span class="kicker is-violet">PRIVATE PROFILES</span>
               <h1>Constellations</h1>
-              <p>Profiles, relationships, and the living map of the people in your field.</p>
+              <p>People, relationships, source records, and calculated systems.</p>
             </div>
-            <div class="mp-actions"><button class="prime-btn" data-soon="Profiles and relationships arrive with the Constellations build." type="button">+ Add a person</button></div>
+            <div class="mp-actions"><button class="prime-btn" data-soon="Sourced private profiles arrive with the Constellations build." type="button">+ Add person</button></div>
           </div>
-          <section class="panel"><div class="empty-center"><div class="glyph" style="background: #8b5cf615; border-color: #8b5cf655"></div><b>No people mapped yet.</b><span>Add the first person and the constellation begins to form.</span></div></section>
+          <section class="profile-grid">
+            <div class="profile-card is-ghost" data-soon="Sourced private profiles arrive with the Constellations build.">
+              <div>
+                <div class="pr-mark" style="margin: 0 auto 18px; width: 44px; height: 44px; --pr-color: var(--violet)"></div>
+                <h3 style="font-size: 18px">Add a person</h3>
+                <span style="font-size: 10.5px">Build a sourced private profile</span>
+              </div>
+            </div>
+          </section>
+          <div class="mp-footer" style="justify-content: center"><span>0 PRIVATE PROFILES CONNECTED &middot; OPEN A DOSSIER FOR CHARTS AND INTELLIGENCE DATA</span></div>
         </div>
 
         <div class="content" id="view-thework" hidden>
           <div class="mp-head">
             <div class="mp-head-copy">
-              <span class="kicker">GRADE JOURNALS</span>
-              <h1>The Work</h1>
-              <p>Practice journals, grades, and disciplined reflection over time.</p>
+              <span class="kicker is-amber">PERSONAL RECORD OF THE GREAT WORK</span>
+              <h1>Temple Journal</h1>
+              <p>A private sanctum ordered through the grades and illuminated by words, practices, and images.</p>
             </div>
-            <div class="mp-actions"><button class="prime-btn" data-soon="Journals arrive with The Work build." type="button">+ Open a journal</button></div>
+            <div class="mp-actions">
+              <div class="pill-status" style="--pill-color: var(--amber)"><i></i>PRIVATE ARCHIVE CONNECTED</div>
+              <button class="prime-btn" id="tw-new" type="button">+ New entry</button>
+            </div>
           </div>
-          <section class="panel"><div class="empty-center"><div class="glyph"></div><b>No journals opened.</b><span>The first entry establishes the practice record.</span></div></section>
+          <section class="grade-track">
+            <div class="grade-cell is-on"><div><small>00 &middot; 0&deg;=0&#9633;</small><b>Neophyte</b><span>Threshold &middot; 0 entries</span></div><i class="grade-mark"></i></div>
+            <div class="grade-cell"><div><small>01 &middot; 1&deg;=10&#9633;</small><b>Zelator</b><span>Earth &middot; 0 entries</span></div><i class="grade-mark"></i></div>
+            <div class="grade-cell"><div><small>02 &middot; 2&deg;=9&#9633;</small><b>Theoricus</b><span>Air &middot; 0 entries</span></div><i class="grade-mark"></i></div>
+            <div class="grade-cell"><div><small>03 &middot; 3&deg;=8&#9633;</small><b>Practicus</b><span>Water &middot; 0 entries</span></div><i class="grade-mark"></i></div>
+            <div class="grade-cell"><div><small>04 &middot; 4&deg;=7&#9633;</small><b>Philosophus</b><span>Fire &middot; 0 entries</span></div><i class="grade-mark"></i></div>
+          </section>
+          <section class="strip">
+            <div class="strip-cell"><div><small>PRACTITIONER</small><b id="tw-prac"></b></div><span>Active sanctum</span></div>
+            <div class="strip-cell"><div><small>TOTAL RECORDS</small><b id="tw-total">0</b></div><span>Across all grades</span></div>
+            <div class="strip-cell"><div><small>GRADES OPENED</small><b>0/5</b></div><span>With journal activity</span></div>
+            <div class="strip-cell"><div><small>IMAGE FOLIO</small><b>0</b></div><span>Private photographs</span></div>
+          </section>
+          <section class="chrono-row">
+            <div class="panel" style="max-width: 400px">
+              <span class="kicker is-amber">CURRENT CHAMBER</span>
+              <div class="chamber-glyph"><span>0&deg;=0&#9633;</span></div>
+              <h2 style="margin-top: 0">Neophyte</h2>
+              <span class="kicker" style="color: var(--faint)">THRESHOLD</span>
+              <p class="panel-sub" style="margin-top: 10px">Orientation &middot; equilibrium &middot; first observations</p>
+              <div class="warn-note" style="border-color: var(--panel-line-bright); font-style: italic">What did I observe before interpretation entered?</div>
+              <button class="ghost-btn" id="tw-compose" type="button" style="margin-top: 18px; width: 100%">+ Compose in this grade</button>
+            </div>
+            <div class="panel">
+              <span class="kicker is-amber" id="tw-reg-kicker">NEOPHYTE &middot; JOURNAL REGISTER</span>
+              <h2>Journal register</h2>
+              <div class="empty-center" id="tw-empty">
+                <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
+                <b>The Neophyte register is unopened.</b>
+                <span>Begin the record with the first dated observation, practice, dream, or grade reflection.</span>
+                <div style="margin-top: 18px"><button class="ghost-btn" id="tw-first" type="button">+ Create first entry</button></div>
+              </div>
+              <ul class="vault-list" id="tw-list" style="margin-top: 10px"></ul>
+            </div>
+          </section>
         </div>
 
         <div class="content" id="view-atlas" hidden>
           <div class="mp-head">
             <div class="mp-head-copy">
-              <span class="kicker is-amber">CORRESPONDENCES</span>
+              <span class="kicker">PLACES &middot; SOURCES &middot; SYSTEMS</span>
               <h1>The Atlas</h1>
-              <p>Symbolic correspondences, tables, and reference lattices.</p>
+              <p>Private profile pins and a knowledge architecture that preserves provenance.</p>
             </div>
-            <div class="mp-actions"><button class="prime-btn" data-soon="The correspondence lattice arrives with the Atlas build." type="button">+ New entry</button></div>
+            <div class="mp-actions"><div class="pill-status"><i></i>0 PRIVATE PINS</div></div>
           </div>
-          <section class="panel"><div class="empty-center"><div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div><b>No correspondences indexed.</b><span>The atlas fills as reference systems are recorded.</span></div></section>
+          <section class="chrono-row" style="grid-template-columns: 380px 1fr">
+            <div class="panel">
+              <span class="kicker">PROFILE-LINKED PLACES</span>
+              <h2>Family map field</h2>
+              <p class="panel-sub">Select a private profile pin to inspect its real-world map context.</p>
+              <div class="empty-center" style="padding: 30px 10px">
+                <b style="font-size: 14px">No pins placed yet.</b>
+                <span>Pins appear when profiles carry a place.</span>
+              </div>
+              <p class="panel-note">Coordinates are loaded only after private sign-in.</p>
+            </div>
+            <div class="panel">
+              <div class="map-blank">The map field activates when the first private pin is placed.<br />Tiles load from OpenStreetMap at that moment &mdash; never before.</div>
+            </div>
+          </section>
+          <section class="top-search" style="max-width: none">
+            <input type="search" placeholder="Search systems, symbols, sources, and correspondences&hellip;" style="height: 46px" disabled />
+            <kbd>6 ENTRIES</kbd>
+          </section>
+          <section class="corr-grid">
+            <div class="corr-card"><small>01</small><span class="c-kicker">HEBREW LETTER</span><h3>Ayin</h3><p>Source-labeled letter correspondences and interpretive variants.</p></div>
+            <div class="corr-card"><small>02</small><span class="c-kicker">CELESTIAL DIVISION</span><h3>Lunar Mansions</h3><p>Independent mansion systems with preserved boundaries.</p></div>
+            <div class="corr-card"><small>03</small><span class="c-kicker">INDIAN CORRESPONDENCE</span><h3>Tattvas</h3><p>Elemental principles, cycles, and user-defined overlays.</p></div>
+            <div class="corr-card"><small>04</small><span class="c-kicker">TAOIST FRAMEWORK</span><h3>Wu Xing</h3><p>Five phases presented as dynamic relations, not static elements.</p></div>
+            <div class="corr-card"><small>05</small><span class="c-kicker">TRADITIONAL TIMING</span><h3>Planetary Hours</h3><p>Location-specific temporal divisions and rulerships.</p></div>
+            <div class="corr-card"><small>06</small><span class="c-kicker">CALCULATION SETTING</span><h3>Ayanamsha</h3><p>Selectable reference offsets for sidereal zodiac systems.</p></div>
+          </section>
         </div>
       </div>
     </div>
@@ -1254,18 +1489,102 @@
 
         function renderOracleView() {
           const empty = records.length === 0;
-          $("o2-read").textContent = empty
-            ? "No unresolved priority currently dominates the private field. Record the next event, obligation, decision, or source when it appears."
-            : "The field holds " + records.length + " sealed record" + (records.length === 1 ? "" : "s") + ". The newest, “" + records[0].title + "”, is the current center of gravity.";
-          $("o2-finding").textContent = empty ? "Clear field" : "Active field";
-          $("o2-basis").textContent = records.length + " signal" + (records.length === 1 ? "" : "s");
-          $("o2-vault").textContent = records.length;
           const today = new Date().toDateString();
           const todays = records.filter((record) => new Date(record.created_at).toDateString() === today).length;
-          $("o2-chrono").textContent = todays;
-          const pct = Math.min(100, records.length * 12) || 4;
-          $("o2-vault-bar").style.setProperty("--bar-pct", pct);
-          $("o2-chrono-bar").style.setProperty("--bar-pct", Math.min(100, todays * 12) || 2);
+          const journals = records.filter((record) => record.title.startsWith("Draft: ")).length;
+          $("or-indexed").textContent =
+            records.length + " PRIVATE SIGNAL" + (records.length === 1 ? "" : "S") + " INDEXED";
+          $("or-mi-chrono").textContent = todays + " indexed";
+          $("or-mi-vault").textContent = records.length + " indexed";
+          $("or-mi-script").textContent = journals + " indexed";
+          $("o2-read").textContent = empty
+            ? "The field is stable and ready for deliberate action."
+            : "The field holds " + records.length + " sealed record" + (records.length === 1 ? "" : "s") + ".";
+          $("or-detail").textContent = empty
+            ? "No high-consequence metadata condition is currently dominant. Use a narrower question to inspect finances, documents, relationships, chronology, or operations."
+            : "“" + records[0].title + "” is the newest stored fact. Priority inference stays visibly separated from the record itself.";
+          $("or-action").textContent = empty
+            ? "01 · Capture the next meaningful event or decision when it enters the field."
+            : "01 · Review the newest record, then capture what follows.";
+          $("o2-basis").textContent = records.length + " signal" + (records.length === 1 ? "" : "s");
+          const conf = empty ? "60%" : "84%";
+          $("or-conf").textContent = conf;
+          $("or-conf2").textContent = conf;
+          $("or-conf-ring").style.setProperty("--ring-pct", empty ? 60 : 84);
+
+          const findings = $("or-findings");
+          findings.innerHTML = "";
+          if (empty) {
+            const quiet = document.createElement("p");
+            quiet.className = "panel-sub";
+            quiet.textContent = "The monitor is quiet. Ranked connections appear as private signals accumulate.";
+            findings.append(quiet);
+          } else {
+            const card = document.createElement("div");
+            card.className = "finding";
+            const ring = document.createElement("div");
+            ring.className = "score-ring";
+            ring.innerHTML = "<div><b>100</b><small>FUNCTION</small></div>";
+            const copy = document.createElement("div");
+            const kicker = document.createElement("small");
+            kicker.textContent =
+              "PROTECT / ACT · HIGH CONFIDENCE · " + records.length + " SOURCE" + (records.length === 1 ? "" : "S");
+            const head = document.createElement("h3");
+            head.textContent = "“" + records[0].title + "” is the newest signal across the field";
+            const body = document.createElement("p");
+            body.textContent =
+              records.length + " vault record" + (records.length === 1 ? "" : "s") + " create the current cross-module pattern worth reviewing.";
+            copy.append(kicker, head, body);
+            card.append(ring, copy);
+            findings.append(card);
+          }
+
+          const evidence = $("or-evidence");
+          evidence.innerHTML = "";
+          $("or-evidence-empty").hidden = !empty;
+          if (!empty) {
+            const list = document.createElement("ul");
+            list.className = "chrono-list";
+            for (const record of records.slice(0, 4)) {
+              const li = document.createElement("li");
+              const time = document.createElement("span");
+              time.className = "chrono-time";
+              time.textContent = new Date(record.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+              const dot = document.createElement("i");
+              dot.className = "chrono-dot";
+              dot.style.setProperty("--dot-color", "var(--violet)");
+              const title = document.createElement("strong");
+              title.textContent = record.title;
+              const sub = document.createElement("span");
+              sub.textContent = "Stored fact";
+              li.append(time, dot, title, sub);
+              list.append(li);
+            }
+            evidence.append(list);
+          }
+        }
+
+        function renderTempleView() {
+          $("tw-prac").textContent = handle;
+          const journals = records.filter((record) => record.title.startsWith("Journal: "));
+          $("tw-total").textContent = journals.length;
+          $("tw-empty").hidden = journals.length > 0;
+          const list = $("tw-list");
+          list.innerHTML = "";
+          for (const record of journals) {
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = record.title.replace("Journal: ", "");
+            const stamp = document.createElement("time");
+            stamp.textContent = new Date(record.created_at).toLocaleDateString();
+            item.append(title, stamp);
+            if (record.body) {
+              const body = document.createElement("p");
+              body.textContent = record.body;
+              item.append(body);
+            }
+            list.append(item);
+          }
         }
 
         function renderAll() {
@@ -1282,6 +1601,7 @@
           renderIntegrity();
           renderTimelineView();
           renderOracleView();
+          renderTempleView();
         }
 
         /* ---------- router ---------- */
@@ -1346,8 +1666,9 @@
 
         /* ---------- capture modal ---------- */
         const modal = $("capture-modal");
-        function openCapture() {
+        function openCapture(prefix) {
           modal.hidden = false;
+          if (typeof prefix === "string" && !$("capture-title").value) $("capture-title").value = prefix;
           $("capture-title").focus();
         }
         document.querySelectorAll("[data-capture]").forEach((button) => {
@@ -1462,6 +1783,54 @@
             $("scr-body").value = ($("scr-body").value + "\n\n## " + section + "\n").trimStart();
           });
         });
+
+        /* ---------- oracle intelligence ---------- */
+        function analyzeField(question) {
+          const q = (question || "").toLowerCase();
+          let answer;
+          if (q.includes("overdue") || q.includes("time")) {
+            answer = "Nothing is overdue. No dated obligations exist in the field.";
+          } else if (q.includes("financ") || q.includes("constraint")) {
+            answer = "No financial constraints are recorded. The Resources ledger holds $0 across all scopes.";
+          } else if (q.includes("document") || q.includes("review")) {
+            answer = records.length
+              ? records.length + " vault record" + (records.length === 1 ? " is" : "s are") + " held; none are flagged for review."
+              : "No documents are held yet. The vault field is clear.";
+          } else if (q.includes("uncertain")) {
+            answer = "0 uncertainties identified. Observation remains separated from inference.";
+          } else {
+            answer = records.length
+              ? "The newest stored fact is “" + records[0].title + "”. No high-consequence condition dominates beyond it."
+              : "The field is stable. No high-consequence metadata condition is currently dominant.";
+          }
+          $("or-detail").textContent = answer;
+          toast("Field analyzed · private metadata only");
+        }
+        $("or-analyze").addEventListener("click", () => analyzeField($("or-ask").value));
+        $("or-ask").addEventListener("keydown", (event) => {
+          if (event.key === "Enter") analyzeField($("or-ask").value);
+        });
+        document.querySelectorAll(".ask-chips button").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            $("or-ask").value = chip.textContent;
+            analyzeField(chip.textContent);
+          });
+        });
+        $("or-rescan").addEventListener("click", async () => {
+          await loadRecords();
+          renderAll();
+          toast("Field re-scanned.");
+        });
+
+        /* ---------- temple journal + aion intake ---------- */
+        $("tw-new").addEventListener("click", () => openCapture("Journal: "));
+        $("tw-compose").addEventListener("click", () => openCapture("Journal: "));
+        $("tw-first").addEventListener("click", () => openCapture("Journal: "));
+        const bootNow = new Date();
+        $("aion-date").value = bootNow.toISOString().slice(0, 10);
+        $("aion-scan").value = bootNow.toISOString().slice(0, 10);
+        $("aion-time").value = bootNow.toTimeString().slice(0, 5);
+        $("aion-utc").value = (bootNow.getTimezoneOffset() > 0 ? "-" : "+") + Math.abs(bootNow.getTimezoneOffset() / 60);
 
         /* ---------- search palette ---------- */
         const search = $("cmd-search");
