@@ -2150,7 +2150,13 @@ body.command-body {
 }
 
 .grade-cell {
+  border: 0;
   border-right: 1px solid var(--panel-line);
+  background: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
   padding: 16px 18px;
   display: flex;
   align-items: center;
@@ -2427,6 +2433,161 @@ body.command-body {
 }
 
 /* ---------------- study module ---------------- */
+
+.study-mastery {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.study-mastery small {
+  color: var(--faint);
+  letter-spacing: 0.14em;
+  font-size: 8px;
+}
+
+#study-nav em {
+  font-style: normal;
+  color: var(--faint);
+  font-size: 9px;
+  margin-left: 4px;
+}
+
+#study-nav button.is-on em {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.tier-legend {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  color: var(--faint);
+  font-size: 9.5px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--panel-line);
+}
+
+.tier-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tier-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.tier-historical {
+  background: var(--gold);
+}
+
+.tier-correspondence {
+  background: var(--amber);
+}
+
+.tier-interpretation {
+  background: var(--violet);
+}
+
+.tier-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 7px;
+  vertical-align: 3px;
+}
+
+.tier-badge.tier-historical {
+  background: #63dfca1c;
+  color: var(--gold);
+  border: 1px solid #63dfca44;
+}
+
+.tier-badge.tier-correspondence {
+  background: #d0ad6d1c;
+  color: var(--amber);
+  border: 1px solid #d0ad6d44;
+}
+
+.tier-badge.tier-interpretation {
+  background: #8b5cf61c;
+  color: var(--violet);
+  border: 1px solid #8b5cf644;
+}
+
+.study-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--panel-line);
+}
+
+.study-toc button {
+  border: 1px solid var(--panel-line-bright);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  padding: 7px 13px;
+  cursor: pointer;
+  font-size: 10.5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.study-toc button:hover {
+  color: var(--gold);
+  border-color: var(--gold-soft);
+}
+
+.study-toc button.is-read {
+  color: var(--gold);
+  border-color: #63dfca33;
+}
+
+.study-toc button.is-read::after {
+  content: "✓";
+  font-size: 9px;
+}
+
+.lesson-read-btn {
+  margin-top: 14px;
+  border: 1px solid var(--panel-line-bright);
+  border-radius: 8px;
+  background: none;
+  color: var(--faint);
+  height: 32px;
+  padding: 0 14px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 8px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.lesson-read-btn:hover {
+  color: var(--gold);
+  border-color: var(--gold-soft);
+}
+
+.lesson-read-btn.is-read {
+  color: var(--gold);
+  border-color: #63dfca44;
+  background: #63dfca0d;
+}
 
 .study-lesson {
   border-bottom: 1px solid var(--panel-line);

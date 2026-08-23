@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=10" />
+    <link rel="stylesheet" href="command.css?v=12" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -35,7 +35,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=3"></script>
     <script src="auth.js?v=2"></script>
-    <script src="study-data.js?v=1"></script>
+    <script src="study-data.js?v=2"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -1088,15 +1088,23 @@
           <!-- ---- study field ---- -->
           <div id="tw-study-field" hidden>
             <section class="panel" style="border-color: #d0ad6d44">
-              <span class="kicker is-amber" id="study-kicker">STUDY &middot; NEOPHYTE</span>
-              <h2 id="study-title">Neophyte</h2>
-              <p class="panel-sub" id="study-subtitle"></p>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap">
+                <div>
+                  <span class="kicker is-amber" id="study-kicker">STUDY &middot; NEOPHYTE</span>
+                  <h2 id="study-title">Neophyte</h2>
+                  <p class="panel-sub" id="study-subtitle"></p>
+                </div>
+                <div class="study-mastery" id="study-mastery" hidden>
+                  <div class="bar-track" style="width: 150px"><div class="bar-fill" id="study-mastery-bar" style="--bar-pct: 0"></div></div>
+                  <small id="study-mastery-label">0% mastery</small>
+                </div>
+              </div>
               <div class="chips" id="study-nav" style="margin-top: 18px">
-                <button class="is-on" type="button" data-pane="lessons">Lessons</button>
-                <button type="button" data-pane="flashcards">Flashcards</button>
-                <button type="button" data-pane="quiz">Quiz</button>
+                <button class="is-on" type="button" data-pane="lessons">Lessons <em id="nav-lessons-count"></em></button>
+                <button type="button" data-pane="flashcards">Flashcards <em id="nav-flash-count"></em></button>
+                <button type="button" data-pane="quiz">Quiz <em id="nav-quiz-count"></em></button>
                 <button type="button" data-pane="reflect">Reflect</button>
-                <button type="button" data-pane="practice">Practice</button>
+                <button type="button" data-pane="practice">Practice <em id="nav-practice-count"></em></button>
               </div>
             </section>
 
@@ -1110,6 +1118,12 @@
 
             <div id="study-body">
               <section class="panel" id="pane-lessons">
+                <div class="tier-legend">
+                  <span><i class="tier-dot tier-historical"></i>Historical — documented archaeology or text</span>
+                  <span><i class="tier-dot tier-correspondence"></i>Correspondence — traditional symbolic mapping</span>
+                  <span><i class="tier-dot tier-interpretation"></i>Interpretation — modern reading, hold loosely</span>
+                </div>
+                <div class="study-toc" id="study-toc"></div>
                 <div id="study-lessons"></div>
               </section>
 
@@ -2672,7 +2686,7 @@
 
         async function loadStudyProgress(gradeName) {
           if (studyProgress[gradeName]) return studyProgress[gradeName];
-          const state = { known: new Set(), quizBest: 0, practiceChecked: new Set(), recordId: null };
+          const state = { known: new Set(), quizBest: 0, practiceChecked: new Set(), lessonsRead: new Set(), recordId: null };
           const { data } = await GZ.client
             .from("records")
             .select("id, meta")
@@ -2685,6 +2699,7 @@
             state.known = new Set(meta.known || []);
             state.quizBest = meta.quizBest || 0;
             state.practiceChecked = new Set(meta.practiceChecked || []);
+            state.lessonsRead = new Set(meta.lessonsRead || []);
           }
           studyProgress[gradeName] = state;
           return state;
@@ -2697,6 +2712,7 @@
             known: [...state.known],
             quizBest: state.quizBest,
             practiceChecked: [...state.practiceChecked],
+            lessonsRead: [...state.lessonsRead],
           };
           if (state.recordId) {
             await GZ.client.from("records").update({ meta }).eq("id", state.recordId);
@@ -2710,14 +2726,67 @@
           }
         }
 
+        function renderStudyMastery(data) {
+          const state = studyProgress[studyGradeLoaded];
+          if (!state || !data) {
+            $("study-mastery").hidden = true;
+            return;
+          }
+          const parts = [
+            data.lessons.length ? state.lessonsRead.size / data.lessons.length : 0,
+            data.flashcards.length ? state.known.size / data.flashcards.length : 0,
+            data.quiz.length ? state.quizBest / data.quiz.length : 0,
+            data.practice.length ? state.practiceChecked.size / data.practice.length : 0,
+          ];
+          const pct = Math.round((parts.reduce((sum, part) => sum + part, 0) / parts.length) * 100);
+          $("study-mastery").hidden = false;
+          $("study-mastery-bar").style.setProperty("--bar-pct", pct);
+          $("study-mastery-label").textContent = pct + "% mastery";
+          $("nav-lessons-count").textContent = state.lessonsRead.size + "/" + data.lessons.length;
+          $("nav-flash-count").textContent = state.known.size + "/" + data.flashcards.length;
+          $("nav-quiz-count").textContent = state.quizBest + "/" + data.quiz.length;
+          $("nav-practice-count").textContent = state.practiceChecked.size + "/" + data.practice.length;
+        }
+
+        const TIER_LABELS = {
+          historical: "Historical",
+          correspondence: "Correspondence",
+          interpretation: "Interpretation",
+        };
+
         function renderStudyLessons(data) {
+          const state = studyProgress[studyGradeLoaded];
+          const read = state ? state.lessonsRead : new Set();
+
+          const toc = $("study-toc");
+          toc.innerHTML = "";
+          data.lessons.forEach((lesson, index) => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = read.has(index) ? "is-read" : "";
+            const dot = document.createElement("i");
+            dot.className = "tier-dot tier-" + (lesson.tier || "correspondence");
+            chip.append(dot, document.createTextNode(lesson.title));
+            chip.addEventListener("click", () => {
+              const target = document.getElementById("lesson-" + index);
+              if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+            toc.append(chip);
+          });
+
           const holder = $("study-lessons");
           holder.innerHTML = "";
-          for (const lesson of data.lessons) {
+          data.lessons.forEach((lesson, index) => {
             const block = document.createElement("div");
             block.className = "study-lesson";
+            block.id = "lesson-" + index;
             const h3 = document.createElement("h3");
             h3.textContent = lesson.title;
+            const tier = lesson.tier || "correspondence";
+            const badge = document.createElement("span");
+            badge.className = "tier-badge tier-" + tier;
+            badge.textContent = TIER_LABELS[tier];
+            h3.append(badge);
             const p = document.createElement("p");
             p.textContent = lesson.body;
             block.append(h3, p);
@@ -2735,10 +2804,10 @@
               const tbody = document.createElement("tbody");
               lesson.table.rows.forEach((row) => {
                 const tr = document.createElement("tr");
-                row.forEach((cell, index) => {
+                row.forEach((cell, cellIndex) => {
                   const td = document.createElement("td");
                   td.textContent = cell;
-                  if (index > 0) td.className = "t-dim";
+                  if (cellIndex > 0) td.className = "t-dim";
                   tr.append(td);
                 });
                 tbody.append(tr);
@@ -2746,8 +2815,20 @@
               table.append(thead, tbody);
               block.append(table);
             }
+            const readBtn = document.createElement("button");
+            readBtn.type = "button";
+            readBtn.className = "lesson-read-btn" + (read.has(index) ? " is-read" : "");
+            readBtn.textContent = read.has(index) ? "Read ✓" : "Mark as read";
+            readBtn.addEventListener("click", async () => {
+              if (read.has(index)) read.delete(index);
+              else read.add(index);
+              await saveStudyProgress(studyGradeLoaded);
+              renderStudyLessons(data);
+              renderStudyMastery(data);
+            });
+            block.append(readBtn);
             holder.append(block);
-          }
+          });
         }
 
         function renderFlashcard(data) {
@@ -2810,6 +2891,7 @@
             if (state) {
               state.quizBest = Math.max(state.quizBest, quizScore);
               await saveStudyProgress(studyGradeLoaded);
+              renderStudyMastery(data);
             }
           }
           renderQuizQuestion(data);
@@ -2856,6 +2938,7 @@
               else checked.add(index);
               li.classList.toggle("is-done");
               await saveStudyProgress(gradeName);
+              renderStudyMastery(data);
             });
             holder.append(li);
           });
@@ -2885,6 +2968,7 @@
           renderQuizQuestion(data);
           renderReflections(data);
           renderPractice(data);
+          renderStudyMastery(data);
         }
 
         $("study-nav").addEventListener("click", (event) => {
@@ -2928,6 +3012,7 @@
           else state.known.add(flashIndex);
           await saveStudyProgress(studyGradeLoaded);
           renderFlashcard(window.GZ_STUDY[studyGradeLoaded]);
+          renderStudyMastery(window.GZ_STUDY[studyGradeLoaded]);
         });
         $("quiz-retry").addEventListener("click", () => {
           quizIndex = 0;
