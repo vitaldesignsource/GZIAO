@@ -25,7 +25,7 @@
     <meta name="color-scheme" content="dark light" />
     <link rel="icon" href="favicon.svg" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=2" />
     <script>
       (function () {
         try {
@@ -56,12 +56,25 @@
           </div>
           <div>
             <strong>GIMEL ZAYIN</strong>
-            <small>I.A.O</small>
+            <small>I&middot;A&middot;O</small>
           </div>
         </div>
         <div class="entry-nav-actions">
           <span>PRIVATE STRATEGIC INTELLIGENCE</span>
           <button class="theme-toggle" type="button" aria-label="Switch color theme">
+            <svg class="tt-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="3" fill="currentColor" />
+              <g stroke="currentColor" stroke-width="1.1" stroke-linecap="round">
+                <path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3.05 3.05l1.13 1.13M11.82 11.82l1.13 1.13M12.95 3.05l-1.13 1.13M4.18 11.82l-1.13 1.13" />
+              </g>
+            </svg>
+            <span class="tt-track" aria-hidden="true"><i class="tt-knob"></i></span>
+            <svg class="tt-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M13.3 10.1A5.8 5.8 0 0 1 5.9 2.7 6.3 6.3 0 1 0 13.3 10.1Z"
+                fill="currentColor"
+              />
+            </svg>
             <span class="theme-toggle-copy">Dark</span>
           </button>
         </div>
@@ -73,13 +86,13 @@
           <i></i>
         </div>
         <div class="entry-copy">
-          <span class="entry-kicker">IMPROVISE / ADAPT / OVERCOME</span>
+          <span class="entry-kicker">IMPROVISE &middot; ADAPT &middot; OVERCOME</span>
           <h1>Your life is a field of intelligence.</h1>
           <p>
             Unify people, timing systems, finances, documents, decisions, and living chronology
             inside one private command architecture.
           </p>
-          <a class="entry-signin" href="/signin-with-chatgpt?return_to=%2F">
+          <a class="entry-signin" href="signin.html">
             Sign in to enter <span aria-hidden="true">&rarr;</span>
           </a>
           <div class="entry-assurance">
@@ -114,10 +127,39 @@
       </section>
 
       <footer class="entry-footer">
-        <span>GZ IAO / ADAPTIVE INTELLIGENCE SYSTEM</span>
+        <span>GZ IAO &middot; ADAPTIVE INTELLIGENCE SYSTEM</span>
         <b>Authorized access only</b>
       </footer>
+
+      <aside class="install-card" id="install-card" hidden>
+        <button class="install-close" id="install-close" type="button" aria-label="Dismiss">
+          &times;
+        </button>
+        <div class="install-head">
+          <div class="install-badge" aria-hidden="true">
+            <div class="brand-mark">
+              <span>GZ</span>
+              <i></i>
+            </div>
+            <b>+</b>
+          </div>
+          <div>
+            <small>GIMEL ZAYIN &middot; MOBILE FIELD</small>
+            <strong>Install the private command app</strong>
+          </div>
+        </div>
+        <p>
+          Launch full screen from your Home Screen with a dedicated icon and faster return to
+          your field.
+        </p>
+        <div class="install-actions">
+          <button class="install-later" id="install-later" type="button">Not now</button>
+          <button class="install-go" id="install-go" type="button">
+            Install app <span aria-hidden="true">&nearr;</span>
+          </button>
+        </div>
+      </aside>
     </main>
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
   </body>
 </html>

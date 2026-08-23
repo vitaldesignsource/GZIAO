@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in — Gimel Zayin IAO</title>
+    <meta name="theme-color" content="#151719" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eceeef" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css?v=2" />
+    <link rel="stylesheet" href="app.css?v=2" />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("gz-theme");
+          var theme =
+            saved === "light" || saved === "dark"
+              ? saved
+              : matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js?v=3"></script>
+    <script src="auth.js?v=2"></script>
+  </head>
+  <body>
+    <main class="public-entry">
+      <div class="entry-grid" aria-hidden="true"></div>
+      <header class="entry-nav">
+        <div class="entry-brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span>G</span>
+            <i></i>
+            <span>Z</span>
+          </div>
+          <div>
+            <strong>GIMEL ZAYIN</strong>
+            <small>I&middot;A&middot;O</small>
+          </div>
+        </div>
+        <div class="entry-nav-actions">
+          <span>PRIVATE STRATEGIC INTELLIGENCE</span>
+          <button class="theme-toggle" type="button" aria-label="Switch color theme">
+            <svg class="tt-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="3" fill="currentColor" />
+              <g stroke="currentColor" stroke-width="1.1" stroke-linecap="round">
+                <path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3.05 3.05l1.13 1.13M11.82 11.82l1.13 1.13M12.95 3.05l-1.13 1.13M4.18 11.82l-1.13 1.13" />
+              </g>
+            </svg>
+            <span class="tt-track" aria-hidden="true"><i class="tt-knob"></i></span>
+            <svg class="tt-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M13.3 10.1A5.8 5.8 0 0 1 5.9 2.7 6.3 6.3 0 1 0 13.3 10.1Z"
+                fill="currentColor"
+              />
+            </svg>
+            <span class="theme-toggle-copy">Dark</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="gate-hero">
+        <span class="entry-kicker">IDENTITY GATE</span>
+        <h1 id="gate-title">Enter the system.</h1>
+
+        <div class="gate-setup" id="gate-setup" hidden>
+          <b>System not yet connected.</b><br />
+          Create a free project at supabase.com, then open
+          <code>config.js</code> in this site and paste your project's URL and
+          anon key. Full steps are in <code>SETUP.md</code>.
+        </div>
+
+        <form class="gate-panel" id="gate-form" hidden>
+          <label>
+            Email
+            <input type="email" id="gate-email" autocomplete="email" required />
+          </label>
+          <label>
+            Passphrase
+            <input
+              type="password"
+              id="gate-password"
+              autocomplete="current-password"
+              minlength="8"
+              required
+            />
+          </label>
+          <button class="entry-signin" type="submit" id="gate-submit">Enter</button>
+          <div class="gate-message" id="gate-message" role="status"></div>
+          <div class="gate-switch" id="gate-switch">
+            First arrival? <a id="gate-toggle">Create your identity</a>
+          </div>
+        </form>
+      </section>
+
+      <footer class="entry-footer">
+        <span>GZ IAO &middot; ADAPTIVE INTELLIGENCE SYSTEM</span>
+        <b>Authorized access only</b>
+      </footer>
+    </main>
+    <script src="script.js?v=2"></script>
+    <script>
+      (function () {
+        const form = document.getElementById("gate-form");
+        const setup = document.getElementById("gate-setup");
+
+        if (!GZ.configured) {
+          setup.hidden = false;
+          return;
+        }
+        form.hidden = false;
+
+        const title = document.getElementById("gate-title");
+        const email = document.getElementById("gate-email");
+        const password = document.getElementById("gate-password");
+        const submit = document.getElementById("gate-submit");
+        const message = document.getElementById("gate-message");
+        const toggle = document.getElementById("gate-toggle");
+        const switchCopy = document.getElementById("gate-switch");
+        let mode = "signin";
+
+        GZ.client.auth.getSession().then(({ data }) => {
+          if (data.session) location.replace("app.html");
+        });
+
+        function say(text, kind) {
+          message.textContent = text;
+          message.className = "gate-message" + (kind ? " is-" + kind : "");
+        }
+
+        toggle.addEventListener("click", () => {
+          mode = mode === "signin" ? "signup" : "signin";
+          const signingIn = mode === "signin";
+          title.textContent = signingIn ? "Enter the system." : "Create your identity.";
+          submit.textContent = signingIn ? "Enter" : "Create identity";
+          password.autocomplete = signingIn ? "current-password" : "new-password";
+          switchCopy.firstChild.textContent = signingIn
+            ? "First arrival? "
+            : "Already established? ";
+          toggle.textContent = signingIn ? "Create your identity" : "Sign in instead";
+          say("");
+        });
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          submit.disabled = true;
+          say(mode === "signin" ? "Verifying identity…" : "Establishing identity…");
+
+          const credentials = { email: email.value.trim(), password: password.value };
+          const { data, error } =
+            mode === "signin"
+              ? await GZ.client.auth.signInWithPassword(credentials)
+              : await GZ.client.auth.signUp(credentials);
+
+          submit.disabled = false;
+          if (error) {
+            say(error.message, "error");
+          } else if (mode === "signup" && !data.session) {
+            say("Identity created. Confirm via the email just sent, then sign in.", "ok");
+          } else {
+            say("Access granted.", "ok");
+            location.replace("app.html");
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

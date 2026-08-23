@@ -7,6 +7,13 @@
   --line-bright: #63dfca4d;
   --gold: #63dfca;
   --gold-soft: #2f9188;
+  --amber: #d0ad6d;
+  --violet: #a78bfa;
+  --violet-soft: #8b5cf6;
+  --m1: #d0ad6d;
+  --m2: #e3c76a;
+  --m3: #6fb0e8;
+  --m4: #a78bfa;
 }
 
 html[data-theme="light"] {
@@ -18,6 +25,17 @@ html[data-theme="light"] {
   --line-bright: #24766a59;
   --gold: #176f66;
   --gold-soft: #27857b;
+  --amber: #8a6a2f;
+  --violet: #6a54c9;
+  --violet-soft: #6a54c9;
+  --m1: #8a6a2f;
+  --m2: #8f7a2e;
+  --m3: #2f6cb0;
+  --m4: #6a54c9;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 * {
@@ -51,6 +69,7 @@ button {
   overflow: hidden;
   background:
     radial-gradient(circle at 70% 22%, #d0ad6d1f, transparent 22%),
+    radial-gradient(circle at 24% 52%, #8b5cf614, transparent 30%),
     radial-gradient(circle at 20% 90%, #4b69911c, transparent 28%),
     var(--ink);
 }
@@ -96,7 +115,7 @@ button {
 }
 
 .entry-brand small {
-  color: var(--gold);
+  color: var(--amber);
   letter-spacing: 0.45em;
   font-size: 8px;
 }
@@ -110,7 +129,8 @@ button {
 .brand-mark {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--gold-soft);
+  border: 1px solid;
+  border-image: linear-gradient(135deg, var(--amber), var(--gold)) 1;
   display: grid;
   place-items: center;
   position: relative;
@@ -118,7 +138,7 @@ button {
 }
 
 .brand-mark span {
-  color: var(--gold);
+  color: var(--amber);
   font: 600 13px Georgia, serif;
   position: absolute;
   transform: rotate(-45deg);
@@ -137,22 +157,56 @@ button {
 .brand-mark i {
   width: 1px;
   height: 54px;
-  background: var(--gold-soft);
-  opacity: 0.7;
+  background: linear-gradient(var(--amber), var(--violet), var(--gold));
+  opacity: 0.8;
   position: absolute;
 }
 
 .theme-toggle {
   border: 1px solid var(--line-bright);
+  border-radius: 999px;
   background: #0c1118b8;
   color: var(--muted);
-  min-width: 68px;
-  height: 34px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 14px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-size: 8px;
+}
+
+.tt-icon {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+.tt-track {
+  width: 28px;
+  height: 15px;
+  border: 1px solid var(--line-bright);
+  border-radius: 999px;
+  position: relative;
+  flex: none;
+}
+
+.tt-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--paper);
+  transform: translateX(13px);
+  transition: transform 0.2s;
+}
+
+html[data-theme="light"] .tt-knob {
+  transform: none;
 }
 
 html[data-theme="light"] .theme-toggle {
@@ -177,14 +231,18 @@ html[data-theme="light"] .theme-toggle {
   aspect-ratio: 1;
   width: min(32vw, 390px);
   margin: auto;
-  border: 1px solid var(--line-bright);
+  border: 1px solid transparent;
   border-radius: 50%;
   display: grid;
   place-items: center;
   position: relative;
+  background:
+    radial-gradient(circle at 52% 48%, #8b5cf624, transparent 62%) padding-box,
+    linear-gradient(var(--ink), var(--ink)) padding-box,
+    linear-gradient(150deg, var(--amber), var(--violet-soft) 55%, var(--gold)) border-box;
   box-shadow:
-    0 0 0 44px #63dfca08,
-    0 0 0 88px #63dfca04;
+    0 0 0 44px #8b5cf608,
+    0 0 0 88px #8b5cf604;
 }
 
 .entry-seal::before,
@@ -199,19 +257,38 @@ html[data-theme="light"] .theme-toggle {
 .entry-seal::after {
   inset: 29%;
   transform: rotate(0);
+  border-color: #a78bfa55;
+  background: radial-gradient(circle, #cdb9ff21, transparent 70%);
+}
+
+html[data-theme="light"] .entry-seal::after {
+  border-color: #6a54c955;
+  background: radial-gradient(circle, #6a54c918, transparent 70%);
 }
 
 .entry-seal span {
   z-index: 1;
-  color: var(--gold);
+  color: #e2d7ff;
   letter-spacing: 0.22em;
   font: 400 35px Georgia, serif;
+  text-shadow: 0 0 24px #a78bfa66;
+}
+
+html[data-theme="light"] .entry-seal span {
+  color: #5b46b8;
+  text-shadow: none;
 }
 
 .entry-seal i {
   width: 1px;
   height: 100%;
-  background: linear-gradient(transparent, var(--gold-soft), transparent);
+  background: linear-gradient(
+    transparent,
+    var(--amber) 32%,
+    #efe8ff 50%,
+    var(--gold) 68%,
+    transparent
+  );
   position: absolute;
   transform: rotate(32deg);
 }
@@ -221,7 +298,7 @@ html[data-theme="light"] .theme-toggle {
 }
 
 .entry-kicker {
-  color: var(--gold);
+  color: var(--amber);
   letter-spacing: 0.24em;
   margin-bottom: 24px;
   font-size: 9px;
@@ -242,14 +319,34 @@ html[data-theme="light"] .theme-toggle {
   font: 400 15px / 1.75 Georgia, serif;
 }
 
+.entry-copy p::before {
+  content: "";
+  display: inline-block;
+  width: 34px;
+  height: 1px;
+  background: var(--gold-soft);
+  vertical-align: middle;
+  margin-right: 14px;
+}
+
 .entry-signin {
   width: max-content;
   min-width: 225px;
   height: 50px;
   padding: 0 17px;
-  border: 1px solid var(--gold-soft);
-  color: var(--gold);
-  background: linear-gradient(135deg, #63dfca21, #63dfca0d);
+  border: 0;
+  color: var(--paper);
+  background: linear-gradient(100deg, var(--amber), var(--violet-soft) 62%, var(--violet-soft));
+  clip-path: polygon(
+    11px 0,
+    100% 0,
+    100% calc(100% - 11px),
+    calc(100% - 11px) 100%,
+    0 100%,
+    0 11px
+  );
+  filter: drop-shadow(4px 5px 0 #8b5cf63d);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -261,14 +358,34 @@ html[data-theme="light"] .theme-toggle {
   font-weight: 750;
   transition:
     transform 0.2s,
-    background 0.2s,
-    border-color 0.2s;
+    filter 0.2s;
+}
+
+.entry-signin::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background:
+    linear-gradient(100deg, #17102255, transparent 60%),
+    linear-gradient(100deg, #120f1e, #0f1522);
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
+}
+
+html[data-theme="light"] .entry-signin::before {
+  background: linear-gradient(100deg, #f6f2e9, #eef0f6);
 }
 
 .entry-signin:hover {
-  border-color: var(--gold);
-  background: #63dfca18;
   transform: translateY(-1px);
+  filter: drop-shadow(4px 5px 0 #8b5cf66b) brightness(1.08);
 }
 
 .entry-signin span {
@@ -322,6 +439,38 @@ html[data-theme="light"] .entry-modules article {
 
 .entry-modules article:last-child {
   border-right: 0;
+}
+
+.entry-modules article:nth-child(1) {
+  border-left: 2px solid var(--m1);
+}
+
+.entry-modules article:nth-child(2) {
+  border-left: 2px solid var(--m2);
+}
+
+.entry-modules article:nth-child(3) {
+  border-left: 2px solid var(--m3);
+}
+
+.entry-modules article:nth-child(4) {
+  border-left: 2px solid var(--m4);
+}
+
+.entry-modules article:nth-child(1) small {
+  color: var(--m1);
+}
+
+.entry-modules article:nth-child(2) small {
+  color: var(--m2);
+}
+
+.entry-modules article:nth-child(3) small {
+  color: var(--m3);
+}
+
+.entry-modules article:nth-child(4) small {
+  color: var(--m4);
 }
 
 .entry-modules small {
@@ -436,4 +585,136 @@ html[data-theme="light"] .entry-modules article {
     justify-content: center;
     gap: 8px;
   }
+}
+
+/* ---------------- install prompt ---------------- */
+
+.install-card {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 50;
+  width: min(400px, calc(100vw - 40px));
+  border: 1px solid var(--line-bright);
+  border-radius: 16px;
+  background: #0c1118f0;
+  padding: 20px 22px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 50px #00000080;
+}
+
+html[data-theme="light"] .install-card {
+  background: #ffffffee;
+}
+
+.install-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-right: 26px;
+}
+
+.install-badge {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--line-bright);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.install-badge .brand-mark {
+  width: 22px;
+  height: 22px;
+}
+
+.install-badge .brand-mark span {
+  position: static;
+  grid-area: 1 / 1;
+  font-size: 9px;
+  letter-spacing: 0;
+}
+
+.install-badge .brand-mark i {
+  display: none;
+}
+
+.install-badge > b {
+  color: var(--amber);
+  position: absolute;
+  top: 3px;
+  right: 6px;
+  font: 600 9px Georgia, serif;
+}
+
+.install-head small {
+  color: var(--faint);
+  letter-spacing: 0.2em;
+  font-size: 7px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.install-head strong {
+  font: 400 16px Georgia, serif;
+}
+
+.install-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 4px;
+}
+
+.install-close:hover {
+  color: var(--paper);
+}
+
+.install-card p {
+  color: var(--muted);
+  margin: 14px 0 16px;
+  font: 400 12px / 1.7 Georgia, serif;
+}
+
+.install-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.install-actions button {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.install-later {
+  border: 1px solid var(--line);
+  background: #ffffff0d;
+  color: var(--muted);
+}
+
+html[data-theme="light"] .install-later {
+  background: #00000008;
+}
+
+.install-go {
+  border: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.install-go:hover {
+  filter: brightness(1.06);
 }

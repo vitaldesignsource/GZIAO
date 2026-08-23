@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Command — Gimel Zayin IAO</title>
+    <meta name="theme-color" content="#151719" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eceeef" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css?v=2" />
+    <link rel="stylesheet" href="app.css?v=2" />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("gz-theme");
+          var theme =
+            saved === "light" || saved === "dark"
+              ? saved
+              : matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js?v=3"></script>
+    <script src="auth.js?v=2"></script>
+  </head>
+  <body>
+    <main class="public-entry">
+      <div class="entry-grid" aria-hidden="true"></div>
+      <header class="entry-nav">
+        <div class="entry-brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span>G</span>
+            <i></i>
+            <span>Z</span>
+          </div>
+          <div>
+            <strong>GIMEL ZAYIN</strong>
+            <small>I&middot;A&middot;O</small>
+          </div>
+        </div>
+        <div class="deck-nav-user">
+          <span id="deck-identity"></span>
+          <button class="theme-toggle" type="button" aria-label="Switch color theme">
+            <svg class="tt-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="3" fill="currentColor" />
+              <g stroke="currentColor" stroke-width="1.1" stroke-linecap="round">
+                <path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3.05 3.05l1.13 1.13M11.82 11.82l1.13 1.13M12.95 3.05l-1.13 1.13M4.18 11.82l-1.13 1.13" />
+              </g>
+            </svg>
+            <span class="tt-track" aria-hidden="true"><i class="tt-knob"></i></span>
+            <svg class="tt-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M13.3 10.1A5.8 5.8 0 0 1 5.9 2.7 6.3 6.3 0 1 0 13.3 10.1Z"
+                fill="currentColor"
+              />
+            </svg>
+            <span class="theme-toggle-copy">Dark</span>
+          </button>
+          <button class="deck-signout" type="button" id="deck-signout">Sign out</button>
+        </div>
+      </header>
+
+      <section class="deck">
+        <div class="deck-head">
+          <span class="entry-kicker">IMPROVISE &middot; ADAPT &middot; OVERCOME</span>
+          <h1 id="deck-greeting">Command deck</h1>
+        </div>
+
+        <div class="deck-grid">
+          <article class="deck-module">
+            <header>
+              <small>01</small>
+              <strong>COMMAND</strong>
+              <span>Daily intelligence</span>
+            </header>
+            <div class="deck-line" id="command-brief"></div>
+            <div class="deck-stat-row">
+              <div class="deck-stat"><b id="command-doy"></b><span>Day of year</span></div>
+              <div class="deck-stat"><b id="command-week"></b><span>Week</span></div>
+              <div class="deck-stat"><b id="command-remaining"></b><span>Days remain</span></div>
+            </div>
+          </article>
+
+          <article class="deck-module">
+            <header>
+              <small>02</small>
+              <strong>AION</strong>
+              <span>Esoteric timing</span>
+            </header>
+            <div class="deck-line" id="aion-brief"></div>
+            <div class="deck-stat-row">
+              <div class="deck-stat"><b id="aion-ruler"></b><span>Day ruler</span></div>
+              <div class="deck-stat"><b id="aion-phase"></b><span>Lunar phase</span></div>
+              <div class="deck-stat"><b id="aion-age"></b><span>Lunar day</span></div>
+            </div>
+          </article>
+
+          <article class="deck-module">
+            <header>
+              <small>03</small>
+              <strong>VAULT</strong>
+              <span>Private records</span>
+            </header>
+            <form class="vault-form" id="vault-form">
+              <input type="text" id="vault-title" placeholder="Record title" required />
+              <textarea id="vault-body" placeholder="Details (optional)"></textarea>
+              <button type="submit">Seal record</button>
+            </form>
+            <ul class="vault-list" id="vault-list"></ul>
+            <div class="deck-empty" id="vault-status"></div>
+          </article>
+
+          <article class="deck-module">
+            <header>
+              <small>04</small>
+              <strong>ORACLE</strong>
+              <span>Cross-field analysis</span>
+            </header>
+            <div class="deck-line" id="oracle-brief"></div>
+            <div class="deck-stat-row">
+              <div class="deck-stat"><b id="oracle-records"></b><span>Records held</span></div>
+              <div class="deck-stat"><b id="oracle-latest"></b><span>Last sealed</span></div>
+              <div class="deck-stat"><b id="oracle-tenure"></b><span>Days inside</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer class="entry-footer">
+        <span>GZ IAO &middot; ADAPTIVE INTELLIGENCE SYSTEM</span>
+        <b>Authorized access only</b>
+      </footer>
+    </main>
+    <script src="script.js?v=2"></script>
+    <script>
+      (async function () {
+        if (!GZ.configured) {
+          location.replace("signin.html");
+          return;
+        }
+
+        const { data } = await GZ.client.auth.getSession();
+        if (!data.session) {
+          location.replace("signin.html");
+          return;
+        }
+        const user = data.session.user;
+
+        GZ.client.auth.onAuthStateChange((_event, session) => {
+          if (!session) location.replace("signin.html");
+        });
+
+        document.getElementById("deck-identity").textContent = user.email;
+        document.getElementById("deck-signout").addEventListener("click", () => {
+          GZ.client.auth.signOut();
+        });
+
+        /* ---- command ---- */
+        const now = new Date();
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const endOfYear = new Date(now.getFullYear() + 1, 0, 1);
+        const dayMs = 86400000;
+        const doy = Math.floor((now - startOfYear) / dayMs) + 1;
+        const daysInYear = Math.round((endOfYear - startOfYear) / dayMs);
+
+        document.getElementById("deck-greeting").textContent =
+          now.getHours() < 12
+            ? "Morning command."
+            : now.getHours() < 18
+              ? "Afternoon command."
+              : "Evening command.";
+        document.getElementById("command-brief").innerHTML =
+          "Today is <b>" +
+          now.toLocaleDateString(undefined, {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }) +
+          "</b>. The field is open.";
+        document.getElementById("command-doy").textContent = doy;
+        document.getElementById("command-week").textContent = Math.ceil(doy / 7);
+        document.getElementById("command-remaining").textContent = daysInYear - doy;
+
+        /* ---- aion ---- */
+        const rulers = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
+        const ruler = rulers[now.getDay()];
+        const synodic = 29.53058867;
+        const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+        const age = ((now.getTime() - knownNewMoon) / dayMs) % synodic;
+        const phaseNames = [
+          [1.85, "New"],
+          [5.54, "Waxing crescent"],
+          [9.23, "First quarter"],
+          [12.92, "Waxing gibbous"],
+          [16.61, "Full"],
+          [20.3, "Waning gibbous"],
+          [23.99, "Last quarter"],
+          [27.68, "Waning crescent"],
+          [Infinity, "New"],
+        ];
+        const phase = phaseNames.find(([limit]) => age < limit)[1];
+
+        document.getElementById("aion-ruler").textContent = ruler;
+        document.getElementById("aion-phase").textContent = phase;
+        document.getElementById("aion-age").textContent = Math.floor(age) + 1;
+        document.getElementById("aion-brief").innerHTML =
+          "The day belongs to <b>" +
+          ruler +
+          "</b> under a <b>" +
+          phase.toLowerCase() +
+          "</b> moon.";
+
+        /* ---- vault ---- */
+        const vaultForm = document.getElementById("vault-form");
+        const vaultList = document.getElementById("vault-list");
+        const vaultStatus = document.getElementById("vault-status");
+        let records = [];
+
+        function renderVault() {
+          vaultList.innerHTML = "";
+          vaultStatus.textContent = records.length ? "" : "The vault is empty.";
+          for (const record of records) {
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = record.title;
+            const stamp = document.createElement("time");
+            stamp.textContent = new Date(record.created_at).toLocaleDateString();
+            item.append(title, stamp);
+            if (record.body) {
+              const body = document.createElement("p");
+              body.textContent = record.body;
+              item.append(body);
+            }
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.textContent = "Destroy";
+            remove.addEventListener("click", async () => {
+              const { error } = await GZ.client
+                .from("vault_records")
+                .delete()
+                .eq("id", record.id);
+              if (!error) {
+                records = records.filter((r) => r.id !== record.id);
+                renderVault();
+                renderOracle();
+              }
+            });
+            item.append(remove);
+            vaultList.append(item);
+          }
+        }
+
+        async function loadVault() {
+          const { data: rows, error } = await GZ.client
+            .from("vault_records")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (error) {
+            vaultStatus.textContent =
+              "Vault offline: " + error.message + " (run the SQL in SETUP.md).";
+            return;
+          }
+          records = rows;
+          renderVault();
+          renderOracle();
+        }
+
+        vaultForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const title = document.getElementById("vault-title");
+          const body = document.getElementById("vault-body");
+          const { data: inserted, error } = await GZ.client
+            .from("vault_records")
+            .insert({ title: title.value.trim(), body: body.value.trim() || null })
+            .select()
+            .single();
+          if (error) {
+            vaultStatus.textContent = "Seal failed: " + error.message;
+            return;
+          }
+          records.unshift(inserted);
+          title.value = "";
+          body.value = "";
+          renderVault();
+          renderOracle();
+        });
+
+        /* ---- oracle ---- */
+        function renderOracle() {
+          const tenure = Math.max(
+            1,
+            Math.floor((now - new Date(user.created_at)) / dayMs) + 1
+          );
+          document.getElementById("oracle-records").textContent = records.length;
+          document.getElementById("oracle-latest").textContent = records.length
+            ? new Date(records[0].created_at).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+              })
+            : "—";
+          document.getElementById("oracle-tenure").textContent = tenure;
+          document.getElementById("oracle-brief").innerHTML = records.length
+            ? "The oracle reads <b>" +
+              records.length +
+              " record" +
+              (records.length === 1 ? "" : "s") +
+              "</b> across the field. Patterns sharpen as the vault grows."
+            : "The oracle is listening. Seal records into the vault and cross-field patterns will begin to surface.";
+        }
+
+        renderOracle();
+        loadVault();
+      })();
+    </script>
+  </body>
+</html>
