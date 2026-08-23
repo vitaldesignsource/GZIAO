@@ -2423,6 +2423,10 @@ body.command-body {
   font-size: 9.5px;
 }
 
+.intake-cast {
+  grid-template-columns: 1.6fr 1fr 1fr 0.8fr 0.9fr 0.9fr auto;
+}
+
 .layer-list em {
   margin-left: auto;
   color: var(--faint);
@@ -2749,7 +2753,8 @@ body.command-body {
   .grade-track,
   .profile-grid,
   .corr-grid,
-  .intake {
+  .intake,
+  .intake-cast {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -2758,7 +2763,8 @@ body.command-body {
   .grade-track,
   .profile-grid,
   .corr-grid,
-  .intake {
+  .intake,
+  .intake-cast {
     grid-template-columns: 1fr;
   }
 }

@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=12" />
+    <link rel="stylesheet" href="command.css?v=13" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -35,6 +35,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=3"></script>
     <script src="auth.js?v=2"></script>
+    <script src="vendor/astronomy.browser.min.js"></script>
+    <script src="astro.js?v=2"></script>
     <script src="study-data.js?v=2"></script>
   </head>
   <body class="command-body">
@@ -468,14 +470,19 @@
             <span class="kicker is-amber">CALCULATION INTAKE</span>
             <h2>Cast a celestial field</h2>
             <p class="panel-sub">Resolve tropical and Lahiri sidereal solar and lunar layers, then preserve the result as a named chart.</p>
-            <div class="intake">
-              <label>SAVED PROFILE<input type="text" value="Manual field" disabled /></label>
-              <label>SUBJECT<input type="text" value="Current field" disabled /></label>
+            <div class="intake intake-cast">
+              <label>SUBJECT<input type="text" id="aion-subject" value="Current field" /></label>
               <label>LOCAL DATE<input type="date" id="aion-date" /></label>
               <label>LOCAL TIME<input type="time" id="aion-time" /></label>
-              <label>UTC OFFSET<input type="text" id="aion-utc" /></label>
-              <button class="prime-btn" data-soon="The full planetary ephemeris engine arrives in a later build. Sun and Moon layers are live above." type="button">Cast field &rarr;</button>
+              <label>UTC OFFSET<input type="text" id="aion-utc" placeholder="-7" /></label>
+              <label>LAT (OPT.)<input type="text" id="aion-lat" placeholder="33.45" /></label>
+              <label>LON (OPT.)<input type="text" id="aion-lon" placeholder="-112.07" /></label>
+              <button class="prime-btn" id="aion-cast" type="button">Cast field &rarr;</button>
             </div>
+            <p class="panel-note" style="margin-top: 12px">
+              Latitude and longitude are only needed for the Ascendant and Midheaven. All positions
+              are apparent geocentric, ecliptic of date, computed on this device &mdash; nothing is estimated.
+            </p>
           </section>
           <section class="strip">
             <div class="strip-cell"><div><small>DAY RULER</small><b id="aion-ruler"></b></div><span>Chaldean order</span></div>
@@ -511,11 +518,14 @@
                 <span>LIVE DUAL-LUMINARY CHART</span>
                 <span style="color: var(--gold)">&#9670; Deterministic output</span>
               </span>
-              <h2>Awaiting calculation</h2>
+              <h2 id="aion-wheel-title">Awaiting calculation</h2>
+              <p class="panel-note" id="aion-wheel-sub" style="margin: 2px 0 0" hidden></p>
               <svg class="zwheel" viewBox="0 0 300 300" aria-hidden="true">
                 <circle cx="150" cy="150" r="140" />
                 <circle cx="150" cy="150" r="96" />
-                <circle cx="150" cy="150" r="42" style="fill: #0d121a; stroke: #d0ad6d88" />
+                <g id="wheel-planets"></g>
+                <g id="wheel-angles"></g>
+                <circle cx="150" cy="150" r="42" style="fill: var(--panel-solid); stroke: #d0ad6d88" />
                 <text x="150" y="146" class="z-core">AION</text>
                 <text x="150" y="162" class="z-core" style="font-size: 8px; fill: #91a8b6">FIELD</text>
                 <text x="150" y="42">&#9800;</text><text x="209" y="58">&#9801;</text><text x="252" y="100">&#9802;</text>
@@ -526,7 +536,7 @@
               <div class="privacy-row">
                 <span>COORDINATE &middot; <b style="color: var(--paper)">Apparent geocentric</b></span>
                 <span>ZODIACS &middot; <b style="color: var(--paper)">Tropical + Sidereal</b></span>
-                <span>MODULE &middot; <b style="color: var(--paper)">Sun + Moon</b></span>
+                <span id="aion-wheel-ayan">AYANAMSHA &middot; <b style="color: var(--paper)">Lahiri</b></span>
               </div>
             </div>
             <div class="panel" style="border-color: #d0ad6d44">
@@ -541,20 +551,35 @@
               <div class="warn-note">Traditions remain distinct. Tropical and sidereal values are calculated independently and synthesis remains labeled.</div>
             </div>
             <div class="panel" style="border-color: #d0ad6d44">
-              <span class="kicker is-amber">CELESTIAL INTELLIGENCE</span>
-              <h2>No field cast</h2>
-              <div class="empty-center">
+              <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+                <span>CELESTIAL INTELLIGENCE</span>
+                <button class="chrono-open" id="aion-save" type="button" hidden>PRESERVE CAST</button>
+              </span>
+              <h2 id="aion-ci-title">No field cast</h2>
+              <div class="empty-center" id="aion-ci-empty">
                 <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
-                <span>Enter a date, time, and UTC offset to activate the live calculation layers.</span>
+                <span>Cast a field and every placement appears here &mdash; raw data before interpretation.</span>
               </div>
+              <div class="warn-note" id="aion-ci-timewarn" hidden style="margin: 12px 0 0">
+                Birth time unknown &mdash; cast for local noon. The Moon can be off by up to ~7&deg;;
+                the Ascendant and Midheaven are omitted.
+              </div>
+              <div id="aion-placements" style="overflow-x: auto"></div>
             </div>
           </section>
-          <section class="panel" style="border-color: #d0ad6d44">
-            <span class="kicker is-amber" style="display: flex; justify-content: space-between"><span>CHART MEMORY</span><b style="color: var(--amber); font: 400 22px Georgia, serif">00</b></span>
-            <h2>Saved casts</h2>
-            <p class="panel-sub">Named charts remain linked to their source profile and can be compared later. None saved yet.</p>
+          <section class="panel" id="aion-aspects-panel" style="border-color: #d0ad6d44" hidden>
+            <span class="kicker is-amber">ASPECT LATTICE</span>
+            <h2 id="aion-aspects-title">Aspects</h2>
+            <p class="panel-sub">Major aspects only (conjunction, sextile, square, trine, opposition). Orb 6&deg;, widened to 8&deg; when a luminary is involved. Sorted tightest first.</p>
+            <div id="aion-aspects" class="chips" style="margin-top: 14px; flex-wrap: wrap"></div>
           </section>
-          <div class="mp-footer"><span>LIVE SOLAR + LUNAR CALCULATION &middot; FULL PLANETARY EPHEMERIS AND HOUSES REMAIN IN DEVELOPMENT</span></div>
+          <section class="panel" style="border-color: #d0ad6d44">
+            <span class="kicker is-amber" style="display: flex; justify-content: space-between"><span>CHART MEMORY</span><b id="aion-mem-count" style="color: var(--amber); font: 400 22px Georgia, serif">00</b></span>
+            <h2>Saved casts</h2>
+            <p class="panel-sub" id="aion-mem-sub">Named charts remain linked to their source profile and can be compared later. None saved yet.</p>
+            <ul class="vault-list" id="aion-mem-list" style="margin-top: 12px; max-height: 300px"></ul>
+          </section>
+          <div class="mp-footer"><span>LIVE FULL-PLANETARY CALCULATION (SUN THROUGH PLUTO) &middot; HOUSES BEYOND ASC/MC AND DASHAS REMAIN IN DEVELOPMENT</span></div>
         </div>
 
         <!-- ================= TIMELINE / CHRONOSCOPE ================= -->
@@ -1352,6 +1377,21 @@
           Birth place
           <input type="text" id="person-birth-place" placeholder="City, region, country" />
         </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px">
+          <label>
+            UTC offset at birth
+            <input type="text" id="person-tz" placeholder="-7" />
+          </label>
+          <label>
+            Birth latitude
+            <input type="text" id="person-lat" placeholder="33.45" />
+          </label>
+          <label>
+            Birth longitude
+            <input type="text" id="person-lon" placeholder="-112.07" />
+          </label>
+        </div>
+        <small style="color: var(--faint); font-size: 9.5px; margin-top: -6px">Optional — used only for chart calculation. Latitude/longitude enable the Ascendant.</small>
         <label>
           Notes
           <textarea id="person-notes" placeholder="Context, history, trust and boundary notes&hellip;" style="border: 1px solid var(--line); background: transparent; color: var(--paper); padding: 11px 14px; min-height: 90px; resize: vertical; font: 400 13px Georgia, serif"></textarea>
@@ -1381,6 +1421,7 @@
         <div class="profile-facts" id="pd-facts" style="margin-top: 18px"></div>
         <p class="panel-sub" id="pd-notes" style="margin-top: 16px; white-space: pre-wrap"></p>
         <div class="rec-actions" style="margin-top: 20px">
+          <button class="ghost-btn" id="pd-cast" type="button" style="border-color: var(--amber); color: var(--amber)">Cast natal chart &rarr;</button>
           <button class="ghost-btn" id="pd-share" type="button"></button>
           <button class="ghost-btn" id="pd-edit" type="button">Edit profile</button>
           <button class="ghost-btn is-destroy" id="pd-delete" type="button" style="border-color: #d9818155; color: #d98181">Destroy</button>
@@ -2126,6 +2167,7 @@
           renderOracleView();
           renderTempleView();
           renderConstellations();
+          renderChartMemory();
         }
 
         /* ---------- router ---------- */
@@ -2404,6 +2446,9 @@
           $("person-birth-date").value = existing ? existing.birth_date || "" : "";
           $("person-birth-time").value = existing && existing.birth_time_known ? existing.birth_time || "" : "";
           $("person-birth-place").value = existing ? existing.birth_place || "" : "";
+          $("person-tz").value = existing && existing.birth_tz_offset != null ? String(existing.birth_tz_offset) : "";
+          $("person-lat").value = existing && existing.birth_lat != null ? String(existing.birth_lat) : "";
+          $("person-lon").value = existing && existing.birth_lon != null ? String(existing.birth_lon) : "";
           $("person-notes").value = existing ? existing.notes || "" : "";
           $("person-shared").checked = existing ? isShared(existing) : false;
           $("person-detail-modal").hidden = true;
@@ -2429,6 +2474,9 @@
             birth_time: timeValue || null,
             birth_time_known: Boolean(timeValue),
             birth_place: $("person-birth-place").value.trim() || null,
+            birth_tz_offset: $("person-tz").value.trim() === "" ? null : parseFloat($("person-tz").value),
+            birth_lat: $("person-lat").value.trim() === "" ? null : parseFloat($("person-lat").value),
+            birth_lon: $("person-lon").value.trim() === "" ? null : parseFloat($("person-lon").value),
             notes: $("person-notes").value.trim() || null,
             visibility: shared ? "shared" : "private",
             household_id: shared ? profile.household_id : null,
@@ -2490,6 +2538,7 @@
 
           $("pd-notes").textContent = person.notes || "No notes recorded yet.";
 
+          $("pd-cast").hidden = !person.birth_date;
           const mine = isMine(person);
           $("pd-share").hidden = !mine;
           $("pd-share").textContent = isShared(person) ? "Make private" : "Share to relationship field";
@@ -2533,6 +2582,10 @@
           $("person-detail-modal").hidden = true;
           renderConstellations();
           toast("Profile destroyed.");
+        });
+        $("pd-cast").addEventListener("click", () => {
+          $("person-detail-modal").hidden = true;
+          castPersonNatal(detailPerson);
         });
 
         /* ---------- recommendation + misc controls ---------- */
@@ -3060,6 +3113,239 @@
         $("aion-scan").value = bootNow.toISOString().slice(0, 10);
         $("aion-time").value = bootNow.toTimeString().slice(0, 5);
         $("aion-utc").value = (bootNow.getTimezoneOffset() > 0 ? "-" : "+") + Math.abs(bootNow.getTimezoneOffset() / 60);
+
+        /* ---------- AION casting engine ---------- */
+        let currentChart = null;
+        let currentSubject = "Current field";
+
+        function separation(a, b) {
+          let d = (((b - a) % 360) + 360) % 360;
+          if (d > 180) d -= 360;
+          return d;
+        }
+
+        function wheelXY(lonDeg, radius) {
+          const theta = (lonDeg * Math.PI) / 180;
+          return { x: 150 + radius * Math.sin(theta), y: 150 - radius * Math.cos(theta) };
+        }
+
+        function renderWheel(chart) {
+          const planetLayer = $("wheel-planets");
+          const angleLayer = $("wheel-angles");
+          planetLayer.innerHTML = "";
+          angleLayer.innerHTML = "";
+          if (!chart) return;
+          const svgns = "http://www.w3.org/2000/svg";
+          const sorted = [...chart.placements].sort((a, b) => a.lon - b.lon);
+          let lastLon = -999;
+          let toggle = false;
+          for (const place of sorted) {
+            if (Math.abs(separation(lastLon, place.lon)) < 10) toggle = !toggle;
+            else toggle = false;
+            lastLon = place.lon;
+            const pos = wheelXY(place.lon, toggle ? 58 : 76);
+            const tick = wheelXY(place.lon, 92);
+            const tickOuter = wheelXY(place.lon, 96);
+            const line = document.createElementNS(svgns, "line");
+            line.setAttribute("x1", tick.x);
+            line.setAttribute("y1", tick.y);
+            line.setAttribute("x2", tickOuter.x);
+            line.setAttribute("y2", tickOuter.y);
+            line.setAttribute("stroke", "#d0ad6d");
+            line.setAttribute("stroke-width", "1.4");
+            planetLayer.append(line);
+            const glyph = document.createElementNS(svgns, "text");
+            glyph.setAttribute("x", pos.x);
+            glyph.setAttribute("y", pos.y + 4);
+            glyph.setAttribute("style", "fill: var(--paper); font-size: 12px; text-anchor: middle" + (place.retrograde ? "; fill: #e08baf" : ""));
+            glyph.textContent = place.glyph;
+            planetLayer.append(glyph);
+          }
+          if (chart.angles) {
+            for (const [lon, label] of [[chart.angles.asc, "ASC"], [chart.angles.mc, "MC"]]) {
+              const inner = wheelXY(lon, 96);
+              const outer = wheelXY(lon, 140);
+              const line = document.createElementNS(svgns, "line");
+              line.setAttribute("x1", inner.x);
+              line.setAttribute("y1", inner.y);
+              line.setAttribute("x2", outer.x);
+              line.setAttribute("y2", outer.y);
+              line.setAttribute("stroke", "#63dfca");
+              line.setAttribute("stroke-width", "1.2");
+              angleLayer.append(line);
+              const pos = wheelXY(lon, 128);
+              const text = document.createElementNS(svgns, "text");
+              text.setAttribute("x", pos.x);
+              text.setAttribute("y", pos.y);
+              text.setAttribute("style", "fill: #63dfca; font-size: 7px; text-anchor: middle; letter-spacing: 1px");
+              text.textContent = label;
+              angleLayer.append(text);
+            }
+          }
+        }
+
+        function renderChartResults(chart, subject) {
+          currentChart = chart;
+          currentSubject = subject || "Current field";
+          const when = new Date(chart.utc);
+          $("aion-wheel-title").textContent = currentSubject;
+          $("aion-wheel-sub").hidden = false;
+          $("aion-wheel-sub").textContent =
+            when.toUTCString().replace(" GMT", " UT") + " · ayanamsha " + chart.ayanamsha.toFixed(3) + "°";
+          $("aion-wheel-ayan").innerHTML =
+            "AYANAMSHA · <b style='color: var(--paper)'>Lahiri " + chart.ayanamsha.toFixed(2) + "°</b>";
+          renderWheel(chart);
+
+          $("aion-ci-title").textContent = "Placements · " + currentSubject;
+          $("aion-ci-empty").hidden = true;
+          $("aion-ci-timewarn").hidden = !chart.timeUnknown;
+          $("aion-save").hidden = false;
+
+          const holder = $("aion-placements");
+          holder.innerHTML = "";
+          const table = document.createElement("table");
+          table.className = "table-lite";
+          table.innerHTML = "<thead><tr><th></th><th>TROPICAL</th><th>SIDEREAL (LAHIRI)</th><th>NAKSHATRA</th><th>MOTION</th></tr></thead>";
+          const body = document.createElement("tbody");
+          for (const place of chart.placements) {
+            const tr = document.createElement("tr");
+            const name = document.createElement("td");
+            name.textContent = place.glyph + " " + place.body;
+            const trop = document.createElement("td");
+            trop.textContent = place.tropical.label;
+            const sid = document.createElement("td");
+            sid.className = "t-dim";
+            sid.textContent = place.sidereal.label;
+            const nak = document.createElement("td");
+            nak.className = "t-dim";
+            nak.textContent = place.nakshatra.name + " · pada " + place.nakshatra.pada;
+            const mot = document.createElement("td");
+            mot.className = "t-dim";
+            mot.textContent = place.retrograde ? "℞ retrograde" : "direct";
+            if (place.retrograde) mot.style.color = "#e08baf";
+            tr.append(name, trop, sid, nak, mot);
+            body.append(tr);
+          }
+          if (chart.angles) {
+            for (const [key, label] of [["ascSplit", "Ascendant"], ["mcSplit", "Midheaven"]]) {
+              const tr = document.createElement("tr");
+              const name = document.createElement("td");
+              name.textContent = label;
+              name.style.color = "var(--gold)";
+              const trop = document.createElement("td");
+              trop.textContent = chart.angles[key].label;
+              const sid = document.createElement("td");
+              sid.className = "t-dim";
+              sid.textContent = chart.angles[key === "ascSplit" ? "ascSidereal" : "mcSidereal"].label;
+              const nak = document.createElement("td");
+              nak.className = "t-dim";
+              nak.textContent = "—";
+              const mot = document.createElement("td");
+              mot.className = "t-dim";
+              mot.textContent = "angle";
+              tr.append(name, trop, sid, nak, mot);
+              body.append(tr);
+            }
+          }
+          table.append(body);
+          holder.append(table);
+
+          $("aion-aspects-panel").hidden = false;
+          $("aion-aspects-title").textContent = chart.aspects.length + " aspect" + (chart.aspects.length === 1 ? "" : "s");
+          const aspectHolder = $("aion-aspects");
+          aspectHolder.innerHTML = "";
+          for (const aspect of chart.aspects) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.style.cursor = "default";
+            chip.textContent =
+              aspect.aGlyph + " " + aspect.typeGlyph + " " + aspect.bGlyph + "  " +
+              aspect.a + " " + aspect.type.toLowerCase() + " " + aspect.b +
+              " · orb " + aspect.orb.toFixed(1) + "°";
+            aspectHolder.append(chip);
+          }
+        }
+
+        function castField() {
+          if (!window.GZ_ASTRO) {
+            toast("Calculation engine failed to load.");
+            return;
+          }
+          const dateValue = $("aion-date").value;
+          const timeValue = $("aion-time").value || "12:00";
+          const offset = parseFloat($("aion-utc").value);
+          if (!dateValue || !Number.isFinite(offset)) {
+            toast("Enter a date and a numeric UTC offset.");
+            return;
+          }
+          const [hh, mm] = timeValue.split(":").map(Number);
+          const utcMillis = Date.UTC(
+            Number(dateValue.slice(0, 4)),
+            Number(dateValue.slice(5, 7)) - 1,
+            Number(dateValue.slice(8, 10)),
+            hh, mm
+          ) - offset * 3600000;
+          const lat = parseFloat($("aion-lat").value);
+          const lonGeo = parseFloat($("aion-lon").value);
+          const chart = window.GZ_ASTRO.computeChart(new Date(utcMillis), {
+            lat: Number.isFinite(lat) ? lat : undefined,
+            lon: Number.isFinite(lonGeo) ? lonGeo : undefined,
+            timeUnknown: !$("aion-time").value,
+          });
+          renderChartResults(chart, $("aion-subject").value.trim() || "Current field");
+          toast("Field cast · deterministic calculation complete.");
+        }
+        $("aion-cast").addEventListener("click", castField);
+
+        $("aion-save").addEventListener("click", async () => {
+          if (!currentChart) return;
+          const when = new Date(currentChart.utc);
+          const ok = await seal(
+            "Cast · " + currentSubject + " · " + when.toISOString().slice(0, 10),
+            currentSubject + " — cast for " + when.toUTCString(),
+            { kind: "chart", occurredAt: currentChart.utc, meta: { chart: currentChart, subject: currentSubject } }
+          );
+          if (ok) toast("Cast preserved in chart memory.");
+        });
+
+        function renderChartMemory() {
+          const casts = records.filter((record) => record.kind === "chart");
+          $("aion-mem-count").textContent = String(casts.length).padStart(2, "0");
+          $("aion-mem-sub").textContent = casts.length
+            ? "Select a cast to reload its full calculation."
+            : "Named charts remain linked to their source profile and can be compared later. None saved yet.";
+          const list = $("aion-mem-list");
+          list.innerHTML = "";
+          for (const record of casts) {
+            const item = document.createElement("li");
+            item.style.cursor = "pointer";
+            const title = document.createElement("b");
+            title.textContent = record.title.replace(/^Cast · /, "");
+            const stamp = document.createElement("time");
+            stamp.textContent = new Date(record.created_at).toLocaleDateString();
+            item.append(title, stamp);
+            item.addEventListener("click", () => {
+              if (record.meta && record.meta.chart) {
+                renderChartResults(record.meta.chart, record.meta.subject);
+                window.scrollTo(0, 0);
+                toast("Cast reloaded from memory.");
+              }
+            });
+            list.append(item);
+          }
+        }
+
+        /* natal cast handoff from a Constellations profile */
+        function castPersonNatal(person) {
+          setView("aion");
+          $("aion-subject").value = "Natal · " + person.display_name;
+          $("aion-date").value = person.birth_date;
+          $("aion-time").value = person.birth_time_known && person.birth_time ? person.birth_time.slice(0, 5) : "";
+          $("aion-utc").value = person.birth_tz_offset != null ? String(person.birth_tz_offset) : "0";
+          $("aion-lat").value = person.birth_lat != null ? String(person.birth_lat) : "";
+          $("aion-lon").value = person.birth_lon != null ? String(person.birth_lon) : "";
+          castField();
+        }
 
         /* ---------- search palette ---------- */
         const search = $("cmd-search");
