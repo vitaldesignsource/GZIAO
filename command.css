@@ -829,6 +829,7 @@ body.command-body {
 
 .chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 16px 0;
 }
@@ -838,8 +839,14 @@ body.command-body {
   border-radius: 999px;
   background: none;
   color: var(--muted);
-  height: 32px;
-  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 32px;
+  height: auto;
+  padding: 7px 16px;
+  line-height: 1.35;
   cursor: pointer;
   font-size: 11px;
 }
@@ -1758,6 +1765,15 @@ body.command-body {
   overflow: hidden;
   margin: 14px 0 8px;
   gap: 2px;
+}
+
+/* wide tables scroll in their own rail rather than widening the page */
+.table-scroll,
+#vi-rows,
+#aion-placements {
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-lite {
@@ -3188,6 +3204,18 @@ body.command-body {
   .intake-cast {
     grid-template-columns: 1fr;
   }
+
+  /* several intake and chrono rows set their columns inline — on a phone
+     they all collapse to a single column, so important is warranted */
+  .intake,
+  .chrono-row,
+  .rec-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .rec-actions .ghost-btn {
+    min-width: 0;
+  }
 }
 
 .mp-footer {
@@ -3220,6 +3248,20 @@ body.command-body {
   display: grid;
   grid-template-columns: 1fr 1fr 380px;
   gap: 18px;
+}
+
+/* grid children may always shrink below their content width — without this,
+   one wide child silently widens the whole page on small screens */
+.trio > *,
+.duo > *,
+.duo-wide > *,
+.chrono-row > *,
+.pulse-row > *,
+.vault-grid > *,
+.intake > *,
+.profile-grid > *,
+.corr-grid > * {
+  min-width: 0;
 }
 
 @media (max-width: 1220px) {
@@ -3441,6 +3483,9 @@ body.command-body {
 
 #view-thework {
   position: relative;
+  /* the watermark hangs past the right edge by design; clip it there so it
+     never widens the page (clip, not hidden — no new scroll container) */
+  overflow-x: clip;
   --grade-accent: var(--amber);
   --grade-accent-soft: #d0ad6d33;
 }
@@ -3622,4 +3667,46 @@ html[data-theme="light"] #view-thework::before {
 .tree-legend .lg-glow {
   border-color: #f0562a;
   box-shadow: 0 0 6px #f0562aaa;
+}
+
+/* ---- topbar on narrow screens: keep the instruments, shed the copy ---- */
+@media (max-width: 700px) {
+  .top {
+    padding: 0 14px;
+    gap: 10px;
+  }
+
+  .top .crumb span,
+  .top .crumb small,
+  .top-search kbd,
+  .top #guide-btn,
+  .top .top-state,
+  .top .theme-toggle-copy,
+  .top .theme-toggle .tt-icon {
+    display: none;
+  }
+
+  .top .crumb strong {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .top-search {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .top-search input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .top .theme-toggle {
+    padding: 6px;
+    flex: none;
+  }
+
+  .top .top-cap {
+    flex: none;
+  }
 }

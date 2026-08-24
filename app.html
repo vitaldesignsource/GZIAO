@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=23" />
+    <link rel="stylesheet" href="command.css?v=30" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -3949,7 +3949,12 @@
                 tbody.append(tr);
               });
               table.append(thead, tbody);
-              block.append(table);
+              /* wide correspondence tables scroll inside their own rail on
+                 narrow screens instead of dragging the page sideways */
+              const rail = document.createElement("div");
+              rail.className = "table-scroll";
+              rail.append(table);
+              block.append(rail);
             }
             const readBtn = document.createElement("button");
             readBtn.type = "button";
