@@ -1629,7 +1629,7 @@
                     eq: () => chain,
                     maybeSingle: async () =>
                       table === "profiles"
-                        ? { data: { display_name: "operator", household_id: "mock-household" }, error: null }
+                        ? { data: { display_name: "operator", household_id: "mock-household", access: location.search.includes("restrict=1") ? "practicus" : "full" }, error: null }
                         : { data: null, error: null },
                   };
                   return chain;
@@ -1681,11 +1681,11 @@
         });
 
         /* ---------- profile + shared field ---------- */
-        let profile = { display_name: null, household_id: null };
+        let profile = { display_name: null, household_id: null, access: "full" };
         if (GZ.client.from) {
           const { data: profileRow } = await GZ.client
             .from("profiles")
-            .select("display_name, household_id")
+            .select("display_name, household_id, access")
             .eq("id", user.id)
             .maybeSingle();
           if (profileRow) profile = profileRow;
@@ -1706,11 +1706,27 @@
 
         /* ---------- identity ---------- */
         const handle = profile.display_name || user.email.split("@")[0];
-        if (profile.household_id) {
+        const restricted = profile.access === "practicus";
+        if (profile.household_id && !restricted) {
           $("side-field").hidden = false;
           $("side-field-copy").textContent = "Shared field connected";
         }
         $("user-handle").textContent = handle;
+        if (restricted) {
+          document.querySelectorAll(".side-item").forEach((item) => {
+            if (item.dataset.view !== "thework") item.style.display = "none";
+          });
+          document.querySelectorAll(".side-section").forEach((section) => {
+            if (!section.querySelector('[data-view="thework"]')) section.style.display = "none";
+          });
+          const sys = document.querySelector(".side-sys");
+          if (sys) sys.innerHTML = "<b>PRACTICUS STUDY ACCESS</b><span>The Work &middot; 3&deg;=8&#9633;</span>";
+          $("cap-open").style.display = "none";
+          const search = document.querySelector(".top-search");
+          if (search) search.style.display = "none";
+          const guide = $("guide-btn");
+          if (guide) guide.style.display = "none";
+        }
         $("user-avatar").textContent = handle.slice(0, 2).toUpperCase();
         $("chip-operator").textContent = handle;
         $("signout").addEventListener("click", async () => {
@@ -2306,6 +2322,7 @@
           const track = $("tw-track");
           track.innerHTML = "";
           GRADES.forEach((grade, index) => {
+            if (restricted && index !== 3) return;
             const count = gradeEntries(index).length;
             const cell = document.createElement("button");
             cell.type = "button";
@@ -2484,6 +2501,7 @@
         };
 
         function setView(id) {
+          if (restricted) id = "thework";
           const module = MODULES[id] || MODULES.command;
           const target = BUILT[id] || "view-command";
           for (const view of Object.values(BUILT)) {
@@ -4929,8 +4947,9 @@
         /* ---------- boot ---------- */
         await Promise.all([loadRecords(), loadPeople()]);
         renderAll();
+        if (restricted) activeGrade = 3;
         const initial = location.hash.replace("#/", "");
-        setView(MODULES[initial] ? initial : "command");
+        setView(restricted ? "thework" : MODULES[initial] ? initial : "command");
         /* the watchtower keeps itself current: today's brief loads in the
            background on every boot (served from the daily cache when fresh) */
         setTimeout(() => {
