@@ -457,6 +457,9 @@ window.GZ_STUDY = {
       { cat: "Squares", front: "Smallest and largest planetary squares", back: "Saturn 3×3 — Moon 9×9", note: "Jupiter 4, Mars 5, Sun 6, Venus 7, Mercury 8 between them." },
       { cat: "Squares", front: "A planet's lineal figure is", back: "The polygon of its number — Saturn a triangle, Mercury an octagram", note: "Distinct from the kamea: the figure comes from the number, the sigils come from the grid." },
       { cat: "Squares", front: "What the kameoth are used to build", back: "Divine and Spirit Names, traced across the numbered cells", note: "The business of Practicus Paper CC3, beyond this lecture." },
+      { cat: "Squares", front: "The four numbers of Mercury", back: "8 (number), 64 (square), 260 (each line), 2080 (total)", note: "The 8x8 kamea generates them all." },
+      { cat: "Squares", front: "The intelligence of Mercury", back: "Tiriel", note: "Sigil traced through the kamea; the spirit is Taphthartharath." },
+      { cat: "Squares", front: "What the Seal of Mercury is drawn to do", back: "Touch every row and column of the 8x8 square", note: "After the Agrippa engraving — four circles on the midpoint diamond, corner-to-corner diagonals." },
       { cat: "Squares", front: "Lineal figure of Mercury", back: "The octagram — eight points", note: "Mercury's number is 8; its square is 8×8." },
       { cat: "Squares", front: "Lineal figure of Mars", back: "The pentagram — five points", note: "Mars 5, Sun 6 hexagram, Venus 7 heptagram, Moon 9 enneagram." },
       { cat: "Spirits", front: "Spirit of Mercury", back: "Taphthartharath — ThPThRThRTh", note: "The grade's own planetary spirit." },
@@ -701,6 +704,16 @@ window.GZ_STUDY = {
           "The 31st, 27th and 24th",
         ],
         correct: 1,
+      },
+      {
+        q: "Every line of the kamea of Mercury sums to what?",
+        options: ["111", "175", "260", "369"],
+        correct: 2,
+      },
+      {
+        q: "The intelligence of Mercury, whose sigil is traced through the kamea, is named",
+        options: ["Tiriel", "Taphthartharath", "Ophiel", "Raphael"],
+        correct: 0,
       },
       {
         q: "Which lineal figure belongs to Mercury?",
@@ -1156,6 +1169,14 @@ window.GZ_STUDY = {
         svg: '<svg viewBox="0 0 300 230" xmlns="http://www.w3.org/2000/svg"><g transform="translate(84,26)"><g fill="none" stroke="var(--amber)" stroke-width="1.2"><rect x="0" y="0" width="132" height="132"/><line x1="44" y1="0" x2="44" y2="132"/><line x1="88" y1="0" x2="88" y2="132"/><line x1="0" y1="44" x2="132" y2="44"/><line x1="0" y1="88" x2="132" y2="88"/></g><g font-family="Georgia,serif" font-size="15" fill="var(--gold)" text-anchor="middle"><text x="22" y="27">4</text><text x="66" y="27">9</text><text x="110" y="27">2</text><text x="22" y="71">3</text><text x="66" y="71">5</text><text x="110" y="71">7</text><text x="22" y="115">8</text><text x="66" y="115">1</text><text x="110" y="115">6</text></g><polyline points="66,110 110,22 22,66 22,22 66,66 110,110 110,66 22,110 66,22" fill="none" stroke="var(--violet)" stroke-width="1.6" opacity="0.85"/><circle cx="66" cy="110" r="3" fill="var(--violet)"/><circle cx="66" cy="22" r="3" fill="none" stroke="var(--violet)" stroke-width="1.4"/></g><g font-family="Georgia,serif" text-anchor="middle"><text x="150" y="188" fill="var(--muted)" font-size="7.6" letter-spacing="0.6">EVERY LINE SUMS TO 15 · THE PATH 1→9 IS THE SEAL</text><text x="150" y="204" fill="var(--muted)" font-size="6.4">SATURN 3×3 · JUPITER 4×4 · MARS 5×5 · SUN 6×6 · VENUS 7×7 · MERCURY 8×8 · MOON 9×9</text></g></svg>',
       },
       {
+        title: "The Kamea of Mercury and Its Seal",
+        tier: "correspondence",
+        wide: true,
+        caption:
+          "The grade's own square: eight cells to a side, the numbers 1 through 64, every row, column and diagonal summing to 260, all cells to 2080 - so 8, 64, 260 and 2080 are all numbers of Mercury. The three figures beside it are the traditional derivations after Agrippa's engravings: the Seal of Mercury; the sigil of Taphthartharath, the spirit of Mercury; and the sigil of Tiriel, its intelligence - the sigils traced through the kamea by the numeric values of their Hebrew names, the business of Practicus Paper CC3. The arithmetic here is checked by machine before it is drawn; the figures are drawn to the engravings, not from memory.",
+        svg: '<svg viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg"><g font-family="Georgia,serif" text-anchor="middle"><text x="280" y="14" fill="var(--gold)" font-size="8" letter-spacing="1.4">THE KAMEA OF MERCURY - 8X8 - EVERY LINE 260</text><g fill="none" stroke="var(--amber)" stroke-width="0.9"><line x1="10" y1="26" x2="218" y2="26"/><line x1="10" y1="26" x2="10" y2="234"/><line x1="10" y1="52" x2="218" y2="52"/><line x1="36" y1="26" x2="36" y2="234"/><line x1="10" y1="78" x2="218" y2="78"/><line x1="62" y1="26" x2="62" y2="234"/><line x1="10" y1="104" x2="218" y2="104"/><line x1="88" y1="26" x2="88" y2="234"/><line x1="10" y1="130" x2="218" y2="130"/><line x1="114" y1="26" x2="114" y2="234"/><line x1="10" y1="156" x2="218" y2="156"/><line x1="140" y1="26" x2="140" y2="234"/><line x1="10" y1="182" x2="218" y2="182"/><line x1="166" y1="26" x2="166" y2="234"/><line x1="10" y1="208" x2="218" y2="208"/><line x1="192" y1="26" x2="192" y2="234"/><line x1="10" y1="234" x2="218" y2="234"/><line x1="218" y1="26" x2="218" y2="234"/></g><text x="23" y="43" fill="var(--muted)" font-size="10">8</text><text x="49" y="43" fill="var(--muted)" font-size="10">58</text><text x="75" y="43" fill="var(--muted)" font-size="10">59</text><text x="101" y="43" fill="var(--muted)" font-size="10">5</text><text x="127" y="43" fill="var(--muted)" font-size="10">4</text><text x="153" y="43" fill="var(--muted)" font-size="10">62</text><text x="179" y="43" fill="var(--muted)" font-size="10">63</text><text x="205" y="43" fill="var(--muted)" font-size="10">1</text><text x="23" y="69" fill="var(--muted)" font-size="10">49</text><text x="49" y="69" fill="var(--muted)" font-size="10">15</text><text x="75" y="69" fill="var(--muted)" font-size="10">14</text><text x="101" y="69" fill="var(--muted)" font-size="10">52</text><text x="127" y="69" fill="var(--muted)" font-size="10">53</text><text x="153" y="69" fill="var(--muted)" font-size="10">11</text><text x="179" y="69" fill="var(--muted)" font-size="10">10</text><text x="205" y="69" fill="var(--muted)" font-size="10">56</text><text x="23" y="95" fill="var(--muted)" font-size="10">41</text><text x="49" y="95" fill="var(--muted)" font-size="10">23</text><text x="75" y="95" fill="var(--muted)" font-size="10">22</text><text x="101" y="95" fill="var(--muted)" font-size="10">44</text><text x="127" y="95" fill="var(--muted)" font-size="10">45</text><text x="153" y="95" fill="var(--muted)" font-size="10">19</text><text x="179" y="95" fill="var(--muted)" font-size="10">18</text><text x="205" y="95" fill="var(--muted)" font-size="10">48</text><text x="23" y="121" fill="var(--muted)" font-size="10">32</text><text x="49" y="121" fill="var(--muted)" font-size="10">34</text><text x="75" y="121" fill="var(--muted)" font-size="10">35</text><text x="101" y="121" fill="var(--muted)" font-size="10">29</text><text x="127" y="121" fill="var(--muted)" font-size="10">28</text><text x="153" y="121" fill="var(--muted)" font-size="10">38</text><text x="179" y="121" fill="var(--muted)" font-size="10">39</text><text x="205" y="121" fill="var(--muted)" font-size="10">25</text><text x="23" y="147" fill="var(--muted)" font-size="10">40</text><text x="49" y="147" fill="var(--muted)" font-size="10">26</text><text x="75" y="147" fill="var(--muted)" font-size="10">27</text><text x="101" y="147" fill="var(--muted)" font-size="10">37</text><text x="127" y="147" fill="var(--muted)" font-size="10">36</text><text x="153" y="147" fill="var(--muted)" font-size="10">30</text><text x="179" y="147" fill="var(--muted)" font-size="10">31</text><text x="205" y="147" fill="var(--muted)" font-size="10">33</text><text x="23" y="173" fill="var(--muted)" font-size="10">17</text><text x="49" y="173" fill="var(--muted)" font-size="10">47</text><text x="75" y="173" fill="var(--muted)" font-size="10">46</text><text x="101" y="173" fill="var(--muted)" font-size="10">20</text><text x="127" y="173" fill="var(--muted)" font-size="10">21</text><text x="153" y="173" fill="var(--muted)" font-size="10">43</text><text x="179" y="173" fill="var(--muted)" font-size="10">42</text><text x="205" y="173" fill="var(--muted)" font-size="10">24</text><text x="23" y="199" fill="var(--muted)" font-size="10">9</text><text x="49" y="199" fill="var(--muted)" font-size="10">55</text><text x="75" y="199" fill="var(--muted)" font-size="10">54</text><text x="101" y="199" fill="var(--muted)" font-size="10">12</text><text x="127" y="199" fill="var(--muted)" font-size="10">13</text><text x="153" y="199" fill="var(--muted)" font-size="10">51</text><text x="179" y="199" fill="var(--muted)" font-size="10">50</text><text x="205" y="199" fill="var(--muted)" font-size="10">16</text><text x="23" y="225" fill="var(--muted)" font-size="10">64</text><text x="49" y="225" fill="var(--muted)" font-size="10">2</text><text x="75" y="225" fill="var(--muted)" font-size="10">3</text><text x="101" y="225" fill="var(--muted)" font-size="10">61</text><text x="127" y="225" fill="var(--muted)" font-size="10">60</text><text x="153" y="225" fill="var(--muted)" font-size="10">6</text><text x="179" y="225" fill="var(--muted)" font-size="10">7</text><text x="205" y="225" fill="var(--muted)" font-size="10">57</text><text x="114" y="250" fill="var(--faint)" font-size="6.4" letter-spacing="0.6">NUMBER 8 - SQUARE 64 - LINE 260 - TOTAL 2080</text><g fill="none" stroke="var(--amber)" stroke-width="1.3" stroke-linecap="round"><line x1="248" y1="30" x2="352" y2="134"/><line x1="352" y1="30" x2="248" y2="134"/><path d="M300 30 L352 82 L300 134 L248 82 Z"/><circle cx="300" cy="49" r="13" fill="var(--panel-solid)"/><circle cx="267" cy="82" r="13" fill="var(--panel-solid)"/><circle cx="333" cy="82" r="13" fill="var(--panel-solid)"/><circle cx="300" cy="115" r="13" fill="var(--panel-solid)"/><circle cx="248" cy="30" r="4" fill="var(--panel-solid)"/><circle cx="352" cy="30" r="4" fill="var(--panel-solid)"/><circle cx="248" cy="134" r="4" fill="var(--panel-solid)"/><circle cx="352" cy="134" r="4" fill="var(--panel-solid)"/><g stroke-width="1.6"><line x1="278" y1="30" x2="294" y2="30"/><line x1="306" y1="30" x2="322" y2="30"/><line x1="278" y1="134" x2="294" y2="134"/><line x1="306" y1="134" x2="322" y2="134"/><line x1="248" y1="60" x2="248" y2="76"/><line x1="248" y1="88" x2="248" y2="104"/><line x1="352" y1="60" x2="352" y2="76"/><line x1="352" y1="88" x2="352" y2="104"/></g></g><text x="300" y="150" fill="var(--gold)" font-size="7" letter-spacing="0.8">THE SEAL OF MERCURY</text><text x="300" y="159" fill="var(--faint)" font-size="5.6">AFTER THE AGRIPPA ENGRAVING</text><g fill="none" stroke="var(--m3)" stroke-width="2.2" stroke-linecap="round"><path d="M420 50 q2 -8 6 -1 L424 106"/><path d="M424 88 h40 q6 1 0 5 h-38"/><path d="M424 100 l46 12 q6 3 -1 5 l-45 -11"/></g><text x="448" y="130" fill="var(--gold)" font-size="7" letter-spacing="0.8">SPIRIT - TAPHTHARTHARATH</text><text x="448" y="139" fill="var(--faint)" font-size="5.6">DRAWN FROM THE KAMEA</text><g fill="none" stroke="var(--violet)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="420" cy="240" r="4.5"/><line x1="423.5" y1="237" x2="506" y2="170"/><path d="M476 184 l-4 -14 q4 -8 7 0 q3 -8 7 0 l-2 14"/><path d="M482 182 l-22 44 l30 -34"/><path d="M492 194 q2 10 -2 18"/><circle cx="489" cy="217" r="4.5"/></g><text x="462" y="260" fill="var(--gold)" font-size="7" letter-spacing="0.8">INTELLIGENCE - TIRIEL</text><text x="462" y="269" fill="var(--faint)" font-size="5.6">DRAWN FROM THE KAMEA</text></g></svg>',
+      },
+      {
         title: "The Solar Greek Cross of Thirteen Squares",
         tier: "correspondence",
         interactive: "greekcross",
@@ -1233,6 +1254,149 @@ window.GZ_STUDY = {
           key: { label: ["19TH KEY", "OF TAROT"], name: ["THE SUN"] } },
         caption:
           "The same hall, with one portal changed and one key exchanged. The portal of the 30th Path of Resh replaces Shin in the east, the 19th Key of Tarot — the Sun — lies on the altar between the two candles, and the censer in the South gives smoke rather than flame. Everything else holds: the red lamps, the Banner of the East, the two tablets in the north east, the seat made ready in the north west, and the Theoricus in the West after circumambulation with the Banner of the West and the Cup of Water. Reading the two plans side by side is the fastest way to see what the grade actually changes between fire and sun.",
+      },
+    ],
+
+    rituals: [
+      {
+        title: "The Thirty-First Path of Shin",
+        subtitle: "The Rite of Fire · admission badge: the Solid Triangular Pyramid",
+        awaiting: true,
+        scenes: [
+          {
+            title: "What is documented",
+            steps: [
+              { kind: "note", text: "The full ceremony text of the 31st Path has not yet been supplied to this system, so this chamber holds its structure rather than its script. The candidate, addressed as Kasmillos, is led past three officers speaking as the fire Kabiri, each reading from the Chaldean Oracles." },
+              { officer: "Hiereus", kind: "say", text: "I am the left basal angle of the Triangle of Flame. I am the Fire Volcanic and Terrestrial, flashingly flaming through Abysses of Earth…", note: "The one speech attested in the grade papers (Cicero, Paper CC2), spoken by Axiokersos." },
+              { kind: "note", text: "The correspondences the speeches assume: Hierophant — Axieros — Michael — AUD, life-giving solar fire. Hiereus — Axiokersos — Samael — AUB, volcanic and terrestrial fire. Hegemon — Axiokersa — Anael — AUR, vital astral light. Candidate — Kasmillos — Arel — ASH, latent heat. The rite culminates at the Solid Triangular Pyramid. Supply the ceremony text and this chamber will hold it in full." },
+            ],
+          },
+        ],
+      },
+      {
+        title: "The Thirtieth Path of Resh",
+        subtitle: "The Rite of the Sun · admission badge: the Solar Greek Cross of Thirteen Squares",
+        scenes: [
+          {
+            title: "Admission",
+            steps: [
+              { officer: "Hierophant", kind: "say", text: "Honoured Hegemon, you have my commands to present the Theoricus with the necessary admission Badge and to admit him." },
+              { kind: "do", text: "The Hegemon rises, goes to the East, salutes in the 3=8, gives the Theoricus the Greek Cross of Thirteen Squares, and admits him." },
+              { officer: "Hegemon", kind: "say", text: "Behold He hath placed His Tabernacle in the Sun." },
+              { kind: "do", text: "The Theoricus is led to the North East and placed facing the Pillars." },
+              { officer: "Hierophant", kind: "say", text: "Frater Poraios de Rejectis, before you in the East lie the Portals of the 30th, 25th, and 28th Paths leading from the Two equals Nine Grade of Theoricus to those Grades which are beyond. Of these, the only one now open to you is the Thirtieth, which leads to the Three equals Eight Grade of Practicus. Take in your right hand the Solar Greek Cross, and follow your Guide through the Pathway of the Sun." },
+              { officer: "Hegemon", kind: "say", text: "Before the Intellectual Whirlings of Intellectual Fire, all things are subservient through the Will of the Father of All." },
+            ],
+          },
+          {
+            title: "The Three Solar Kabiri",
+            steps: [
+              { kind: "do", text: "The Hegemon leads the Theoricus between the Pillars and halts before the Hierophant, who rises, red lamp in hand." },
+              { officer: "Hierophant", kind: "say", text: "AXIEROS, the First Kabir, spake unto Kasmillos the Candidate and said: I am the Sun in greatest elevation, bringing upon Earth the ripening heat — fructifying all things — urging forward the growth of vegetable nature, Life-giving, Light-producing — crowning summer with golden harvest, and filling the lap of plenteous Autumn with the Purple vintage of the Vine. Thus far the voice of AXIEROS." },
+              { kind: "do", text: "The Hegemon leads the Theoricus to the seat of the Hiereus, who rises with red lamp." },
+              { officer: "Hiereus", kind: "say", text: "AXIOKERSOS, the Second Kabir, spake unto KASMILLOS the Candidate, and said: I am the Sun in greatest depression beneath the Equator when cold is greatest and heat is least — withdrawing his light in darkening Winter, the Dweller in mist and storm. Thus far the voice of AXIOKERSOS." },
+              { kind: "do", text: "The Hegemon returns to his own seat and takes the red lamp." },
+              { officer: "Hegemon", kind: "say", text: "AXIOKERSA, the Third Kabir, spake to Kasmillos the Candidate and said: I am the Sun in Equinox, initiating Summer or heralding Winter — mild and genial in operation, giving forth or withdrawing the vital heat of life. Thus far the voice of AXIOKERSA." },
+              { kind: "do", text: "The Hiereus places a seat West of the Altar. All are seated, facing the Hierophant." },
+            ],
+          },
+          {
+            title: "The Voice of the Kabiri",
+            steps: [
+              { officer: "Hierophant", kind: "say", text: "The Father of All congregated the Seven Firmaments of the Cosmos, circumscribing the Heaven with convex form. He constituted a Septenary of Wandering Existences, suspending their disorder in well-disposed zones. He made them six in number and for the seventh, he cast into the midst thereof the Fire of the Sun — into that Centre from which all lines are equal — that the Swift Sun may come around that Centre eagerly urging itself towards that Centre of Resounding Light." },
+              { officer: "Hierophant", kind: "say", text: "The wholeness of the Sun is in the supermundane orders, for therein a Solar World and endless Light subsist. The Sun more true measureth all things by time, for He is the Time of Time, and his disc is in the Starless above the inerratic Sphere, and he is the centre of the Triple World. The Sun is Fire and the Dispenser of Fire. He is also the channel for the Higher Fire." },
+              { officer: "Hierophant", kind: "say", text: "O Aether, Sun and Spirit of the Moon, ye are the Leaders of Air. And the Great Goddess bringeth forth the vast Sun and the brilliant Moon and the wide Air… Unwearied doth Nature rule over the Worlds and Works, so that the Period of all things may be accomplished. And above the shoulders of the Great Goddess, is Nature in her vastness exalted. Thus far the voice of the Kabiri." },
+            ],
+          },
+          {
+            title: "The Badge and the Path",
+            steps: [
+              { kind: "do", text: "The Hegemon conducts the Theoricus to the Hierophant, to whom he hands the Solar Greek Cross." },
+              { officer: "Hierophant", kind: "say", text: "The Solar Greek Cross is formed of thirteen squares which fitly refer to the Sun's motion through the Zodiac, these Signs being further arranged in the arms of the Cross according to the Four Elements with the Sun in the centre and representing that luminary as the centre of the whole." },
+              { officer: "Hierophant", kind: "say", text: "The Thirtieth Path of the Sepher Yetzirah which answereth to the Letter Resh is called the Collecting Intelligence, and it is so called because from it the Astrologers deduce the judgment of the Stars, and of the Celestial Signs, and the perfections of their science according to the rules of their resolutions. It is therefore the Reflection of the Sphere of the Sun and the Path connecting YESOD with HOD — Foundation with Splendour." },
+            ],
+          },
+          {
+            title: "The Nineteenth Key",
+            steps: [
+              { kind: "do", text: "The Hierophant rises and leads to the Altar: the Theoricus placed West, Hierophant North, Hegemon South." },
+              { officer: "Hierophant", kind: "say", text: "Before you upon the Altar is the Nineteenth Key of TAROT which symbolically resumes these ideas. The Sun has twelve principal rays which represent the Twelve Signs of the Zodiac. They are alternately waved and salient as symbolising the alternation of the masculine and feminine natures. These again are subdivided into the 36 Decanates, and these again into 72, typifying the 72 quinances and the 72-fold Name Schemhamphoresch. Thus the Sun embraces the whole creation in its rays." },
+              { officer: "Hierophant", kind: "say", text: "The seven Hebrew Yods on each side, falling through the air, refer to the Solar influence descending. The Wall is the Circle of the Zodiac, and the stones are its various degrees and divisions. The two children standing respectively on Water and Earth represent the generating influence of both, brought into action by the rays of the Sun. Furthermore, these two children resemble the Sign Gemini — and this Sign was, by the Greeks and Romans, referred to Apollo and the Sun." },
+              { officer: "Hierophant", kind: "say", text: "I have much pleasure in conferring upon you the title of Lord of the Thirtieth Path. You will now quit the Temple for a short time, and on your return the Ceremony of your reception into the Grade of Three equals Eight will take place." },
+            ],
+          },
+        ],
+      },
+      {
+        title: "Reception into the Grade of Practicus",
+        subtitle: "The Temple in Hod · admission badge: the Cup of Stolistes",
+        scenes: [
+          {
+            title: "Admission by the Cup",
+            steps: [
+              { officer: "Hierophant", kind: "say", text: "Honoured Hegemon, instruct the Theoricus in the proper alarm, present him with the necessary Admission Badge, and admit him." },
+              { kind: "do", text: "The Hegemon takes the Cup of Stolistes and brings the Theoricus, telling him to knock: 1 111 1 111. He is placed before the Portal of the 31st Path, then before the Portal of the 30th, by which he has symbolically entered this Grade." },
+              { officer: "Hiereus", kind: "say", text: "By what Symbol dost thou enter herein?" },
+              { officer: "Hegemon", kind: "say", text: "By the Peculiar Emblem of the Stolistes, the Cup of Water." },
+              { officer: "Hiereus", kind: "say", text: "The Cup of the Stolistes partakes in part of the Symbolism of the Laver of Moses and the Sea of Solomon. On the Tree of Life, it embraces nine of the Sephiroth, exclusive of Kether. Yesod and Malkuth form the triangle below, the former the apex, the latter the base. Like the Caduceus, it further represents the Three Elements of Water, Air, and Fire. The Crescent is the Water which is above the Firmament, the Circle is the Firmament, and the Triangle the consuming Fire below, which is opposed to the Celestial Fire symbolised by the upper part of the Caduceus." },
+            ],
+          },
+          {
+            title: "The Garden of Eden",
+            steps: [
+              { kind: "do", text: "The Hiereus and Hegemon stand either side of the Altar, facing it. The Eden diagram stands before the candidate." },
+              { officer: "Hierophant", kind: "say", text: "Before you is represented the symbolism of the Garden of Eden. At the summit is the Supernal Eden, containing the Three Supernal Sephiroth, summed up and contained in Aima Elohim, the Mother Supernal, the Woman of the twelfth chapter of the Apocalypse, crowned with the Sun and the Moon under her feet, and upon her head the Crown of Twelve Stars, Kether." },
+              { officer: "Hierophant", kind: "say", text: "And in the Garden was the Tree of the Knowledge of Good and of Evil, which latter is from Malkuth, which is the lowest Sephirah between the rest of the Sephiroth and the Kingdom of Shells, represented by the Great Red Dragon coiled beneath, having Seven Heads — the Seven Infernal Palaces — and Ten Horns — the Ten Averse Sephiroth of Evil." },
+              { officer: "Hierophant", kind: "say", text: "And a River Naher went forth out of Eden, namely from the Supernal Triad, to water the Garden, and from thence it was divided into Four Heads in Daath, whence it is said: In Daath the Depths are broken up and the clouds drop down dew. The first Head is PISON, which flows into Geburah, whence there is Gold — the River of Fire. The Second is GIHON, the River of Waters, flowing into Chesed. The Third is HIDDEKEL, the River of Air, flowing into Tiphareth. And the Fourth, which receiveth the virtues of the other three, is PHRATH, Euphrates, which floweth down upon the Earth." },
+              { officer: "Hierophant", kind: "say", text: "And thus do the Rivers of Eden form a Cross, and on that Cross the Great ADAM is extended from Tiphareth, his arms stretching out to Gedulah and Geburah, and in Malkuth is Eve, Mother of all, the Completion of all — and above the Universe she supporteth with her hands the Eternal Pillars of the Sephiroth." },
+            ],
+          },
+          {
+            title: "The Grade Conferred",
+            steps: [
+              { officer: "Hierophant", kind: "say", text: "The Three equals Eight Grade of Practicus is referred to the Sephirah Hod and the Thirtieth and Thirty First Paths — those of Resh and Shin are bound thereto." },
+              { officer: "Hierophant", kind: "say", text: "The Sign of this Grade is given thus: with the hands together, raise the arms till the elbows are level with the shoulders. With the thumbs and fore-fingers make a triangle on your breast — apex downwards. This represents the Element of Water, to which this Grade is attributed. The Grip is the general Grip of the First Order. The Grand Word is a Name of ten letters, ELOHIM TSABAOTH, which means Lord of Hosts. The Mystic Number is 36, and from it is formed the Pass-word ELOAH, lettered separately: Aleph, Lamed, Heh." },
+              { officer: "Hierophant", kind: "say", text: "Unto this Grade and unto the Sephirah Hod, the Eighth Path of the Sepher Yetsirah is referred. It is called the Absolute or Perfect Path, because it is the means of the Primordial, which hath no root to which it may be established, except in the penetralia of that Gedulah from which it emanates." },
+              { officer: "Hierophant", kind: "say", text: "The distinguishing badge of this Grade is the sash of the Theoricus with the addition of a purple cross above the white cross, the numbers three and eight within a circle and a square respectively, left and right of its summit — and below the number 32, the numbers 30 and 31 in purple between two narrow purple lines." },
+              { officer: "Hierophant", kind: "say", text: "This Grade is especially referred to the Element of Water, and therefore the Great Watch-Tower or Tablet of the West forms one of its principal emblems. It is the Second or Great Western Quadrangle, one of the Four Great Tablets delivered unto Enoch by the Great Angel Ave. From it are drawn the Three Holy Secret Names of God — EMPEH ARSEL GAIOL — which are borne upon the Banners of the West." },
+              { kind: "do", text: "Turning to the Altar, the Hierophant indicates the Cross and Triangle." },
+              { officer: "Hierophant", kind: "say", text: "The Cross above the Triangle represents the power of the Spirit of Life rising above the triangle of the Waters and reflecting the Triune therein, as further marked by the Lamps at the angles. The Cup of Water placed at the junction of the Cross and Triangle represents the maternal Letter MEM." },
+              { officer: "Hierophant", kind: "say", text: "This Grade is especially related to the Planet MERCURY, whose Kamea, together with Seals and Names formed from it, is shown in the East. The Symbol of Mercury inscribed on the Tree of Life embraces all but Kether. The horns spring from DAATH, which is not properly a Sephirah, but rather the conjunction of Chokmah and Binah." },
+              { officer: "Hierophant", kind: "say", text: "I now congratulate you on having passed through the Ceremony of Three equals Eight of Practicus, and I confer upon you the Mystic Title of MONOCRIS DE ASTRIS, which means Unicorn from the Stars; and I give you the Symbol of MAIM, which is the Hebrew Name for Water. In the Name of ELOHIM TZABAOTH, I now proclaim that you have been duly advanced to the Grade of Three equals Eight of Practicus, and that you are Lord of the Thirtieth and Thirty First Paths." },
+            ],
+          },
+        ],
+      },
+      {
+        title: "The Closing",
+        subtitle: "The adoration, the Prayer of the Undines, and the dismissal",
+        scenes: [
+          {
+            title: "The Adoration",
+            steps: [
+              { officer: "Hierophant", kind: "say", text: "Assist me to close this Temple in the Three equals Eight Grade of Practicus. Honoured Hegemon, see that the Temple is properly guarded." },
+              { officer: "Hegemon", kind: "say", text: "Very Honoured Hierophant, the Temple is properly guarded." },
+              { officer: "Hierophant", kind: "say", text: "Let us adore the Lord and King of Water! Let ELOHIM TZABAOTH be praised unto the Countless Ages of Time. Amen." },
+              { kind: "do", text: "All face East for the adoration; then the Hierophant goes West before the Tablet of Water, and all arrange themselves facing West in balanced disposition." },
+            ],
+          },
+          {
+            title: "The Prayer of the Undines",
+            steps: [
+              { officer: "Hierophant", kind: "say", text: "Terrible King of the Sea, Thou who holdest the Keys of the Cataracts of Heaven, and who enclosest the subterranean Waters in the cavernous hollows of Earth. King of the Deluge and of the Rains of Spring. Thou who openest the sources of the rivers and of the fountains; Thou who commandest moisture — which is, as it were, the Blood of the Earth — to become the sap of the plants. We adore Thee and we invoke Thee." },
+              { officer: "Hierophant", kind: "say", text: "Speak Thou unto us, Thy Mobile and changeful Creatures, in the Great Tempests, and we shall tremble before Thee. Speak to us also in the murmur of the limpid Waters, and we shall desire Thy love." },
+              { officer: "Hierophant", kind: "say", text: "O Vastness! wherein all the rivers of Being seek to lose themselves — which renew themselves ever in Thee! O Thou Ocean of Infinite Perfection! O Height which reflectest Thyself in the Depth! O Depth which exhalest into the Height! Lead us into the true life, through intelligence, through love! Lead us unto immortality through sacrifice, that we may be found worthy to offer one day unto Thee, the Water, the Blood and the Tears, for the Remission of Sins. Amen." },
+            ],
+          },
+          {
+            title: "The Dismissal",
+            steps: [
+              { kind: "do", text: "The Hierophant makes with his Sceptre the Banishing Circle and Pentagrams in the air before the Tablet of Water." },
+              { officer: "Hierophant", kind: "say", text: "Depart ye in peace unto your Habitations. May the blessing of Elohim Tzabaoth be upon you. Be there peace between us and you, and be ye ready to come when ye are called." },
+              { kind: "do", text: "All return to their places. The knocks are given: Hierophant 1 111 1 111, Hiereus 1 111 1 111, Hegemon 1 111 1 111. The Hegemon leads out the new Practicus, giving the Neophyte Sign in passing the Hierophant." },
+            ],
+          },
+        ],
       },
     ],
 

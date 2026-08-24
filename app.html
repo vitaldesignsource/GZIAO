@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=3" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=35" />
+    <link rel="stylesheet" href="command.css?v=37" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -49,11 +49,12 @@
     <script src="glyphs.js?v=2"></script>
     <script src="pyramid.js?v=2"></script>
     <script src="tree.js?v=4"></script>
-    <script src="study-data.js?v=21"></script>
+    <script src="study-data.js?v=23"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
       <aside class="side" id="side">
+        <button class="side-close" id="side-close" type="button" aria-label="Close menu">&times;</button>
         <div class="side-head">
           <button class="side-home" id="side-home" type="button" aria-label="Go to Command">
             <div class="brand-mark" aria-hidden="true">
@@ -88,6 +89,7 @@
             <button class="side-item" data-view="sentinel"><small>04</small><strong>Sentinel</strong><span>Cases &amp; citations</span></button>
             <button class="side-item" data-view="vault"><small>10</small><strong>The Vault</strong><span>Documents</span></button>
             <button class="side-item" data-view="scriptorium"><small>11</small><strong>Scriptorium</strong><span>Document studio</span></button>
+            <button class="side-item" data-view="scribe"><small>14</small><strong>The Scribe</strong><span>AI intake</span></button>
           </div>
           <div class="side-section">
             <header><b>MANAGE</b><span>Tasks, finances, and plans</span></header>
@@ -123,6 +125,7 @@
           </div>
         </div>
       </aside>
+      <div class="side-backdrop" id="side-backdrop" hidden></div>
 
       <div class="main">
         <header class="top">
@@ -1112,6 +1115,67 @@
           <div class="mp-footer"><span><i></i>PRIVATE FINANCIAL LEDGER CONNECTED &middot; TAP AN ENTRY TO ADVANCE ITS STATUS</span></div>
         </div>
 
+        <!-- ================= THE SCRIBE ================= -->
+        <div class="content" id="view-scribe" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker is-violet">AI-ASSISTED DATA ENTRY &middot; PROPOSE, REVIEW, COMMIT</span>
+              <h1>The Scribe</h1>
+              <p>Tell it what you have &mdash; a document, a person, an event &mdash; and it drafts the entries. Nothing is written until you commit.</p>
+            </div>
+            <div class="mp-actions"><div class="pill-status"><i></i><span id="scribe-state">NO KEY SET</span></div></div>
+          </div>
+
+          <section class="panel" id="scribe-key-panel" style="border-color: #a78bfa44">
+            <span class="kicker" style="color: var(--violet)">INTELLIGENCE KEY</span>
+            <h2 id="scribe-key-title">Connect the Scribe</h2>
+            <p class="panel-sub">
+              The Scribe runs on your own Anthropic API key. It is stored only in this browser and sent
+              only to api.anthropic.com &mdash; never to this site's host or anywhere else. Remove it any time.
+            </p>
+            <div class="intake" style="grid-template-columns: 1fr auto auto">
+              <label>ANTHROPIC API KEY<input type="password" id="scribe-key" placeholder="sk-ant-&hellip;" autocomplete="off" /></label>
+              <button class="prime-btn" id="scribe-key-save" type="button">Save key</button>
+              <button class="ghost-btn" id="scribe-key-clear" type="button" style="height: 40px">Remove</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <span class="kicker is-amber">INTAKE</span>
+            <h2>Hand it the material</h2>
+            <p class="panel-sub">
+              Describe what you want entered &mdash; &ldquo;create a person named Landra, my mother, at 955 W 4th Ave, Apache Junction AZ&rdquo;
+              &mdash; or attach a document and say what it is. People with addresses are geocoded onto the Atlas automatically.
+            </p>
+            <label style="display:block">
+              <textarea id="scribe-input" placeholder="What should be entered, and what should the system know about it&hellip;" style="width:100%;border:1px solid var(--panel-line-bright);background:transparent;color:var(--paper);padding:12px 14px;min-height:96px;resize:vertical;font:400 13px Georgia,serif;border-radius:8px"></textarea>
+            </label>
+            <div class="scribe-attach-row">
+              <label class="ghost-btn scribe-attach-btn">
+                Attach document
+                <input type="file" id="scribe-file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md" hidden />
+              </label>
+              <span id="scribe-file-name" class="scribe-file-name"></span>
+              <button class="ghost-btn" id="scribe-file-clear" type="button" hidden style="height:32px">&times;</button>
+              <span style="flex:1"></span>
+              <button class="prime-btn" id="scribe-send" type="button">Send to the Scribe &rarr;</button>
+            </div>
+            <p class="panel-note" id="scribe-status" style="margin-top: 12px"></p>
+          </section>
+
+          <section class="panel" id="scribe-proposals-panel" hidden>
+            <span class="kicker" style="display:flex;justify-content:space-between">
+              <span style="color: var(--violet)">PROPOSED ENTRIES &middot; NOTHING COMMITTED YET</span>
+              <span style="color: var(--faint)" id="scribe-model-note"></span>
+            </span>
+            <div id="scribe-proposals"></div>
+            <div class="rec-actions" style="margin-top: 16px">
+              <button class="prime-btn" id="scribe-commit" type="button">Commit to the field</button>
+              <button class="ghost-btn" id="scribe-discard" type="button">Discard all</button>
+            </div>
+          </section>
+        </div>
+
         <!-- ================= ORACLE ================= -->
         <div class="content" id="view-oracle" hidden>
           <div class="mp-head">
@@ -1309,6 +1373,7 @@
                 <button type="button" data-pane="drill">Drill <em id="nav-drill-best"></em></button>
                 <button type="button" data-pane="reflect">Reflect</button>
                 <button type="button" data-pane="practice">Practice <em id="nav-practice-count"></em></button>
+                <button type="button" data-pane="ritual">Ritual <em id="nav-ritual-count"></em></button>
                 <button type="button" data-pane="record">Record</button>
               </div>
             </section>
@@ -1405,6 +1470,15 @@
                 <p class="panel-note" style="text-align: center; margin-top: 18px" id="drill-note"></p>
               </section>
 
+              <section class="panel" id="pane-ritual" hidden>
+                <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+                  <span>THE CEREMONIES · READ AND REHEARSE</span>
+                  <label class="ritual-rehearse-toggle"><input type="checkbox" id="ritual-rehearse" /> Rehearsal — speeches hidden until revealed</label>
+                </span>
+                <div class="chips" id="ritual-chips" style="margin: 14px 0 4px"></div>
+                <p class="panel-sub" id="ritual-sub"></p>
+                <div id="ritual-scenes"></div>
+              </section>
               <section class="panel" id="pane-record" hidden>
                 <span class="kicker is-amber">CHAMBER RECORD</span>
                 <h2>The state of your work</h2>
@@ -2661,6 +2735,7 @@
           scriptorium: { num: "11", name: "Scriptorium", desc: "Document studio" },
           atlas: { num: "12", name: "The Atlas", desc: "Correspondences" },
           oracle: { num: "13", name: "Oracle", desc: "Analysis" },
+          scribe: { num: "14", name: "The Scribe", desc: "AI intake" },
         };
         const BUILT = {
           command: "view-command",
@@ -2676,6 +2751,7 @@
           scriptorium: "view-scriptorium",
           atlas: "view-atlas",
           oracle: "view-oracle",
+          scribe: "view-scribe",
         };
 
         function setView(id) {
@@ -2690,7 +2766,7 @@
           });
           $("crumb-name").textContent = module.name;
           $("crumb-desc").textContent = module.desc;
-          $("side").classList.remove("is-open");
+          setDrawer(false);
           if (id === "atlas" && atlasMap) {
             setTimeout(() => atlasMap.invalidateSize(), 60);
           }
@@ -3287,7 +3363,33 @@
           document.querySelectorAll("#rec-chips button").forEach((chip) => chip.classList.remove("is-on"));
           event.target.classList.add("is-on");
         });
-        $("menu-toggle").addEventListener("click", () => $("side").classList.toggle("is-open"));
+        /* the mobile drawer: one function owns open state so the backdrop,
+           the close button, Escape, and a leftward swipe all agree */
+        function setDrawer(open) {
+          $("side").classList.toggle("is-open", open);
+          $("side-backdrop").hidden = !open;
+          document.body.classList.toggle("drawer-open", open);
+        }
+        $("menu-toggle").addEventListener("click", () =>
+          setDrawer(!$("side").classList.contains("is-open"))
+        );
+        $("side-close").addEventListener("click", () => setDrawer(false));
+        $("side-backdrop").addEventListener("click", () => setDrawer(false));
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && $("side").classList.contains("is-open")) setDrawer(false);
+        });
+        (function () {
+          let touchX = null;
+          $("side").addEventListener("touchstart", (event) => {
+            touchX = event.touches[0].clientX;
+          }, { passive: true });
+          $("side").addEventListener("touchend", (event) => {
+            if (touchX === null) return;
+            const dx = event.changedTouches[0].clientX - touchX;
+            touchX = null;
+            if (dx < -50) setDrawer(false);
+          }, { passive: true });
+        })();
 
         $("side-home").addEventListener("click", () => setView("command"));
 
@@ -4794,6 +4896,7 @@
           renderReflections(data);
           renderPractice(data);
           renderStudyMastery(data);
+          renderRitual(data);
           renderMercuryStrip();
         }
 
@@ -5126,13 +5229,134 @@
           }
         }
 
+        /* ---------- ritual chamber: read and rehearse the ceremonies ---------- */
+        let ritualIndex = 0;
+
+        const OFFICER_TINT = {
+          Hierophant: "var(--amber)",
+          Hiereus: "#d97b7b",
+          Hegemon: "var(--m3)",
+        };
+
+        function ritualProgressKey() {
+          return "ritual-" + ritualIndex;
+        }
+
+        function ritualReadSet(data) {
+          const meta = studyProgress[GRADES[activeGrade].name];
+          const stored = meta && meta.meta && meta.meta.ritualRead;
+          return new Set((stored && stored[ritualProgressKey()]) || []);
+        }
+
+        async function ritualMarkScene(data, sceneIndex, done) {
+          const gradeName = GRADES[activeGrade].name;
+          const state = studyProgress[gradeName];
+          if (!state) return;
+          const stored = state.meta.ritualRead || (state.meta.ritualRead = {});
+          const list = new Set(stored[ritualProgressKey()] || []);
+          if (done) list.add(sceneIndex);
+          else list.delete(sceneIndex);
+          stored[ritualProgressKey()] = [...list];
+          await saveStudyProgress(gradeName);
+          renderRitual(data);
+        }
+
+        function renderRitual(data) {
+          const chips = $("ritual-chips");
+          const holder = $("ritual-scenes");
+          if (!chips || !holder) return;
+          const rituals = data.rituals || [];
+          $("nav-ritual-count").textContent = rituals.length ? String(rituals.length) : "";
+          chips.innerHTML = "";
+          if (!rituals.length) {
+            $("ritual-sub").textContent = "No ceremony text is held for this grade yet.";
+            holder.innerHTML = "";
+            return;
+          }
+          if (ritualIndex >= rituals.length) ritualIndex = 0;
+          rituals.forEach((ritual, index) => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = index === ritualIndex ? "is-on" : "";
+            chip.textContent = ritual.title + (ritual.awaiting ? " ·…" : "");
+            chip.addEventListener("click", () => {
+              ritualIndex = index;
+              renderRitual(data);
+            });
+            chips.append(chip);
+          });
+          const ritual = rituals[ritualIndex];
+          const read = ritualReadSet(data);
+          $("ritual-sub").textContent = ritual.subtitle +
+            (ritual.awaiting ? " — awaiting the full ceremony text" : "") +
+            " · " + read.size + "/" + ritual.scenes.length + " scenes read";
+          const rehearse = $("ritual-rehearse").checked;
+          holder.innerHTML = "";
+          ritual.scenes.forEach((scene, sceneIndex) => {
+            const block = document.createElement("div");
+            block.className = "ritual-scene";
+            const head = document.createElement("div");
+            head.className = "ritual-scene-head";
+            const title = document.createElement("h3");
+            title.textContent = (sceneIndex + 1) + " · " + scene.title;
+            const mark = document.createElement("button");
+            mark.type = "button";
+            mark.className = "lesson-read-btn" + (read.has(sceneIndex) ? " is-read" : "");
+            mark.textContent = read.has(sceneIndex) ? "Read ✓" : "Mark as read";
+            mark.addEventListener("click", () => ritualMarkScene(data, sceneIndex, !read.has(sceneIndex)));
+            head.append(title, mark);
+            block.append(head);
+            for (const step of scene.steps) {
+              const row = document.createElement("div");
+              row.className = "ritual-step ritual-" + (step.kind || "say");
+              if (step.officer) {
+                const who = document.createElement("b");
+                who.className = "ritual-officer";
+                who.textContent = step.officer.toUpperCase();
+                who.style.color = OFFICER_TINT[step.officer] || "var(--gold)";
+                row.append(who);
+              }
+              const body = document.createElement("p");
+              if (step.kind === "say" && rehearse) {
+                const opener = step.text.split(" ").slice(0, 4).join(" ");
+                body.innerHTML = "<i>" + opener + " …</i>";
+                const reveal = document.createElement("button");
+                reveal.type = "button";
+                reveal.className = "ritual-reveal";
+                reveal.textContent = "Reveal";
+                reveal.addEventListener("click", () => {
+                  body.textContent = step.text;
+                  reveal.remove();
+                });
+                row.append(body, reveal);
+              } else {
+                body.textContent = step.text;
+                row.append(body);
+              }
+              if (step.note) {
+                const noteEl = document.createElement("small");
+                noteEl.className = "ritual-note";
+                noteEl.textContent = step.note;
+                row.append(noteEl);
+              }
+              block.append(row);
+            }
+            holder.append(block);
+          });
+        }
+
+        $("ritual-rehearse").addEventListener("change", () => {
+          const data = window.GZ_STUDY[studyGradeLoaded];
+          if (data) renderRitual(data);
+        });
+
         $("study-nav").addEventListener("click", (event) => {
           const button = event.target.closest("button[data-pane]");
           if (!button) return;
           document.querySelectorAll("#study-nav button").forEach((tab) => tab.classList.remove("is-on"));
           button.classList.add("is-on");
           const pane = button.dataset.pane;
-          ["lessons", "flashcards", "quiz", "diagrams", "drill", "reflect", "practice", "record"].forEach((name) => {
+          ["lessons", "flashcards", "quiz", "diagrams", "drill", "reflect", "practice", "record", "ritual"].forEach((name) => {
             const el = $("pane-" + name);
             if (el) el.hidden = name !== pane;
           });
@@ -5874,6 +6098,338 @@
               " — aspected in both directions.</p>"
             : "";
         }
+
+        /* ---------- the Scribe: AI-assisted data entry ---------- */
+        const SCRIBE_KEY_STORE = "gz-anthropic-key";
+        const SCRIBE_MODEL = "claude-sonnet-5";
+        let scribeProposals = null;
+        let scribeFile = null;
+
+        function scribeKey() {
+          return localStorage.getItem(SCRIBE_KEY_STORE) || "";
+        }
+
+        function refreshScribeState() {
+          const has = Boolean(scribeKey());
+          $("scribe-state").textContent = has ? "SCRIBE CONNECTED" : "NO KEY SET";
+          $("scribe-key-title").textContent = has ? "Key held in this browser" : "Connect the Scribe";
+          $("scribe-key").placeholder = has ? "•••••••••••• (saved)" : "sk-ant-…";
+        }
+
+        $("scribe-key-save").addEventListener("click", () => {
+          const value = $("scribe-key").value.trim();
+          if (!value) return toast("Paste a key first.");
+          localStorage.setItem(SCRIBE_KEY_STORE, value);
+          $("scribe-key").value = "";
+          refreshScribeState();
+          toast("Key held in this browser only.");
+        });
+        $("scribe-key-clear").addEventListener("click", () => {
+          localStorage.removeItem(SCRIBE_KEY_STORE);
+          refreshScribeState();
+          toast("Key removed.");
+        });
+
+        $("scribe-file").addEventListener("change", () => {
+          scribeFile = $("scribe-file").files[0] || null;
+          $("scribe-file-name").textContent = scribeFile
+            ? scribeFile.name + " · " + Math.round(scribeFile.size / 1024) + " KB"
+            : "";
+          $("scribe-file-clear").hidden = !scribeFile;
+        });
+        $("scribe-file-clear").addEventListener("click", () => {
+          scribeFile = null;
+          $("scribe-file").value = "";
+          $("scribe-file-name").textContent = "";
+          $("scribe-file-clear").hidden = true;
+        });
+
+        const SCRIBE_TOOL = {
+          name: "commit_intents",
+          description: "Propose structured entries for the user's private intelligence system. Every proposal is reviewed by the user before anything is written.",
+          input_schema: {
+            type: "object",
+            properties: {
+              intents: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    action: { type: "string", enum: ["create_person", "update_person", "create_record"] },
+                    reason: { type: "string", description: "one line: why this entry, citing the user's words" },
+                    person: {
+                      type: "object",
+                      properties: {
+                        display_name: { type: "string" },
+                        match_name: { type: "string", description: "for update_person: the existing person's name" },
+                        relation: { type: "string" },
+                        birth_date: { type: "string", description: "YYYY-MM-DD, only if stated" },
+                        birth_time: { type: "string", description: "HH:MM 24h, only if stated" },
+                        birth_place: { type: "string" },
+                        address: { type: "string", description: "street address if given" },
+                        notes: { type: "string" },
+                      },
+                    },
+                    record: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        body: { type: "string" },
+                        kind: { type: "string", enum: ["record", "journal", "action", "document"] },
+                        occurred_at: { type: "string", description: "ISO date if the material states one" },
+                        due: { type: "string", description: "YYYY-MM-DD, actions only" },
+                      },
+                    },
+                  },
+                  required: ["action", "reason"],
+                },
+              },
+            },
+            required: ["intents"],
+          },
+        };
+
+        function scribeSystemPrompt() {
+          const names = people.map((person) => person.display_name).join(", ") || "none yet";
+          return "You are the Scribe of a private personal intelligence system. Today is " +
+            new Date().toISOString().slice(0, 10) + ". Existing people: " + names + ". " +
+            "Turn the user's instruction (and any attached document) into entry proposals via commit_intents. " +
+            "Rules: never invent facts — omit any field the material does not state; birth data especially is " +
+            "never guessed. Use update_person (with match_name) when the person already exists. When a document " +
+            "is attached, propose one create_record with kind document whose title names it plainly and whose " +
+            "body holds a faithful short summary plus key extracted facts (dates, parties, amounts); also propose " +
+            "person entries for people the document identifies IF the user asked for that. Titles are short and " +
+            "concrete. The body never editorialises.";
+        }
+
+        function fileToBase64(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result).split(",", 2)[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        }
+
+        async function scribePropose() {
+          const instruction = $("scribe-input").value.trim();
+          if (!instruction && !scribeFile) return toast("Tell the Scribe what to enter, or attach a document.");
+          if (!scribeKey()) {
+            toast("Connect an Anthropic API key first — it stays in this browser.");
+            return;
+          }
+          $("scribe-send").disabled = true;
+          $("scribe-status").textContent = "The Scribe is reading…";
+          try {
+            const content = [];
+            if (scribeFile) {
+              const media = scribeFile.type || "";
+              if (media === "application/pdf") {
+                content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: await fileToBase64(scribeFile) } });
+              } else if (/^image\//.test(media)) {
+                content.push({ type: "image", source: { type: "base64", media_type: media, data: await fileToBase64(scribeFile) } });
+              } else {
+                content.push({ type: "text", text: "Attached document “" + scribeFile.name + "”:\n\n" + (await scribeFile.text()).slice(0, 60000) });
+              }
+            }
+            content.push({ type: "text", text: instruction || "File the attached document appropriately." });
+            const response = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                "x-api-key": scribeKey(),
+                "anthropic-version": "2023-06-01",
+                "anthropic-dangerous-direct-browser-access": "true",
+              },
+              body: JSON.stringify({
+                model: SCRIBE_MODEL,
+                max_tokens: 3000,
+                system: scribeSystemPrompt(),
+                tools: [SCRIBE_TOOL],
+                tool_choice: { type: "tool", name: "commit_intents" },
+                messages: [{ role: "user", content }],
+              }),
+            });
+            if (!response.ok) {
+              const detail = await response.json().catch(() => null);
+              throw new Error((detail && detail.error && detail.error.message) || "API returned " + response.status);
+            }
+            const message = await response.json();
+            const toolUse = (message.content || []).find((block) => block.type === "tool_use");
+            const intents = toolUse && toolUse.input && Array.isArray(toolUse.input.intents) ? toolUse.input.intents : [];
+            if (!intents.length) throw new Error("The Scribe proposed nothing — try stating the entry more directly.");
+            scribeProposals = { intents, hasFile: Boolean(scribeFile) };
+            renderScribeProposals();
+            $("scribe-status").textContent = "";
+            $("scribe-model-note").textContent = SCRIBE_MODEL.toUpperCase() + " · REVIEW BEFORE COMMIT";
+          } catch (error) {
+            $("scribe-status").textContent = "The Scribe could not draft entries: " + error.message;
+          } finally {
+            $("scribe-send").disabled = false;
+          }
+        }
+        $("scribe-send").addEventListener("click", scribePropose);
+
+        function renderScribeProposals() {
+          const holder = $("scribe-proposals");
+          holder.innerHTML = "";
+          if (!scribeProposals || !scribeProposals.intents.length) {
+            $("scribe-proposals-panel").hidden = true;
+            return;
+          }
+          $("scribe-proposals-panel").hidden = false;
+          scribeProposals.intents.forEach((intent, index) => {
+            const card = document.createElement("div");
+            card.className = "scribe-card";
+            const head = document.createElement("div");
+            head.className = "scribe-card-head";
+            const tag = document.createElement("b");
+            tag.textContent =
+              intent.action === "create_person" ? "NEW PERSON" :
+              intent.action === "update_person" ? "UPDATE PERSON" :
+              "NEW " + ((intent.record && intent.record.kind) || "record").toUpperCase();
+            const drop = document.createElement("button");
+            drop.type = "button";
+            drop.className = "ghost-btn";
+            drop.style.cssText = "height:26px;padding:0 12px;font-size:8px";
+            drop.textContent = "Discard";
+            drop.addEventListener("click", () => {
+              scribeProposals.intents.splice(index, 1);
+              renderScribeProposals();
+            });
+            head.append(tag, drop);
+            card.append(head);
+            const fields = document.createElement("dl");
+            fields.className = "scribe-fields";
+            const source = intent.person || intent.record || {};
+            for (const [key, value] of Object.entries(source)) {
+              if (value == null || value === "") continue;
+              const dt = document.createElement("dt");
+              dt.textContent = key.replace(/_/g, " ");
+              const dd = document.createElement("dd");
+              dd.textContent = String(value);
+              fields.append(dt, dd);
+            }
+            card.append(fields);
+            const why = document.createElement("small");
+            why.className = "scribe-why";
+            why.textContent = intent.reason || "";
+            card.append(why);
+            holder.append(card);
+          });
+        }
+
+        $("scribe-discard").addEventListener("click", () => {
+          scribeProposals = null;
+          renderScribeProposals();
+        });
+
+        async function scribeGeocode(query) {
+          try {
+            const response = await fetch(
+              "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" + encodeURIComponent(query)
+            );
+            if (!response.ok) return null;
+            const results = await response.json();
+            if (!results.length) return null;
+            return { lat: parseFloat(results[0].lat), lon: parseFloat(results[0].lon), resolved: query };
+          } catch (error) {
+            return null;
+          }
+        }
+
+        async function scribeCommit() {
+          if (!scribeProposals || !scribeProposals.intents.length) return;
+          $("scribe-commit").disabled = true;
+          const done = [];
+          const failed = [];
+          for (const intent of scribeProposals.intents) {
+            try {
+              if (intent.action === "create_person" || intent.action === "update_person") {
+                const fields = intent.person || {};
+                const row = {};
+                if (fields.display_name) row.display_name = fields.display_name;
+                if (fields.relation) row.relation = fields.relation;
+                if (fields.birth_date) row.birth_date = fields.birth_date;
+                if (fields.birth_time) { row.birth_time = fields.birth_time; row.birth_time_known = true; }
+                if (fields.birth_place) row.birth_place = fields.birth_place;
+                if (fields.notes) row.notes = fields.notes;
+                const meta = {};
+                if (fields.address) meta.address = { line1: fields.address };
+                /* the atlas link: geocode whatever place the entry carries */
+                const placeQuery = fields.address || fields.birth_place;
+                if (placeQuery) {
+                  const geo = await scribeGeocode(placeQuery);
+                  if (geo) meta.geo = geo;
+                }
+                if (intent.action === "create_person") {
+                  if (!row.display_name) throw new Error("person without a name");
+                  row.visibility = "private";
+                  row.meta = meta;
+                  const { data, error } = await GZ.client.from("people").insert(row).select().single();
+                  if (error) throw new Error(error.message);
+                  people.push(data);
+                  done.push("person “" + data.display_name + "”" + (meta.geo ? " · pinned to the Atlas" : ""));
+                } else {
+                  const matchName = (fields.match_name || fields.display_name || "").toLowerCase();
+                  const existing = people.find((person) => person.display_name.toLowerCase() === matchName);
+                  if (!existing) throw new Error("no person named “" + (fields.match_name || fields.display_name) + "”");
+                  delete row.display_name;
+                  row.meta = { ...(existing.meta || {}), ...meta };
+                  const { data, error } = await GZ.client.from("people").update(row).eq("id", existing.id).select().single();
+                  if (error) throw new Error(error.message);
+                  const at = people.findIndex((person) => person.id === existing.id);
+                  if (at > -1) people[at] = data;
+                  done.push("updated “" + data.display_name + "”");
+                }
+              } else if (intent.action === "create_record") {
+                const fields = intent.record || {};
+                if (!fields.title) throw new Error("record without a title");
+                const meta = { source: "scribe" };
+                if (fields.due) meta.due = fields.due;
+                if (fields.kind === "document" && scribeProposals.hasFile && scribeFile) {
+                  /* preserve the original file in the vault, then seal its record */
+                  const safeName = scribeFile.name.replace(/[^\w.\-]+/g, "_");
+                  const path = user.id + "/" + Date.now() + "_" + safeName;
+                  const { error: uploadError } = await GZ.client.storage
+                    .from("vault")
+                    .upload(path, scribeFile, { contentType: scribeFile.type || "application/octet-stream" });
+                  if (uploadError) throw new Error("upload: " + uploadError.message);
+                  meta.path = path;
+                  meta.size = scribeFile.size;
+                  meta.type = scribeFile.type || "file";
+                }
+                const ok = await seal(fields.title, fields.body || null, {
+                  kind: fields.kind === "document" ? "document" : (fields.kind || "record"),
+                  occurredAt: fields.occurred_at || undefined,
+                  meta,
+                });
+                if (!ok) throw new Error("record refused");
+                done.push((fields.kind || "record") + " “" + fields.title + "”");
+              }
+            } catch (error) {
+              failed.push((intent.reason || intent.action) + " — " + error.message);
+            }
+          }
+          $("scribe-commit").disabled = false;
+          scribeProposals = null;
+          scribeFile = null;
+          $("scribe-file").value = "";
+          $("scribe-file-name").textContent = "";
+          $("scribe-file-clear").hidden = true;
+          $("scribe-input").value = "";
+          renderScribeProposals();
+          people.sort((a, b) => a.display_name.localeCompare(b.display_name));
+          renderAll();
+          $("scribe-status").textContent =
+            (done.length ? "Committed: " + done.join("; ") + "." : "") +
+            (failed.length ? " Failed: " + failed.join("; ") + "." : "");
+          toast(done.length + " entr" + (done.length === 1 ? "y" : "ies") + " committed" +
+            (failed.length ? " · " + failed.length + " failed" : "") + ".");
+        }
+        $("scribe-commit").addEventListener("click", scribeCommit);
+
+        refreshScribeState();
 
         /* ---------- search palette ---------- */
         const search = $("cmd-search");
