@@ -3103,3 +3103,11 @@ body.command-body {
     flex-direction: column;
   }
 }
+
+.lesson-source {
+  display: block;
+  color: var(--faint);
+  letter-spacing: 0.08em;
+  font-size: 9px;
+  margin-top: 10px;
+}

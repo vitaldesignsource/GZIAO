@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=15" />
+    <link rel="stylesheet" href="command.css?v=16" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -39,7 +39,7 @@
     <script src="astro.js?v=2"></script>
     <script src="glyphs.js?v=1"></script>
     <script src="pyramid.js?v=1"></script>
-    <script src="study-data.js?v=6"></script>
+    <script src="study-data.js?v=7"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -1119,6 +1119,7 @@
                   <p class="panel-sub" id="study-subtitle"></p>
                 </div>
                 <div class="study-mastery" id="study-mastery" hidden>
+                  <span class="tier-badge tier-historical" id="study-examined" hidden>EXAMINED ✓</span>
                   <div class="bar-track" style="width: 150px"><div class="bar-fill" id="study-mastery-bar" style="--bar-pct: 0"></div></div>
                   <small id="study-mastery-label">0% mastery</small>
                 </div>
@@ -1133,8 +1134,10 @@
                 <button type="button" data-pane="flashcards">Flashcards <em id="nav-flash-count"></em></button>
                 <button type="button" data-pane="quiz">Quiz <em id="nav-quiz-count"></em></button>
                 <button type="button" data-pane="diagrams">Diagrams</button>
+                <button type="button" data-pane="drill">Drill <em id="nav-drill-best"></em></button>
                 <button type="button" data-pane="reflect">Reflect</button>
                 <button type="button" data-pane="practice">Practice <em id="nav-practice-count"></em></button>
+                <button type="button" data-pane="record">Record</button>
               </div>
             </section>
 
@@ -1214,6 +1217,46 @@
 
               <section class="panel" id="pane-diagrams" hidden>
                 <div id="study-diagrams" class="diagram-grid"></div>
+              </section>
+
+              <section class="panel" id="pane-drill" hidden>
+                <div class="chips" id="drill-sets" style="margin-bottom: 6px"></div>
+                <div class="privacy-row" style="margin-bottom: 16px">
+                  <span id="drill-streak">Streak 0</span>
+                  <span id="drill-best">Best 0</span>
+                </div>
+                <div class="drill-stage">
+                  <small class="fc-cat" id="drill-set-title"></small>
+                  <h3 id="drill-question" style="font: 400 21px Georgia, serif; margin: 10px 0 20px"></h3>
+                  <div id="drill-options" style="display: flex; flex-direction: column; gap: 10px; max-width: 460px; margin: 0 auto"></div>
+                </div>
+                <p class="panel-note" style="text-align: center; margin-top: 18px" id="drill-note"></p>
+              </section>
+
+              <section class="panel" id="pane-record" hidden>
+                <span class="kicker is-amber">CHAMBER RECORD</span>
+                <h2>The state of your work</h2>
+                <div class="strip" style="margin-top: 16px">
+                  <div class="strip-cell"><div><small>TOTAL REVIEWS</small><b id="rec-reviews">0</b></div><span>Cards graded, all time</span></div>
+                  <div class="strip-cell"><div><small>DUE NOW</small><b id="rec-due-now">0</b></div><span id="rec-due-tomorrow">0 arrive tomorrow</span></div>
+                  <div class="strip-cell"><div><small>DUE THIS WEEK</small><b id="rec-due-week">0</b></div><span>Scheduled by spaced repetition</span></div>
+                  <div class="strip-cell"><div><small>JOURNAL ENTRIES</small><b id="rec-journal">0</b></div><span>Filed in this grade</span></div>
+                </div>
+                <div class="chrono-row" style="margin-top: 18px">
+                  <div class="panel" style="background: none; border-color: var(--panel-line)">
+                    <span class="kicker is-amber">EXAMINATION HISTORY</span>
+                    <ul class="vault-list" id="rec-exams" style="margin-top: 12px"></ul>
+                    <p class="deck-empty" id="rec-exams-empty">No examinations attempted yet.</p>
+                  </div>
+                  <div class="panel" style="background: none; border-color: var(--panel-line)">
+                    <span class="kicker is-amber">MASTERY BREAKDOWN</span>
+                    <div class="bar-row"><small>Lessons read</small><div class="bar-track"><div class="bar-fill" id="rec-bar-lessons" style="--bar-pct: 0"></div></div><b id="rec-val-lessons">0</b></div>
+                    <div class="bar-row"><small>Cards mastered</small><div class="bar-track"><div class="bar-fill" id="rec-bar-cards" style="--bar-pct: 0; --bar-color: var(--violet)"></div></div><b id="rec-val-cards">0</b></div>
+                    <div class="bar-row"><small>Examination</small><div class="bar-track"><div class="bar-fill" id="rec-bar-exam" style="--bar-pct: 0; --bar-color: var(--amber)"></div></div><b id="rec-val-exam">—</b></div>
+                    <div class="bar-row"><small>Practice done</small><div class="bar-track"><div class="bar-fill" id="rec-bar-practice" style="--bar-pct: 0; --bar-color: var(--m3)"></div></div><b id="rec-val-practice">0</b></div>
+                    <div class="bar-row"><small>Drill best streak</small><div class="bar-track"><div class="bar-fill" id="rec-bar-drill" style="--bar-pct: 0; --bar-color: #e08baf"></div></div><b id="rec-val-drill">0</b></div>
+                  </div>
+                </div>
               </section>
 
               <section class="panel" id="pane-reflect" hidden>
@@ -2766,7 +2809,7 @@
 
         async function loadStudyProgress(gradeName) {
           if (studyProgress[gradeName]) return studyProgress[gradeName];
-          const state = { known: new Set(), quizBest: 0, practiceChecked: new Set(), lessonsRead: new Set(), srs: {}, exams: [], recordId: null };
+          const state = { known: new Set(), quizBest: 0, practiceChecked: new Set(), lessonsRead: new Set(), srs: {}, exams: [], reviews: 0, drillBest: 0, recordId: null };
           const { data } = await GZ.client
             .from("records")
             .select("id, meta")
@@ -2782,6 +2825,8 @@
             state.lessonsRead = new Set(meta.lessonsRead || []);
             state.srs = meta.srs || {};
             state.exams = meta.exams || [];
+            state.reviews = meta.reviews || 0;
+            state.drillBest = meta.drillBest || 0;
             /* migrate the old binary known-set into spaced repetition */
             if (!meta.srs && state.known.size) {
               for (const idx of state.known) {
@@ -2803,6 +2848,8 @@
             lessonsRead: [...state.lessonsRead],
             srs: state.srs,
             exams: state.exams.slice(-20),
+            reviews: state.reviews,
+            drillBest: state.drillBest,
           };
           if (state.recordId) {
             await GZ.client.from("records").update({ meta }).eq("id", state.recordId);
@@ -2837,6 +2884,8 @@
           $("nav-lessons-count").textContent = state.lessonsRead.size + "/" + data.lessons.length;
           $("nav-flash-count").textContent = srsDuePool(data).length + " due";
           $("nav-quiz-count").textContent = examPassed ? "passed" : state.quizBest + "/" + data.quiz.length;
+          $("nav-drill-best").textContent = state.drillBest ? "best " + state.drillBest : "";
+          $("study-examined").hidden = !examPassed;
           $("nav-practice-count").textContent = state.practiceChecked.size + "/" + data.practice.length;
         }
 
@@ -2882,6 +2931,12 @@
             const p = document.createElement("p");
             p.textContent = lesson.body;
             block.append(h3, p);
+            if (lesson.source) {
+              const src = document.createElement("small");
+              src.className = "lesson-source";
+              src.textContent = "Source: " + lesson.source;
+              block.append(src);
+            }
             if (lesson.table) {
               const table = document.createElement("table");
               table.className = "table-lite";
@@ -3046,6 +3101,7 @@
           }
           flashFlipped = false;
           flashSession++;
+          state.reviews++;
           await saveStudyProgress(studyGradeLoaded);
           renderFlashcard(data);
           renderStudyMastery(data);
@@ -3053,6 +3109,7 @@
 
         let quizList = null;
         let quizMode = "practice";
+        let quizOrder = [];
 
         function activeQuiz(data) {
           return quizList || data.quiz;
@@ -3080,6 +3137,11 @@
           $("quiz-active").hidden = false;
           $("quiz-done").hidden = true;
           const q = questions[quizIndex];
+          quizOrder = q.options.map((_, i) => i);
+          for (let i = quizOrder.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [quizOrder[i], quizOrder[j]] = [quizOrder[j], quizOrder[i]];
+          }
           $("quiz-progress").innerHTML =
             (quizMode === "exam" ? "<span class='exam-mode-tag'>EXAMINATION · </span>" : "") +
             "Question " + (quizIndex + 1) + " of " + questions.length;
@@ -3087,12 +3149,12 @@
           $("quiz-question").textContent = q.q;
           const optionsHolder = $("quiz-options");
           optionsHolder.innerHTML = "";
-          q.options.forEach((option, index) => {
+          quizOrder.forEach((originalIndex) => {
             const button = document.createElement("button");
             button.type = "button";
             button.className = "quiz-option";
-            button.textContent = option;
-            button.addEventListener("click", () => answerQuiz(index));
+            button.textContent = q.options[originalIndex];
+            button.addEventListener("click", () => answerQuiz(originalIndex));
             optionsHolder.append(button);
           });
         }
@@ -3101,10 +3163,11 @@
           const data = window.GZ_STUDY[studyGradeLoaded];
           const q = activeQuiz(data)[quizIndex];
           const buttons = [...$("quiz-options").querySelectorAll("button")];
-          buttons.forEach((button, i) => {
+          buttons.forEach((button, displayIndex) => {
             button.disabled = true;
-            if (i === q.correct) button.classList.add("is-correct");
-            else if (i === index) button.classList.add("is-wrong");
+            const original = quizOrder[displayIndex];
+            if (original === q.correct) button.classList.add("is-correct");
+            else if (original === index) button.classList.add("is-wrong");
           });
           if (index === q.correct) quizScore++;
           await new Promise((resolve) => setTimeout(resolve, 650));
@@ -3212,6 +3275,8 @@
             flashFlipped = false;
             flashCat = "All";
             flashSession = 0;
+            drillSetIndex = 0;
+            drillStreak = 0;
             quizIndex = 0;
             quizScore = 0;
             await loadStudyProgress(gradeName);
@@ -3246,6 +3311,8 @@
             const svgWrap = document.createElement("div");
             if (diagram.interactive === "pyramid3d" && window.GZ_PYRAMID) {
               window.GZ_PYRAMID.mount(svgWrap);
+            } else if (diagram.interactive === "tree") {
+              svgWrap.innerHTML = buildTree();
             } else if (diagram.interactive === "greekcross" && window.GZ_GLYPHS) {
               svgWrap.innerHTML = buildGreekCross();
             } else {
@@ -3256,6 +3323,182 @@
             card.append(h3, svgWrap, caption);
             holder.append(card);
           }
+        }
+
+        /* ---- correspondence drill ---- */
+        let drillSetIndex = 0;
+        let drillStreak = 0;
+        let drillCurrent = null;
+
+        function renderDrillSets(data) {
+          const holder = $("drill-sets");
+          holder.innerHTML = "";
+          (data.drills || []).forEach((set, index) => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = index === drillSetIndex ? "is-on" : "";
+            chip.textContent = set.title;
+            chip.addEventListener("click", () => {
+              drillSetIndex = index;
+              drillStreak = 0;
+              renderDrillSets(data);
+              nextDrillQuestion(data);
+            });
+            holder.append(chip);
+          });
+        }
+
+        function nextDrillQuestion(data) {
+          const set = (data.drills || [])[drillSetIndex];
+          if (!set) return;
+          const rowIndex = Math.floor(Math.random() * set.rows.length);
+          const colIndex = 1 + Math.floor(Math.random() * (set.headers.length - 1));
+          /* avoid repeating the exact same cell twice in a row */
+          if (drillCurrent && drillCurrent.rowIndex === rowIndex && drillCurrent.colIndex === colIndex && set.rows.length > 1) {
+            return nextDrillQuestion(data);
+          }
+          drillCurrent = { rowIndex, colIndex };
+          const row = set.rows[rowIndex];
+          $("drill-set-title").textContent = set.title.toUpperCase();
+          $("drill-question").textContent = row[0] + " — " + set.headers[colIndex].toLowerCase() + "?";
+          $("drill-streak").textContent = "Streak " + drillStreak;
+          const state = studyProgress[studyGradeLoaded];
+          $("drill-best").textContent = "Best " + (state ? state.drillBest : 0);
+          $("drill-note").textContent = set.prompt;
+
+          const options = [...new Set(set.rows.map((r) => r[colIndex]))];
+          for (let i = options.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [options[i], options[j]] = [options[j], options[i]];
+          }
+          const holder = $("drill-options");
+          holder.innerHTML = "";
+          for (const option of options) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "quiz-option";
+            button.textContent = option;
+            button.addEventListener("click", async () => {
+              const correct = option === row[colIndex];
+              [...holder.children].forEach((b) => {
+                b.disabled = true;
+                if (b.textContent === row[colIndex]) b.classList.add("is-correct");
+                else if (b === button) b.classList.add("is-wrong");
+              });
+              if (correct) {
+                drillStreak++;
+                if (state && drillStreak > state.drillBest) {
+                  state.drillBest = drillStreak;
+                  await saveStudyProgress(studyGradeLoaded);
+                  renderStudyMastery(window.GZ_STUDY[studyGradeLoaded]);
+                }
+              } else {
+                drillStreak = 0;
+              }
+              setTimeout(() => nextDrillQuestion(data), correct ? 420 : 950);
+            });
+            holder.append(button);
+          }
+        }
+
+        /* ---- chamber record ---- */
+        function renderRecord(data) {
+          const state = studyProgress[studyGradeLoaded];
+          if (!state) return;
+          const today = srsToday(0);
+          const tomorrow = srsToday(1);
+          const week = srsToday(7);
+          let dueNow = 0, dueTomorrow = 0, dueWeek = 0;
+          for (let i = 0; i < data.flashcards.length; i++) {
+            const entry = state.srs[i];
+            if (!entry || entry.due <= today) dueNow++;
+            else if (entry.due <= tomorrow) dueTomorrow++;
+            else if (entry.due <= week) dueWeek++;
+          }
+          $("rec-reviews").textContent = state.reviews;
+          $("rec-due-now").textContent = dueNow;
+          $("rec-due-tomorrow").textContent = dueTomorrow + " arrive tomorrow";
+          $("rec-due-week").textContent = dueWeek;
+          $("rec-journal").textContent = records.filter(
+            (record) => record.kind === "journal" && record.grade === studyGradeLoaded
+          ).length;
+
+          const exams = state.exams.slice().reverse();
+          $("rec-exams-empty").hidden = exams.length > 0;
+          const list = $("rec-exams");
+          list.innerHTML = "";
+          for (const attempt of exams) {
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = attempt.score + " / " + attempt.total + (attempt.passed ? "  — passed" : "  — not passed");
+            if (attempt.passed) title.style.color = "var(--gold)";
+            const stamp = document.createElement("time");
+            stamp.textContent = new Date(attempt.date).toLocaleDateString();
+            item.append(title, stamp);
+            list.append(item);
+          }
+
+          const mastered = Object.values(state.srs).filter((entry) => entry.interval >= 14).length;
+          const examPassed = state.exams.some((attempt) => attempt.passed);
+          const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
+          $("rec-bar-lessons").style.setProperty("--bar-pct", pct(state.lessonsRead.size, data.lessons.length));
+          $("rec-val-lessons").textContent = state.lessonsRead.size + "/" + data.lessons.length;
+          $("rec-bar-cards").style.setProperty("--bar-pct", pct(mastered, data.flashcards.length));
+          $("rec-val-cards").textContent = mastered + "/" + data.flashcards.length;
+          $("rec-bar-exam").style.setProperty("--bar-pct", examPassed ? 100 : pct(state.quizBest, data.quiz.length));
+          $("rec-val-exam").textContent = examPassed ? "passed" : state.quizBest + "/" + data.quiz.length;
+          $("rec-bar-practice").style.setProperty("--bar-pct", pct(state.practiceChecked.size, data.practice.length));
+          $("rec-val-practice").textContent = state.practiceChecked.size + "/" + data.practice.length;
+          $("rec-bar-drill").style.setProperty("--bar-pct", Math.min(100, state.drillBest * 5));
+          $("rec-val-drill").textContent = state.drillBest;
+        }
+
+        /* ---- tree of life locator ---- */
+        function buildTree() {
+          const S = {
+            Kether: [150, 26], Chokmah: [232, 72], Binah: [68, 72],
+            Chesed: [232, 150], Geburah: [68, 150], Tiphareth: [150, 196],
+            Netzach: [232, 262], Hod: [68, 262], Yesod: [150, 306], Malkuth: [150, 360],
+          };
+          const EDGES = [
+            ["Kether","Chokmah"],["Kether","Binah"],["Kether","Tiphareth"],["Chokmah","Binah"],
+            ["Chokmah","Tiphareth"],["Chokmah","Chesed"],["Binah","Tiphareth"],["Binah","Geburah"],
+            ["Chesed","Geburah"],["Chesed","Tiphareth"],["Chesed","Netzach"],["Geburah","Tiphareth"],
+            ["Tiphareth","Netzach"],["Tiphareth","Hod"],["Tiphareth","Yesod"],["Netzach","Hod"],
+            ["Netzach","Yesod"],["Netzach","Malkuth"],["Hod","Yesod"],["Hod","Malkuth"],
+            ["Yesod","Malkuth"],["Geburah","Hod"],
+          ];
+          let html = '<svg viewBox="0 0 300 392" xmlns="http://www.w3.org/2000/svg" style="width:72%;height:auto;display:block;margin:0 auto">';
+          for (const [a, b] of EDGES) {
+            const special =
+              (a === "Hod" && b === "Malkuth") ? { stroke: "#d97b7b", w: 2, label: "31 · SHIN" } :
+              (a === "Hod" && b === "Yesod") ? { stroke: "var(--m2)", w: 2, label: "30 · RESH", t: 0.5, dy: 12 } :
+              (a === "Geburah" && b === "Hod") ? { stroke: "var(--violet)", w: 1.6, dash: "5 4", label: "23 · MEM" } :
+              null;
+            html += '<line x1="' + S[a][0] + '" y1="' + S[a][1] + '" x2="' + S[b][0] + '" y2="' + S[b][1] +
+              '" stroke="' + (special ? special.stroke : "var(--panel-line-bright)") + '" stroke-width="' + (special ? special.w : 1) + '"' +
+              (special && special.dash ? ' stroke-dasharray="' + special.dash + '"' : "") + "/>";
+            if (special) {
+              const t = special.t || 0.5;
+              const mx = S[a][0] + (S[b][0] - S[a][0]) * t;
+              const my = S[a][1] + (S[b][1] - S[a][1]) * t;
+              html += '<text x="' + (mx + (special.anchor === "start" ? 8 : -8)) + '" y="' + (my + (special.dy || -5)) +
+                '" fill="' + special.stroke + '" font-size="7.5" letter-spacing="1" text-anchor="' +
+                (special.anchor || "end") + '" font-family="Georgia,serif">' + special.label + "</text>";
+            }
+          }
+          for (const [name, [x, y]] of Object.entries(S)) {
+            const isHod = name === "Hod";
+            html += '<circle cx="' + x + '" cy="' + y + '" r="' + (isHod ? 17 : 13) + '" fill="' +
+              (isHod ? "#d0ad6d22" : "var(--panel-solid)") + '" stroke="' +
+              (isHod ? "var(--amber)" : "var(--panel-line-bright)") + '" stroke-width="' + (isHod ? 1.8 : 1) + '"' +
+              (isHod ? ' filter="drop-shadow(0 0 8px #d0ad6d55)"' : "") + "/>";
+            html += '<text x="' + x + '" y="' + (y + 2.5) + '" fill="' + (isHod ? "var(--amber)" : "var(--muted)") +
+              '" font-size="' + (isHod ? 8 : 6.8) + '" text-anchor="middle" font-family="Georgia,serif" letter-spacing="0.5">' +
+              name.toUpperCase() + "</text>";
+          }
+          html += "</svg>";
+          return html;
         }
 
         function buildGreekCross() {
@@ -3312,9 +3555,16 @@
           document.querySelectorAll("#study-nav button").forEach((tab) => tab.classList.remove("is-on"));
           button.classList.add("is-on");
           const pane = button.dataset.pane;
-          ["lessons", "flashcards", "quiz", "diagrams", "reflect", "practice"].forEach((name) => {
-            $("pane-" + name).hidden = name !== pane;
+          ["lessons", "flashcards", "quiz", "diagrams", "drill", "reflect", "practice", "record"].forEach((name) => {
+            const el = $("pane-" + name);
+            if (el) el.hidden = name !== pane;
           });
+          if (pane === "drill") {
+            const data = window.GZ_STUDY[studyGradeLoaded];
+            renderDrillSets(data);
+            nextDrillQuestion(data);
+          }
+          if (pane === "record") renderRecord(window.GZ_STUDY[studyGradeLoaded]);
         });
 
         function flipFlashcard() {

@@ -17,36 +17,42 @@ window.GZ_STUDY = {
     lessons: [
       {
         title: "Where Practicus Sits on the Tree",
+        source: "The grade ceremony and badge",
         tier: "correspondence",
         body:
           "Practicus corresponds to the sephirah Hod, the eighth emanation, reached by the 30th and 31st Paths on the Tree of Life. Hod is the sphere of Mercury — intellect, communication, and the ordering of raw force into structure. The grade's badge carries the numbers 32, 30, and 31: 32 for the total paths and sephiroth below the abyss that a Practicus has now traversed, 30 and 31 for the two specific paths just crossed to arrive here.",
       },
       {
         title: "The 31st Path: the Rite of Fire",
+        source: "The Practicus ceremony",
         tier: "correspondence",
         body:
           "Before a candidate can be received as Practicus, tradition has them cross the 31st Path — the path of Shin, correlated to elemental Fire — as a purifying threshold. Three officers speak in this passage under symbolic 'Kabiri' names drawn from the Chaldean Oracles' fire-imagery, each associated with a different quality of fire: life-giving solar fire, volcanic and terrestrial fire, and vital astral light. The candidate is addressed as Kasmilos throughout, a herald-name rather than their own. The rite culminates at the image of the Solid Triangular Pyramid — a tetrahedron with three visible faces and one permanently hidden — representing that some truth always remains concealed even after purification.",
       },
       {
         title: "The 30th Path: the Rite of the Sun",
+        source: "The Practicus ceremony",
         tier: "correspondence",
         body:
           "The second threshold, the 30th Path of Resh, is solar rather than fiery. Its emblem is the nineteenth Tarot key, the Sun, and its officers speak now as solar rather than fire Kabiri — marking the solstices and equinoxes, the turning points of the year. Where the 31st Path purifies through fire, the 30th Path orders through light and season: the Sun's steady return is offered as the grade's model of reliable, cyclical intelligence, in contrast to Hod's quicker, more mercurial nature.",
       },
       {
         title: "Who the Kabiri Actually Were",
+        source: "Practicus Paper CC2",
         tier: "historical",
         body:
           "The names spoken in both paths — Axieros, Axiokersos, Axiokersa, and Kasmilos — are not Golden Dawn inventions. They come from the real mystery cult of Samothrace, an island in the northeast Aegean whose rites once ranked with Eleusis in importance. Ancient sources are inconsistent about the Kabiri's exact number and identity; the most defensible reconstruction, from the 3rd-century BCE writer Mnaseas, gives three central names plus a herald. Golden Dawn's ceremony borrows these names but pairs them with speeches actually drawn from the Chaldean Oracles — a body of texts from a much later period with no real connection to Samothrace. This anachronism has been noted since Aleister Crowley's own published criticism of the grade. Knowing the real history doesn't diminish the symbolism; it lets a Practicus hold the borrowed myth honestly, as intentional correspondence-work rather than historical claim.",
       },
       {
         title: "The Historical Site of Samothrace",
+        source: "Practicus Paper CC2 (Cranmer essay)",
         tier: "historical",
         body:
           "Archaeology gives the borrowed myth a real floor to stand on. The actual sanctuary on Samothrace was built with a deliberate fourfold layout: the Anaktoron in the north held the first-degree rite of myesis ('hiddenness'), while the Hieron in the south held the second-degree rite of epopteia ('sight' or 'awakening') — the darker, lesser rite placed in the direction of least light, the rite of revelation placed toward the most. Candidates were prepared at a well-like pit called a bothros, underwent ritual washing, and on completion received two physical tokens: a purple sash called a porphyris, and a ring of magnetized iron — possibly tied to a real iron meteorite once associated with the site. It's a striking coincidence that a fire-and-light initiation used an actual fallen-sky object as its keepsake, whether or not the two facts were ever consciously connected by the ancients themselves.",
       },
       {
         title: "The Officer Correspondences",
+        source: "Practicus Paper CC2 (Cranmer essay)",
         tier: "correspondence",
         body:
           "Later scholarship (notably Steven Cranmer's essay reconciling the grade's fire symbolism) reconstructs the implied correspondence set behind the 31st Path speeches: each officer stands simultaneously for a Kabiric name, an archangel, and one of the four Hebrew letters of fire's formula. Holding this table in mind while re-reading the ceremony turns the fire-speeches from strange proper names into a coherent structure.",
@@ -62,30 +68,35 @@ window.GZ_STUDY = {
       },
       {
         title: "IAO Hidden in the Sun's Path",
+        source: "Practicus Paper CC2 (Cranmer essay)",
         tier: "interpretation",
         body:
           "A modern reading (not an ancient attestation) notices that the three central Kabiric names can be heard as an acronym once their solar meanings are laid side by side: Axiokersa, the ever-present mother, gives I; Axiokersos, 'destroyer' and linked to the winter solstice, gives A; Axieros, 'risen' and linked to the summer solstice, gives O — spelling IAO, the same keyword used elsewhere for the Adeptus Minor grade. Gematria adds a further, more speculative layer: Theoi Megaloi ('the Great Gods') sums to 253, the total of every integer from 1 to 22 — echoing the 22 Paths of the Tree. Axieros sums to the same value as the Hebrew word for 'death,' fitting its Hierophant/Osiris pairing. Treat this lesson as a possible signal, not a proof: gematria is genuinely useful for building associative memory, and just as genuinely easy to overtrust. Hold the pattern loosely.",
       },
       {
         title: "Two Tarot Keys: The Aeon and The Sun",
+        source: "The ceremony and Paper CC1",
         tier: "correspondence",
         body:
           "Each threshold path carries its own Tarot key. The 31st Path of Shin belongs to Key 20, Judgement (sometimes called The Aeon) — fire that calls what is buried back to the surface, matching Shin's role as the Sepher Yetzirah's 'Perpetual Intelligence.' The 30th Path of Resh belongs to Key 19, The Sun — traditionally shown as two children standing beneath one steady light, echoing the grade's own summer/winter Kabiri pair framing a single central goddess. Read together, the two keys narrate the grade's inner logic in miniature: fire judges and purifies first; only afterward does steady solar light arrive to illuminate what the fire uncovered.",
       },
       {
         title: "The Garden of Eden Diagram",
+        source: "The ceremony closing lecture",
         tier: "correspondence",
         body:
           "The grade's closing lecture uses the biblical Garden of Eden as a map of the Tree of Life before the 'Fall' — before the sephiroth were divided from one another. A single river, Naher, leaves Eden and splits into four heads: Pison, the river of Fire, flowing to Geburah (whence there is gold); Gihon, the river of Waters, flowing to Chesed; Hiddekel, the river of Air, flowing to Tiphareth; and Phrath (Euphrates), the river of Earth, flowing down upon the earth itself. For a Practicus, the diagram is a reminder that the ordering, dividing work of Hod (Mercury's sphere) mirrors a much older division — the single source differentiating into the many.",
       },
       {
         title: "The Planetary Squares Beyond This Grade",
+        source: "Practicus Paper CC1",
         tier: "correspondence",
         body:
           "The grade's knowledge lecture also opens a door Practicus is only beginning to walk through: each of the seven classical planets has its own magical square, built from a grid of consecutive numbers — Saturn's is the smallest, three cells to a side; the Moon's is the largest, nine cells to a side. Tracing a specific path through each square's numbers by hand produces a 'lineal figure,' the geometric seal later used to construct that planet's talismans. Practicus doesn't need to master the squares yet — the point is simpler: Hod's ordering, mercurial intelligence is precisely the faculty that later makes disciplined, careful use of this system possible at all.",
       },
       {
         title: "Looking Toward Adeptus Major",
+        source: "Practicus Paper CC2 (Cranmer essay)",
         tier: "correspondence",
         body:
           "One more path touches Hod without being crossed in this ceremony: the 23rd Path of Mem, connecting Hod upward to Geburah, later crossed in the 6°=5□ Adeptus Major grade. Mem is Water in its most forceful register — the path where the Sepher Yetzirah's 'Spirit of the Mighty Waters' is said to soften Geburah's fierce, singular force into something more multiple and habitable. The Second Order later puts a pointed question to the aspirant at that threshold: whether personal will, however sincere, can actually outmatch something as vast as the sea. A Practicus doesn't need an answer yet — only the awareness that the grade's water is preparing for a much larger water still ahead.",
@@ -226,7 +237,48 @@ window.GZ_STUDY = {
       },
     ],
 
+    drills: [
+      {
+        title: "The Officers of Fire",
+        prompt: "Recall the officer correspondence table of the 31st Path.",
+        headers: ["Officer", "Kabiric name", "Archangel", "Fire name"],
+        rows: [
+          ["Hierophant", "Axieros", "Michael", "AVD — solar fire"],
+          ["Hiereus", "Axiokersos", "Samael", "AVB — volcanic fire"],
+          ["Hegemon", "Axiokersa", "Anael", "AVR — astral light"],
+          ["Candidate", "Kasmilos", "Arel", "ASCH — latent heat"],
+        ],
+      },
+      {
+        title: "The Rivers of Eden",
+        prompt: "Recall each river's element and destination.",
+        headers: ["River", "Element", "Flows to"],
+        rows: [
+          ["Pison", "Fire", "Geburah"],
+          ["Gihon", "Water", "Chesed"],
+          ["Hiddekel", "Air", "Tiphareth"],
+          ["Phrath", "Earth", "The world"],
+        ],
+      },
+      {
+        title: "The Kamea Ladder",
+        prompt: "Recall which planet owns each magical square.",
+        headers: ["Square", "Planet"],
+        rows: [
+          ["3×3", "Saturn"], ["4×4", "Jupiter"], ["5×5", "Mars"], ["6×6", "Sun"],
+          ["7×7", "Venus"], ["8×8", "Mercury"], ["9×9", "Moon"],
+        ],
+      },
+    ],
+
     diagrams: [
+      {
+        title: "Where Practicus Stands on the Tree",
+        tier: "correspondence",
+        interactive: "tree",
+        caption:
+          "The Tree of Life with the Practicus position lit: Hod, the eighth sephirah, reached by the 31st Path of Shin rising from Malkuth (fire) and the 30th Path of Resh rising from Yesod (sun). The dashed violet path is the 23rd, Mem — waiting above, crossed only at Adeptus Major.",
+      },
       {
         title: "The Pyramid of Flame",
         tier: "correspondence",
