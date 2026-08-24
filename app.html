@@ -40,7 +40,7 @@
     <script src="glyphs.js?v=2"></script>
     <script src="pyramid.js?v=2"></script>
     <script src="tree.js?v=4"></script>
-    <script src="study-data.js?v=17"></script>
+    <script src="study-data.js?v=20"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -4309,6 +4309,8 @@
               });
             } else if (diagram.interactive === "greekcross" && window.GZ_GLYPHS) {
               svgWrap.innerHTML = buildGreekCross();
+            } else if (diagram.temple) {
+              svgWrap.innerHTML = buildPathTemple(diagram.temple);
             } else {
               svgWrap.innerHTML = diagram.svg || "";
             }
@@ -4454,6 +4456,106 @@
           $("rec-val-practice").textContent = state.practiceChecked.size + "/" + data.practice.length;
           $("rec-bar-drill").style.setProperty("--bar-pct", Math.min(100, state.drillBest * 5));
           $("rec-val-drill").textContent = state.drillBest;
+        }
+
+        /* ---- the path temples, drawn from the grade diagrams ----
+           The 31st and 30th Paths use one hall with one portal changed and
+           one key on the altar; both keep Hiereus and Hegemon in the West. */
+        function buildPathTemple(opts) {
+          const gold = "var(--gold)";
+          const line = "var(--panel-line-bright)";
+          const lamp = (x, y) => /* a red lamp on its stand */
+            '<g stroke="#d97b7b" stroke-width="1" fill="none">' +
+            '<path d="M' + (x - 4) + " " + (y + 6) + "L" + x + " " + (y - 1) + "L" + (x + 4) + " " + (y + 6) + 'Z"/>' +
+            '<circle cx="' + x + '" cy="' + (y - 5) + '" r="1.8" fill="#d97b7b"/></g>';
+          const candle = (x, y) =>
+            '<g stroke="' + gold + '" stroke-width="1" fill="none">' +
+            '<rect x="' + (x - 2.5) + '" y="' + (y - 6) + '" width="5" height="18"/>' +
+            '<path d="M' + (x - 6) + " " + (y + 12) + "h12M" + x + " " + (y - 6) + "V" + (y - 10) + '"/>' +
+            '<path d="M' + x + " " + (y - 10) + "q3 -3 0 -6 q-3 3 0 6Z\" fill=\"" + gold + '"/>' +
+            '<g stroke-width="0.7" opacity="0.85"><path d="M' + (x - 7) + " " + (y - 16) + "l3 2M" + (x + 7) + " " +
+            (y - 16) + "l-3 2M" + x + " " + (y - 20) + 'v2"/></g></g>';
+          const censer = (x, y, smoke) =>
+            '<g stroke="' + gold + '" stroke-width="1" fill="none">' +
+            '<path d="M' + (x - 9) + " " + y + "q9 12 18 0Z\"/><path d=\"M" + (x - 10) + " " + y + 'h20"/>' +
+            (smoke
+              ? '<g stroke-width="0.9"><path d="M' + (x - 5) + " " + (y - 4) + "q-3 -5 0 -9q3 -4 0 -8M" + x + " " +
+                (y - 4) + "q-3 -6 0 -11q3 -5 0 -9M" + (x + 5) + " " + (y - 4) + 'q-3 -5 0 -9q3 -4 0 -8"/></g>'
+              : '<g stroke-width="0.9"><path d="M' + (x - 6) + " " + (y - 3) + "l-3 -7M" + (x - 2) + " " + (y - 4) +
+                "l-1.5 -9M" + (x + 2) + " " + (y - 4) + "l1.5 -9M" + (x + 6) + " " + (y - 3) + 'l3 -7"/></g>') +
+            "</g>";
+          const box = (x, y, w, h, label, size, color) =>
+            '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="none" stroke="' +
+            (color || line) + '" stroke-width="1"/>' +
+            '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 + (size || 6.4) * 0.36) + '" text-anchor="middle" fill="' +
+            (color || gold) + '" font-size="' + (size || 6.4) + '" font-family="Georgia,serif">' + label + "</text>";
+
+          let html = '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
+          html += '<g font-family="Georgia,serif" text-anchor="middle">';
+          /* walls and the eastern band */
+          html += '<rect x="20" y="26" width="260" height="254" fill="none" stroke="' + line + '" stroke-width="1.2"/>';
+          html += '<line x1="20" y1="66" x2="280" y2="66" stroke="' + line + '" stroke-width="1"/>';
+          [72, 122, 208, 244].forEach((x) => {
+            html += '<line x1="' + x + '" y1="26" x2="' + x + '" y2="66" stroke="' + line + '" stroke-width="0.9"/>';
+          });
+          for (let x = 248; x < 280; x += 4) {
+            html += '<line x1="' + x + '" y1="28" x2="' + x + '" y2="64" stroke="' + line + '" stroke-width="0.7" opacity="0.7"/>';
+          }
+          /* the portal of this path */
+          html += '<text x="46" y="46" fill="' + opts.color + '" font-size="16">' + opts.letter + "</text>";
+          html += '<text x="46" y="59" fill="' + opts.color + '" font-size="5.6" letter-spacing="0.6">' + opts.path + "</text>";
+          /* red lamp, Hierophant, banner */
+          html += lamp(110, 42) + '<text x="93" y="46" fill="var(--muted)" font-size="5.4">RED LAMP</text>';
+          html += '<text x="165" y="38" fill="var(--amber)" font-size="6.6" letter-spacing="1.8">EAST</text>';
+          html += box(136, 46, 58, 13, "HIEROPHANT", 6, gold);
+          html += '<path d="M212 32h28v14a14 14 0 0 1-28 0Z" fill="none" stroke="var(--amber)" stroke-width="0.9"/>';
+          html += '<text x="226" y="41" fill="var(--muted)" font-size="4.6">BANNER</text>';
+          html += '<text x="226" y="47" fill="var(--muted)" font-size="4.6">OF EAST</text>';
+          /* the two hatched tablets in the north east of the floor */
+          html += '<rect x="36" y="80" width="30" height="26" fill="none" stroke="var(--m3)" stroke-width="0.9"/>';
+          html += '<polygon points="41,84 61,84 51,102" fill="none" stroke="var(--m3)" stroke-width="0.9"/>';
+          html += '<rect x="76" y="80" width="30" height="26" fill="none" stroke="var(--m3)" stroke-width="0.9"/>';
+          html += '<polygon points="91,84 101,102 81,102" fill="none" stroke="var(--m3)" stroke-width="0.9"/>';
+          for (let i = 0; i < 5; i++) {
+            html += '<line x1="' + (38 + i * 6) + '" y1="104" x2="' + (48 + i * 6) + '" y2="82" stroke="var(--m3)" stroke-width="0.5" opacity="0.55"/>';
+            html += '<line x1="' + (78 + i * 6) + '" y1="104" x2="' + (88 + i * 6) + '" y2="82" stroke="var(--m3)" stroke-width="0.5" opacity="0.55"/>';
+          }
+          /* compass */
+          html += '<text x="28" y="160" fill="var(--faint)" font-size="6" letter-spacing="1.6" transform="rotate(-90 28 160)">NORTH</text>';
+          html += '<text x="272" y="160" fill="var(--faint)" font-size="6" letter-spacing="1.6" transform="rotate(90 272 160)">SOUTH</text>';
+          /* the altar: the key of this path between two lit candles */
+          html += candle(110, 152) + candle(190, 152);
+          html += '<rect x="124" y="128" width="52" height="52" fill="var(--panel-solid)" stroke="var(--amber)" stroke-width="1.1"/>';
+          opts.key.label.forEach((row, i) => {
+            html += '<text x="150" y="' + (139 + i * 9) + '" fill="' + gold + '" font-size="5.8">' + row + "</text>";
+          });
+          html += '<line x1="138" y1="' + (139 + opts.key.label.length * 9 - 3) + '" x2="162" y2="' +
+            (139 + opts.key.label.length * 9 - 3) + '" stroke="var(--panel-line-bright)" stroke-width="0.8"/>';
+          opts.key.name.forEach((row, i) => {
+            html += '<text x="150" y="' + (139 + opts.key.label.length * 9 + 10 + i * 10) +
+              '" fill="var(--amber)" font-size="7.6">' + row + "</text>";
+          });
+          html += censer(250, 158, opts.smoke);
+          /* the seat made ready, set askew in the north west */
+          html += '<g transform="rotate(-34 66 208)">' + box(30, 200, 72, 16, "SEAT READY · THEORICUS", 5.4, "var(--faint)") + "</g>";
+          /* the candidate's place after circumambulation */
+          html += '<text x="176" y="206" fill="var(--faint)" font-size="5.6" font-style="italic">After Circumambulation</text>';
+          html += box(146, 212, 60, 14, "THEORICUS", 6, gold);
+          html += '<path d="M112 236h30v16h-30Z" fill="none" stroke="var(--amber)" stroke-width="0.9"/>';
+          html += '<path d="M112 236a15 9 0 0 1 30 0" fill="none" stroke="var(--amber)" stroke-width="0.9"/>';
+          html += '<text x="127" y="244" fill="var(--muted)" font-size="4.6">BANNER</text>';
+          html += '<text x="127" y="250" fill="var(--muted)" font-size="4.6">OF WEST</text>';
+          html += '<g fill="none" stroke="var(--m3)" stroke-width="1"><path d="M164 238h14l-3 10h-8Z"/>' +
+            '<path d="M171 248v5M166 253h10"/></g>';
+          html += '<text x="200" y="245" fill="var(--m3)" font-size="5.6">CUP OF WATER</text>';
+          /* both officers keep the West in the path ceremonies */
+          html += box(34, 258, 50, 14, "HIEREUS", 6, gold) + lamp(96, 264) +
+            '<text x="96" y="277" fill="var(--muted)" font-size="4.8">RED LAMP</text>';
+          html += box(196, 258, 50, 14, "HEGEMON", 6, gold) + lamp(258, 264) +
+            '<text x="258" y="277" fill="var(--muted)" font-size="4.8">RED LAMP</text>';
+          html += '<text x="150" y="272" fill="var(--muted)" font-size="6.6" letter-spacing="1.8">WEST</text>';
+          html += "</g></svg>";
+          return html;
         }
 
         /* ---- tree of life locator ---- */
