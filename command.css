@@ -4252,3 +4252,23 @@ html[data-theme="light"] #view-thework::before {
   align-items: center;
   text-decoration: none;
 }
+
+/* ---- install as app ---- */
+.side-install {
+  width: 100%;
+  border: 1px solid var(--panel-line-bright);
+  border-radius: 8px;
+  background: none;
+  color: var(--gold);
+  height: 36px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font: 400 10.5px Georgia, serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.side-install:hover {
+  border-color: var(--gold);
+}
