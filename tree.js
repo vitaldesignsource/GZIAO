@@ -52,6 +52,54 @@
   const ROMAN = ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
     "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI"];
 
+  /* Minutum Mundum — the sephiroth in the Queen scale, the paths in the King
+     scale. Malkuth is quartered: citrine, olive, russet, black. */
+  const SEPH_COLOR = {
+    Kether: { fill: "#f4f4f2", name: "white brilliance" },
+    Chokmah: { fill: "#9aa0a6", name: "grey" },
+    Binah: { fill: "#16181c", name: "black" },
+    Chesed: { fill: "#2f6fd0", name: "blue" },
+    Geburah: { fill: "#d42a2a", name: "scarlet red" },
+    Tiphareth: { fill: "#f2d024", name: "golden yellow" },
+    Netzach: { fill: "#1f9e57", name: "emerald green" },
+    Hod: { fill: "#ee8b22", name: "orange" },
+    Yesod: { fill: "#7b4ec2", name: "violet" },
+    Malkuth: { fill: "#16181c", name: "citrine, olive, russet and black" },
+  };
+  const MALKUTH_QUARTERS = ["#b6b83a", "#6d7a2e", "#8a4a2a", "#16181c"];
+
+  const PATH_COLOR = {
+    11: { c: "#f0eda2", name: "bright pale yellow" },
+    12: { c: "#f5e13c", name: "yellow" },
+    13: { c: "#3a6fd8", name: "blue" },
+    14: { c: "#2fbf71", name: "emerald green" },
+    15: { c: "#e0342b", name: "scarlet" },
+    16: { c: "#e2622a", name: "red orange" },
+    17: { c: "#f08a1e", name: "orange" },
+    18: { c: "#f0b429", name: "amber" },
+    19: { c: "#d4d92b", name: "greenish yellow" },
+    20: { c: "#9ccc35", name: "yellowish green" },
+    21: { c: "#7b4ec2", name: "violet" },
+    22: { c: "#2fbf71", name: "emerald green" },
+    23: { c: "#1f4fa8", name: "deep blue" },
+    24: { c: "#1f9e8f", name: "green blue" },
+    25: { c: "#3a6fd8", name: "blue" },
+    26: { c: "#4348a0", name: "indigo" },
+    27: { c: "#e0342b", name: "scarlet" },
+    28: { c: "#7b4ec2", name: "violet" },
+    29: { c: "#c02a52", name: "crimson" },
+    30: { c: "#f08a1e", name: "orange" },
+    31: { c: "#f0562a", name: "glowing orange scarlet" },
+    32: { c: "#4348a0", name: "indigo" },
+  };
+
+  /* pick legible text for a filled swatch */
+  function inkOn(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+    return lum > 0.6 ? "#16181c" : "#f6f4ee";
+  }
+
   const MODES = [
     { id: "number", label: "Path no." },
     { id: "letter", label: "Hebrew" },
@@ -71,7 +119,8 @@
     const litColors = opts.litColors || {};
 
     let mode = "number";
-    let pinned = null;   // {type:'path'|'seph', id}
+    let palette = "true";   // 'true' = Minutum Mundum · 'chamber' = grade colours
+    let pinned = null;      // {type:'path'|'seph', id}
     let hovered = null;
 
     container.innerHTML =
@@ -82,6 +131,10 @@
       MODES.map((m) => '<button type="button" data-mode="' + m.id + '"' +
         (m.id === "number" ? ' class="is-on"' : "") + ">" + m.label + "</button>").join("") +
       "</div>" +
+      '<div class="tree-modes"><span class="tree-modes-label">Colour</span>' +
+      '<button type="button" data-palette="true" class="is-on">Minutum Mundum</button>' +
+      '<button type="button" data-palette="chamber">Chamber</button>' +
+      "</div>" +
       '<div class="tree-readout"></div>' +
       '<div class="tree-legend"></div>' +
       "</div></div>";
@@ -90,13 +143,24 @@
     const readout = container.querySelector(".tree-readout");
     const legend = container.querySelector(".tree-legend");
 
-    legend.innerHTML =
-      (lit.length ? '<span><i class="lg-lit"></i>crossed at this grade</span>' : "") +
-      (veiled.length ? '<span><i class="lg-veil"></i>waits above</span>' : "") +
-      (focus ? '<span><i class="lg-focus"></i>' + esc(focus) + " — where you stand</span>" : "") +
-      '<span><i class="lg-daath"></i>Daath, the unnumbered</span>';
+    function renderLegend() {
+      const trueScale = palette === "true";
+      legend.innerHTML =
+        (trueScale
+          ? '<span><i class="lg-scale"></i>Queen scale spheres · King scale paths</span>'
+          : "") +
+        (lit.length
+          ? '<span><i class="' + (trueScale ? "lg-glow" : "lg-lit") + '"></i>crossed at this grade' +
+            (trueScale ? " (lit)" : "") + "</span>"
+          : "") +
+        (veiled.length ? '<span><i class="lg-veil"></i>waits above</span>' : "") +
+        (focus ? '<span><i class="lg-focus"></i>' + esc(focus) + " — where you stand</span>" : "") +
+        '<span><i class="lg-daath"></i>Daath, the unnumbered</span>';
+    }
+    renderLegend();
 
     function pathColor(p) {
+      if (palette === "true") return PATH_COLOR[p.n].c;
       if (litColors[p.n]) return litColors[p.n];
       if (lit.indexOf(p.n) >= 0) return "var(--amber)";
       if (veiled.indexOf(p.n) >= 0) return "var(--violet)";
@@ -104,20 +168,26 @@
     }
 
     function badgeMarkup(p, cx, cy, active) {
-      const color = active ? "var(--tree-hot)" : pathColor(p);
+      /* in the true scale the badge wears the path's own colour and takes
+         legible ink; in chamber colours it stays a dark disc */
+      const trueScale = palette === "true";
+      const swatch = PATH_COLOR[p.n].c;
+      const stroke = active ? "var(--tree-hot)" : trueScale ? swatch : pathColor(p);
+      const ink = trueScale ? inkOn(swatch) : active ? "var(--tree-hot)" : pathColor(p);
       const r = mode === "attr" ? 11 : 10;
       let inner = "";
       if (mode === "attr" && window.GZ_GLYPHS) {
-        inner = window.GZ_GLYPHS.group(p.glyph, cx, cy, 13, color, 1.5);
+        inner = window.GZ_GLYPHS.group(p.glyph, cx, cy, 13, ink, 1.5);
       } else {
         const text = mode === "letter" ? p.letter : mode === "key" ? ROMAN[p.key] : String(p.n);
         const size = mode === "letter" ? 11 : mode === "key" ? 7.6 : 8.4;
         inner = '<text x="' + cx + '" y="' + (cy + (mode === "letter" ? 4 : 3)) + '" text-anchor="middle" ' +
-          'fill="' + color + '" font-size="' + size + '" font-family="Georgia,serif" letter-spacing="0.4">' +
+          'fill="' + ink + '" font-size="' + size + '" font-family="Georgia,serif" letter-spacing="0.4">' +
           text + "</text>";
       }
-      return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="var(--tree-badge)" ' +
-        'stroke="' + color + '" stroke-width="' + (active ? 1.5 : 0.9) + '" stroke-opacity="' +
+      return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' +
+        (trueScale ? swatch : "var(--tree-badge)") + '" ' +
+        'stroke="' + stroke + '" stroke-width="' + (active ? 1.8 : 0.9) + '" stroke-opacity="' +
         (active ? 1 : 0.75) + '"/>' + inner;
     }
 
@@ -150,13 +220,17 @@
         const b = BY_KEY[p.to];
         const active = p.n === activePath;
         const adjacent = touching.indexOf(p.n) >= 0;
-        const color = active || adjacent ? "var(--tree-hot)" : pathColor(p);
+        /* in the true scale a path never changes colour to show state — it
+           thickens and glows instead, so the attribution stays honest */
+        const color = palette === "true"
+          ? pathColor(p)
+          : (active || adjacent ? "var(--tree-hot)" : pathColor(p));
         const special = lit.indexOf(p.n) >= 0 || veiled.indexOf(p.n) >= 0 || litColors[p.n];
-        const width = active ? 3.2 : adjacent ? 2.4 : special ? 2 : 1.4;
+        const width = active ? (palette === "true" ? 4.4 : 3.2) : adjacent ? 3 : special ? 2.4 : 1.8;
         svg += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" ' +
           'stroke="' + color + '" stroke-width="' + width + '" stroke-linecap="round"' +
           (veiled.indexOf(p.n) >= 0 && !active ? ' stroke-dasharray="6 5"' : "") +
-          (active ? ' filter="url(#tree-glow)"' : "") + "/>";
+          (active || (palette === "true" && lit.indexOf(p.n) >= 0) ? ' filter="url(#tree-glow)"' : "") + "/>";
         svg += '<line class="tree-hit" data-path="' + p.n + '" x1="' + a.x + '" y1="' + a.y +
           '" x2="' + b.x + '" y2="' + b.y + '" stroke="transparent" stroke-width="17"/>';
         const t = p.t || 0.5;
@@ -176,18 +250,41 @@
       for (const s of SEPHIROTH) {
         const isFocus = s.key === focus;
         const active = s.key === activeSeph || (activeP && (activeP.from === s.key || activeP.to === s.key));
-        const stroke = active ? "var(--tree-hot)" : isFocus ? "var(--amber)" : "var(--tree-line)";
+        const trueScale = palette === "true";
+        const fill = trueScale ? SEPH_COLOR[s.key].fill : "var(--tree-node)";
+        const ink = trueScale ? inkOn(SEPH_COLOR[s.key].fill) : null;
+        const stroke = active ? "var(--tree-hot)" : isFocus ? "var(--amber)" : trueScale ? "var(--tree-rim)" : "var(--tree-line)";
         const r = isFocus ? 30 : 27;
+        /* black spheres and the quartered Malkuth need their lettering carried
+           on an outline, or it vanishes into whatever it lies over */
+        const halo = trueScale
+          ? ' paint-order="stroke" stroke="' + (ink === "#16181c" ? "#ffffff99" : "#000000aa") +
+            '" stroke-width="2.2" stroke-linejoin="round"'
+          : "";
         svg += '<g class="tree-hit" data-seph="' + s.key + '">';
-        svg += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + r + '" fill="var(--tree-node)" ' +
-          'stroke="' + stroke + '" stroke-width="' + (isFocus || active ? 1.9 : 1.1) + '"' +
-          (isFocus ? ' filter="url(#tree-focus)"' : "") + "/>";
+        if (trueScale && s.key === "Malkuth") {
+          /* the quartered Kingdom: citrine, olive, russet, black */
+          MALKUTH_QUARTERS.forEach((q, i) => {
+            const a0 = (-135 + i * 90) * Math.PI / 180;
+            const a1 = (-45 + i * 90) * Math.PI / 180;
+            svg += '<path d="M' + s.x + ' ' + s.y +
+              ' L' + (s.x + r * Math.cos(a0)).toFixed(1) + ' ' + (s.y + r * Math.sin(a0)).toFixed(1) +
+              ' A' + r + ' ' + r + ' 0 0 1 ' + (s.x + r * Math.cos(a1)).toFixed(1) + ' ' +
+              (s.y + r * Math.sin(a1)).toFixed(1) + ' Z" fill="' + q + '"/>';
+          });
+          svg += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + r + '" fill="none" stroke="' +
+            stroke + '" stroke-width="' + (isFocus || active ? 1.9 : 1.1) + '"/>';
+        } else {
+          svg += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + r + '" fill="' + fill + '" ' +
+            'stroke="' + stroke + '" stroke-width="' + (isFocus || active ? 1.9 : 1.1) + '"' +
+            (isFocus ? ' filter="url(#tree-focus)"' : "") + "/>";
+        }
         svg += '<text x="' + s.x + '" y="' + (s.y - 1) + '" text-anchor="middle" fill="' +
-          (active || isFocus ? "var(--gold)" : "var(--muted)") + '" font-size="' +
-          (s.key.length > 8 ? 7 : 7.8) + '" letter-spacing="0.6" font-family="Georgia,serif">' +
+          (trueScale ? ink : active || isFocus ? "var(--gold)" : "var(--muted)") + '" font-size="' +
+          (s.key.length > 8 ? 7 : 7.8) + '" letter-spacing="0.6" font-family="Georgia,serif"' + halo + ">" +
           s.key.toUpperCase() + "</text>";
-        svg += '<text x="' + s.x + '" y="' + (s.y + 11) + '" text-anchor="middle" fill="var(--faint)" ' +
-          'font-size="9">' + s.hebrew + "</text>";
+        svg += '<text x="' + s.x + '" y="' + (s.y + 11) + '" text-anchor="middle" fill="' +
+          (trueScale ? ink : "var(--faint)") + '" font-size="9"' + halo + ">" + s.hebrew + "</text>";
         svg += '<circle cx="' + (s.x - r * 0.72) + '" cy="' + (s.y - r * 0.72) + '" r="7.5" ' +
           'fill="var(--tree-badge)" stroke="' + stroke + '" stroke-width="0.8"/>';
         svg += '<text x="' + (s.x - r * 0.72) + '" y="' + (s.y - r * 0.72 + 2.6) + '" text-anchor="middle" ' +
@@ -222,7 +319,9 @@
           ' <em>(' + esc(p.sense) + ")</em></strong>" +
           "<span>Key " + ROMAN[p.key] + ", " + esc(p.trump) + " &nbsp;·&nbsp; " + glyph +
           '<span class="tree-attr">' + esc(p.attr) + "</span> &nbsp;·&nbsp; " + run + "</span>" +
-          '<span class="tree-sub">' + letterClass(p) + "</span>";
+          '<span class="tree-sub">' + letterClass(p) +
+          ' <i class="tree-swatch" style="background:' + PATH_COLOR[p.n].c + '"></i>' +
+          "King scale: " + PATH_COLOR[p.n].name + ".</span>";
         return;
       }
       if (sephKey) {
@@ -235,7 +334,9 @@
           "<strong>" + s.n + ". " + esc(s.key) + " · " + s.hebrew + " <em>" + esc(s.title) + "</em></strong>" +
           "<span>" + esc(s.attr) + " &nbsp;·&nbsp; " + esc(s.grade) + "</span>" +
           '<span class="tree-sub">' + pillar + " &nbsp;·&nbsp; " + on.length +
-          " paths meet here — " + on.join(", ") + "</span>";
+          " paths meet here — " + on.join(", ") +
+          ' <i class="tree-swatch" style="background:' + SEPH_COLOR[sephKey].fill + '"></i>' +
+          "Queen scale: " + SEPH_COLOR[sephKey].name + ".</span>";
         return;
       }
       readout.innerHTML =
@@ -294,12 +395,15 @@
       render();
     });
 
-    container.querySelector(".tree-modes").addEventListener("click", (event) => {
-      const button = event.target.closest("button[data-mode]");
+    container.querySelector(".tree-side").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-mode], button[data-palette]");
       if (!button) return;
-      mode = button.dataset.mode;
-      container.querySelectorAll(".tree-modes button").forEach((b) => b.classList.remove("is-on"));
+      const group = button.dataset.mode ? "[data-mode]" : "[data-palette]";
+      if (button.dataset.mode) mode = button.dataset.mode;
+      else palette = button.dataset.palette;
+      container.querySelectorAll(".tree-modes button" + group).forEach((b) => b.classList.remove("is-on"));
       button.classList.add("is-on");
+      renderLegend();
       render();
     });
 

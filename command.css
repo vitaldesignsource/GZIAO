@@ -14,6 +14,7 @@
   --tree-node: #0a0f16;
   --tree-badge: #0b1119;
   --tree-hot: #ecd9a8;
+  --tree-rim: #ffffff45;
 }
 
 html[data-theme="light"] {
@@ -30,6 +31,7 @@ html[data-theme="light"] {
   --tree-node: #ffffff;
   --tree-badge: #ffffff;
   --tree-hot: #8a6512;
+  --tree-rim: #00000045;
 }
 
 body.command-body {
@@ -3597,4 +3599,27 @@ body.command-body {
 
 html[data-theme="light"] #view-thework::before {
   opacity: 0.8;
+}
+
+.tree-readout .tree-swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  border: 1px solid #00000055;
+  margin: 0 5px 0 8px;
+  vertical-align: -1px;
+}
+
+.tree-legend .lg-scale {
+  height: 8px;
+  width: 22px;
+  border: 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #f2d024, #1f9e57, #2f6fd0, #7b4ec2, #d42a2a);
+}
+
+.tree-legend .lg-glow {
+  border-color: #f0562a;
+  box-shadow: 0 0 6px #f0562aaa;
 }
