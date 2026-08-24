@@ -4091,3 +4091,164 @@ html[data-theme="light"] #view-thework::before {
     height: 300px;
   }
 }
+
+/* ---- birth place geocoding ---- */
+.geo-field {
+  display: flex;
+  gap: 8px;
+}
+
+.geo-field input {
+  flex: 1;
+  min-width: 0;
+}
+
+.geo-btn {
+  flex: none;
+  height: 44px;
+  white-space: nowrap;
+}
+
+.geo-status {
+  display: block;
+  margin-top: 6px;
+  min-height: 12px;
+  color: var(--faint);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+
+.geo-status.is-ok {
+  color: var(--m3);
+}
+
+.geo-status.is-warn {
+  color: #e0a06a;
+}
+
+/* ---- watchtower reader ---- */
+.wt-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.wt-title-btn {
+  display: block;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 4px 0 0;
+  text-align: left;
+  cursor: pointer;
+  color: var(--paper);
+  font: 400 15px/1.4 Georgia, serif;
+}
+
+.wt-title-btn:hover {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.wt-reader-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--panel-line);
+}
+
+.wt-reader-status {
+  color: var(--m3);
+  letter-spacing: 0.16em;
+  font-size: 8.5px;
+  text-transform: uppercase;
+}
+
+.wt-reader-body {
+  padding-top: 18px;
+}
+
+.wt-reader-body small {
+  color: var(--violet);
+  letter-spacing: 0.18em;
+  font-size: 8.5px;
+}
+
+.wt-reader-body h2 {
+  margin: 8px 0 6px;
+  font: 400 26px/1.25 Georgia, serif;
+  color: var(--paper);
+}
+
+.wt-reader-meta {
+  color: var(--faint);
+  font-size: 10.5px;
+  margin: 0 0 18px;
+  word-break: break-word;
+}
+
+.wt-reader-abstract {
+  color: var(--muted);
+  font: 400 13.5px/1.75 Georgia, serif;
+  white-space: pre-wrap;
+  border-left: 2px solid var(--violet);
+  padding-left: 16px;
+}
+
+.wt-no-abstract {
+  color: var(--faint);
+  font-style: italic;
+}
+
+.wt-reader-text {
+  margin-top: 18px;
+  color: var(--muted);
+  font: 400 13px/1.8 Georgia, serif;
+  max-height: 620px;
+  overflow-y: auto;
+}
+
+.wt-reader-text p {
+  margin: 0 0 14px;
+}
+
+.wt-fulltext-flag,
+.wt-oa-note {
+  color: var(--m3);
+  letter-spacing: 0.14em;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  border: 1px solid #63dfca44;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.wt-oa-note {
+  color: var(--faint);
+  border-color: var(--panel-line);
+  letter-spacing: 0.04em;
+  font-size: 10.5px;
+  text-transform: none;
+  line-height: 1.6;
+}
+
+.wt-reader-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--panel-line);
+}
+
+.wt-reader-actions .ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
