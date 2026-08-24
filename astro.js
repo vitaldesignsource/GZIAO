@@ -206,5 +206,187 @@
     return chart;
   }
 
-  window.GZ_ASTRO = { computeChart, splitSign, SIGNS, SIGN_GLYPHS };
+  /* ------------------------------------------------------------------ */
+  /* Synastry: every inter-aspect between two computed charts.           */
+  /* Both sets of positions are fixed, so there is no applying or        */
+  /* separating — only the orb, which is reported exactly.               */
+  /* ------------------------------------------------------------------ */
+
+  const ELEMENTS = ["Fire", "Earth", "Air", "Water"];
+  const MODALITIES = ["Cardinal", "Fixed", "Mutable"];
+
+  function chartPoints(chart, includeAngles) {
+    const points = chart.placements.map((p) => ({
+      key: p.body, glyph: p.glyph, lon: p.lon, kind: "body",
+    }));
+    if (includeAngles !== false && chart.angles) {
+      points.push({ key: "Ascendant", glyph: "Asc", lon: chart.angles.asc, kind: "angle" });
+      points.push({ key: "Midheaven", glyph: "MC", lon: chart.angles.mc, kind: "angle" });
+    }
+    return points;
+  }
+
+  function elementBalance(chart) {
+    const elements = [0, 0, 0, 0];
+    const modalities = [0, 0, 0];
+    for (const p of chart.placements) {
+      const signIndex = SIGNS.indexOf(p.tropical.sign);
+      elements[signIndex % 4] += 1;
+      modalities[signIndex % 3] += 1;
+    }
+    return {
+      elements: ELEMENTS.map((name, i) => ({ name, count: elements[i] })),
+      modalities: MODALITIES.map((name, i) => ({ name, count: modalities[i] })),
+    };
+  }
+
+  function computeSynastry(chartA, chartB) {
+    const pointsA = chartPoints(chartA);
+    const pointsB = chartPoints(chartB);
+    const aspects = [];
+    for (const a of pointsA) {
+      for (const b of pointsB) {
+        const sep = Math.abs(separation(a.lon, b.lon));
+        for (const aspect of ASPECTS) {
+          const luminary = a.key === "Sun" || a.key === "Moon" || b.key === "Sun" || b.key === "Moon";
+          const orb = a.kind === "angle" || b.kind === "angle" ? 5 : luminary ? 8 : 6;
+          const off = Math.abs(sep - aspect.angle);
+          if (off <= orb) {
+            aspects.push({
+              a: a.key, aGlyph: a.glyph, b: b.key, bGlyph: b.glyph,
+              type: aspect.name, typeGlyph: aspect.glyph, angle: aspect.angle, orb: off,
+            });
+            break;
+          }
+        }
+      }
+    }
+    aspects.sort((x, y) => x.orb - y.orb);
+    const tally = { Conjunction: 0, Sextile: 0, Square: 0, Trine: 0, Opposition: 0 };
+    for (const hit of aspects) tally[hit.type] += 1;
+    /* pairs aspected in both directions between the same two bodies
+       (e.g. her Moon–his Sun and her Sun–his Moon) — the classic
+       "double whammy", reported as a count, not a verdict */
+    const mutual = [];
+    for (const hit of aspects) {
+      if (hit.a === hit.b) continue;
+      const twin = aspects.find((other) => other.a === hit.b && other.b === hit.a);
+      if (twin && !mutual.some((m) => (m[0] === hit.b && m[1] === hit.a))) {
+        mutual.push([hit.a, hit.b]);
+      }
+    }
+    return {
+      aspects,
+      tally,
+      mutualPairs: mutual,
+      balanceA: elementBalance(chartA),
+      balanceB: elementBalance(chartB),
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Transits: the exact moments when a moving body reaches an aspect    */
+  /* to a fixed natal point, found by root-finding on the continuous     */
+  /* relative longitude — every pass of a retrograde loop is reported.   */
+  /* ------------------------------------------------------------------ */
+
+  /* per-body sample step in days — small enough that a body cannot move
+     anywhere near 180° between samples, so no crossing can be skipped */
+  const TRANSIT_STEP = {
+    Sun: 1, Moon: 0.2, Mercury: 0.5, Venus: 0.5, Mars: 1,
+    Jupiter: 2, Saturn: 2, Uranus: 3, Neptune: 3, Pluto: 3,
+  };
+
+  function computeTransits(natalChart, startUtc, days, options) {
+    const opts = options || {};
+    const includeMoon = opts.includeMoon !== undefined ? opts.includeMoon : days <= 10;
+    const natalPoints = chartPoints(natalChart, opts.includeAngles);
+    const bodies = BODIES.filter((b) => includeMoon || b.key !== "Moon");
+    /* aspect targets across the full circle: A and 360−A */
+    const targets = [];
+    for (const aspect of ASPECTS) {
+      targets.push({ angle: aspect.angle, aspect });
+      if (aspect.angle > 0 && aspect.angle < 180) targets.push({ angle: 360 - aspect.angle, aspect });
+    }
+    const startTime = A.MakeTime(startUtc);
+    const hits = [];
+
+    for (const body of bodies) {
+      const step = TRANSIT_STEP[body.key] || 1;
+      const samples = [];
+      for (let d = 0; d <= days + 1e-9; d += step) {
+        const t = startTime.AddDays(Math.min(d, days));
+        samples.push({ d: Math.min(d, days), lonRaw: norm(bodyLongitude(body.key, t)) });
+        if (d >= days) break;
+      }
+      if (samples[samples.length - 1].d < days) {
+        samples.push({ d: days, lonRaw: norm(bodyLongitude(body.key, startTime.AddDays(days))) });
+      }
+      for (const point of natalPoints) {
+        if (point.key === body.key && body.key !== "Sun" && body.key !== "Moon" && point.kind === "body") {
+          /* a slow body transiting its own natal place is a return too —
+             keep it; nothing to skip here */
+        }
+        /* unwrap the relative longitude into a continuous series */
+        let prevU = norm(samples[0].lonRaw - point.lon);
+        const unwrapped = [prevU];
+        for (let i = 1; i < samples.length; i++) {
+          const raw = norm(samples[i].lonRaw - point.lon);
+          prevU = prevU + separation(norm(prevU), raw);
+          unwrapped.push(prevU);
+        }
+        for (let i = 1; i < samples.length; i++) {
+          const u0 = unwrapped[i - 1];
+          const u1 = unwrapped[i];
+          const lo = Math.min(u0, u1);
+          const hi = Math.max(u0, u1);
+          if (hi - lo < 1e-9) continue;
+          for (const target of targets) {
+            /* every representation target.angle + 360k inside [lo, hi] is a crossing */
+            for (let k = Math.ceil((lo - target.angle) / 360); target.angle + 360 * k <= hi; k++) {
+              const T = target.angle + 360 * k;
+              if (T < lo) continue;
+              /* bisect the crossing time to well under a minute */
+              let d0 = samples[i - 1].d, d1 = samples[i].d;
+              let v0 = u0 - T;
+              for (let iter = 0; iter < 22; iter++) {
+                const dm = (d0 + d1) / 2;
+                const rawM = norm(bodyLongitude(body.key, startTime.AddDays(dm)) - point.lon);
+                /* re-anchor against u0 so the unwrap stays consistent */
+                const um = u0 + separation(norm(u0), rawM);
+                if ((um - T) * v0 <= 0) d1 = dm; else { d0 = dm; v0 = um - T; }
+              }
+              const dHit = (d0 + d1) / 2;
+              const tHit = startTime.AddDays(dHit);
+              const speed = separation(
+                bodyLongitude(body.key, tHit.AddDays(-1 / 48)),
+                bodyLongitude(body.key, tHit.AddDays(1 / 48))
+              ) * 24;
+              hits.push({
+                when: new Date(startUtc.getTime() + dHit * 86400000),
+                dayOffset: dHit,
+                body: body.key,
+                bodyGlyph: body.glyph,
+                retrograde: speed < 0,
+                point: point.key,
+                pointGlyph: point.glyph,
+                pointKind: point.kind,
+                type: target.aspect.name,
+                typeGlyph: target.aspect.glyph,
+                angle: target.aspect.angle,
+                isReturn: body.key === point.key && point.kind === "body" && target.aspect.angle === 0,
+              });
+            }
+          }
+        }
+      }
+    }
+    hits.sort((x, y) => x.dayOffset - y.dayOffset);
+    return hits;
+  }
+
+  window.GZ_ASTRO = {
+    computeChart, computeSynastry, computeTransits,
+    splitSign, SIGNS, SIGN_GLYPHS,
+  };
 })();

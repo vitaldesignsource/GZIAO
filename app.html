@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=30" />
+    <link rel="stylesheet" href="command.css?v=31" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -36,7 +36,7 @@
     <script src="config.js?v=3"></script>
     <script src="auth.js?v=2"></script>
     <script src="vendor/astronomy.browser.min.js"></script>
-    <script src="astro.js?v=2"></script>
+    <script src="astro.js?v=3"></script>
     <script src="glyphs.js?v=2"></script>
     <script src="pyramid.js?v=2"></script>
     <script src="tree.js?v=4"></script>
@@ -519,19 +519,69 @@
           </section>
           <section class="panel" style="border-color: #d0ad6d44">
             <span class="kicker is-amber" style="display: flex; justify-content: space-between">
-              <span>AION ELECTION LABORATORY</span>
-              <span style="color: var(--faint)">PERSONAL ANCHOR: NOT YET SET</span>
+              <span>AION TRANSIT SCANNER</span>
+              <span style="color: var(--faint)" id="aion-anchor-state">ANCHOR: NOT SET</span>
             </span>
-            <h2>Election Planner</h2>
-            <p class="panel-sub">Scan candidate windows, compare the layers, preserve constraints, then elect a time into your private schedule.</p>
-            <div class="intake" style="grid-template-columns: 2fr 2fr 1fr 1fr auto">
-              <label>ACTION OR EVENT<input type="text" placeholder="File a document, launch a project, hold a conversation&hellip;" /></label>
-              <label>DESIRED QUALITY / INTENT<input type="text" placeholder="Clear communication, durable agreement, strong defense&hellip;" /></label>
+            <h2>Transits to a Natal Anchor</h2>
+            <p class="panel-sub">
+              Choose a natal anchor, and the scanner finds the exact instants when each moving body
+              reaches an aspect to that chart &mdash; every pass of a retrograde loop reported separately.
+              The dates are calculated facts; what to do with them is yours.
+            </p>
+            <div class="intake" style="grid-template-columns: 2fr 1.4fr 1fr auto">
+              <label>NATAL ANCHOR<select id="aion-anchor"></select></label>
               <label>SCAN BEGINS<input type="date" id="aion-scan" /></label>
-              <label>FORECAST SPAN<input type="text" value="7 days" disabled /></label>
-              <button class="prime-btn" data-soon="Election scanning activates once a natal anchor profile is set." type="button">Scan windows</button>
+              <label>SPAN<select id="aion-span">
+                <option value="7">7 days</option>
+                <option value="14" selected>14 days</option>
+                <option value="30">30 days</option>
+                <option value="90">90 days</option>
+              </select></label>
+              <button class="prime-btn" id="aion-scan-btn" type="button">Scan &rarr;</button>
             </div>
-            <p class="panel-note" style="margin-top: 14px">0 elected or candidate times stored</p>
+            <label class="aion-moon-row"><input type="checkbox" id="aion-moon" /> Include the Moon
+              <em>&mdash; adds roughly a hundred fast hits per month; leave off for longer scans</em></label>
+            <div id="aion-transit-out" hidden>
+              <div class="tier-note">
+                <b>CALCULATED FACT</b> &mdash; each line is the instant the aspect is geometrically exact,
+                found by root-finding on apparent geocentric longitudes. R marks a retrograde pass.
+              </div>
+              <div id="aion-transit-list" class="transit-list"></div>
+            </div>
+            <p class="panel-note" id="aion-transit-empty" style="margin-top: 14px">
+              No scan run yet. Anchors come from Constellations profiles that carry birth data.
+            </p>
+          </section>
+          <section class="panel" style="border-color: #a78bfa44">
+            <span class="kicker" style="color: var(--violet)">SYNASTRY &middot; TWO CHARTS WOVEN</span>
+            <h2>Synastry</h2>
+            <p class="panel-sub">
+              Every aspect between one person's placements and another's, with exact orbs &mdash; the
+              second rung of the chart ladder. Counts and angles are calculated; meaning is not asserted.
+            </p>
+            <div class="intake" style="grid-template-columns: 1fr 1fr auto">
+              <label>FIRST CHART<select id="syn-a"></select></label>
+              <label>SECOND CHART<select id="syn-b"></select></label>
+              <button class="prime-btn" id="syn-run" type="button">Weave &rarr;</button>
+            </div>
+            <div id="syn-out" hidden>
+              <div class="syn-tally" id="syn-tally"></div>
+              <div class="duo" style="margin-top: 14px">
+                <div>
+                  <span class="kicker">INTER-ASPECTS &middot; TIGHTEST FIRST</span>
+                  <div id="syn-aspects" class="syn-aspects"></div>
+                </div>
+                <div>
+                  <span class="kicker">ELEMENT &amp; MODALITY BALANCE</span>
+                  <div id="syn-balance"></div>
+                  <div id="syn-mutual" style="margin-top: 12px"></div>
+                </div>
+              </div>
+            </div>
+            <p class="panel-note" id="syn-empty" style="margin-top: 14px">
+              Both charts come from Constellations profiles with birth data. Birth times matter:
+              without one, a chart is cast for noon and its Moon can be off by up to seven degrees.
+            </p>
           </section>
           <section class="duo-wide">
             <div class="panel" style="border-color: #d0ad6d44">
@@ -1606,7 +1656,20 @@
                 created_at: new Date().toISOString(),
               },
             ],
-            people: [],
+            people: [
+              {
+                id: "p-demo-1", owner_id: "mock-user", display_name: "Demo Anchor",
+                relation: "self", birth_date: "1990-06-15", birth_time: "08:30:00",
+                birth_time_known: true, birth_tz_offset: -7, birth_lat: 33.45, birth_lon: -111.94,
+                birth_place: "Phoenix, AZ", created_at: new Date().toISOString(), meta: {},
+              },
+              {
+                id: "p-demo-2", owner_id: "mock-user", display_name: "Demo Partner",
+                relation: "partner", birth_date: "1992-11-03", birth_time: "21:15:00",
+                birth_time_known: true, birth_tz_offset: -6, birth_lat: 41.88, birth_lon: -87.63,
+                birth_place: "Chicago, IL", created_at: new Date().toISOString(), meta: {},
+              },
+            ],
           };
           GZ.client = {
             auth: {
@@ -2122,6 +2185,30 @@
           }
         }
 
+        /* the anchor person's next-7-day exact transits, computed once per
+           day per anchor and cached — deterministic, never a guess */
+        let transitCache = null;
+        function upcomingTransits() {
+          try {
+            if (!window.GZ_ASTRO) return [];
+            const anchorId = localStorage.getItem("gz-aion-anchor");
+            if (!anchorId) return [];
+            const anchor = people.find((p) => p.id === anchorId && p.birth_date);
+            if (!anchor) return [];
+            const today = new Date().toISOString().slice(0, 10);
+            if (transitCache && transitCache.key === anchorId + "|" + today) return transitCache.hits;
+            const natal = chartForPerson(anchor);
+            const hits = window.GZ_ASTRO
+              .computeTransits(natal, new Date(today + "T00:00:00Z"), 7, { includeMoon: false })
+              .slice(0, 3);
+            transitCache = { key: anchorId + "|" + today, hits };
+            return hits;
+          } catch (error) {
+            window.__transitErr = String(error && error.message || error);
+            return [];
+          }
+        }
+
         function generateFindings() {
           const findings = [];
           const open = actionsOpen();
@@ -2190,6 +2277,18 @@
               cat: "VAULT · CALCULATED FACT",
               title: docs.length + " document" + (docs.length === 1 ? "" : "s") + " preserved and retrievable",
               body: "Original files, downloadable at any time. Integrity: as uploaded.",
+            });
+          }
+          for (const hit of upcomingTransits()) {
+            const inDays = Math.max(0, Math.round(hit.dayOffset));
+            findings.push({
+              score: 60 - inDays * 3,
+              tag: "TRANSIT",
+              cat: "AION · CALCULATED FACT",
+              title: hit.body + (hit.retrograde ? " (R)" : "") + " " + hit.type.toLowerCase() +
+                " natal " + hit.point + (inDays === 0 ? " — exact today" : " — exact in " + inDays + " day" + (inDays === 1 ? "" : "s")),
+              body: "Geometrically exact " + hit.when.toUTCString().slice(0, 22) +
+                " UT for the anchor chart. The timing is a fact; any reading of it is interpretation.",
             });
           }
           return findings.sort((a, b) => b.score - a.score);
@@ -2476,6 +2575,7 @@
           renderPulse();
           renderIntake();
           renderChronology();
+          renderAnchorControls();
           renderOracle();
           renderStats();
           renderVaultList();
@@ -4993,6 +5093,240 @@
           $("aion-lat").value = person.birth_lat != null ? String(person.birth_lat) : "";
           $("aion-lon").value = person.birth_lon != null ? String(person.birth_lon) : "";
           castField();
+        }
+
+        /* ---------- transits + synastry (the next rungs of the ladder) ---------- */
+
+        const escText = (value) =>
+          String(value).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+        /* a person row → their computed natal chart, same conversion the
+           cast form uses; noon + timeUnknown when no birth time is known */
+        function chartForPerson(person) {
+          const timeKnown = Boolean(person.birth_time_known && person.birth_time);
+          const timeValue = timeKnown ? person.birth_time.slice(0, 5) : "12:00";
+          const [hh, mm] = timeValue.split(":").map(Number);
+          const offset = person.birth_tz_offset != null ? Number(person.birth_tz_offset) : 0;
+          const utcMillis = Date.UTC(
+            Number(person.birth_date.slice(0, 4)),
+            Number(person.birth_date.slice(5, 7)) - 1,
+            Number(person.birth_date.slice(8, 10)),
+            hh, mm
+          ) - offset * 3600000;
+          const lat = person.birth_lat != null ? Number(person.birth_lat) : undefined;
+          const lonGeo = person.birth_lon != null ? Number(person.birth_lon) : undefined;
+          return window.GZ_ASTRO.computeChart(new Date(utcMillis), {
+            lat, lon: lonGeo, timeUnknown: !timeKnown,
+          });
+        }
+
+        function peopleWithBirth() {
+          return people.filter((person) => person.birth_date);
+        }
+
+        function fillPersonSelect(select, savedId) {
+          const withBirth = peopleWithBirth();
+          select.innerHTML = "";
+          if (!withBirth.length) {
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "No profiles with birth data yet";
+            select.append(opt);
+            return false;
+          }
+          for (const person of withBirth) {
+            const opt = document.createElement("option");
+            opt.value = person.id;
+            opt.textContent = person.display_name +
+              (person.birth_time_known && person.birth_time ? "" : " · time unknown");
+            select.append(opt);
+          }
+          if (savedId && withBirth.some((p) => p.id === savedId)) select.value = savedId;
+          return true;
+        }
+
+        function renderAnchorControls() {
+          const saved = localStorage.getItem("gz-aion-anchor") || "";
+          const any = fillPersonSelect($("aion-anchor"), saved);
+          fillPersonSelect($("syn-a"), localStorage.getItem("gz-syn-a") || "");
+          const okB = fillPersonSelect($("syn-b"), localStorage.getItem("gz-syn-b") || "");
+          if (okB && !localStorage.getItem("gz-syn-b")) {
+            const options = $("syn-b").options;
+            if (options.length > 1) $("syn-b").selectedIndex = 1;
+          }
+          const anchor = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
+          /* the defaulted selection counts as the anchor too — persist it so
+             the Oracle can compute transits without a manual change event */
+          if (anchor) localStorage.setItem("gz-aion-anchor", anchor.id);
+          $("aion-anchor-state").textContent = any && anchor
+            ? "ANCHOR: " + anchor.display_name.toUpperCase()
+            : "ANCHOR: NOT SET";
+        }
+
+        $("aion-anchor").addEventListener("change", () => {
+          localStorage.setItem("gz-aion-anchor", $("aion-anchor").value);
+          renderAnchorControls();
+        });
+
+        function runTransitScan() {
+          if (!window.GZ_ASTRO) return toast("Calculation engine failed to load.");
+          const anchor = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
+          if (!anchor) return toast("Choose a natal anchor — a Constellations profile with birth data.");
+          const startValue = $("aion-scan").value;
+          if (!startValue) return toast("Pick a start date for the scan.");
+          const days = Number($("aion-span").value);
+          const includeMoon = $("aion-moon").checked;
+          const natal = chartForPerson(anchor);
+          const start = new Date(startValue + "T00:00:00Z");
+          const hits = window.GZ_ASTRO.computeTransits(natal, start, days, { includeMoon });
+          renderTransitHits(anchor, hits, natal);
+          toast(hits.length + " exact hits found across " + days + " days.");
+        }
+        $("aion-scan-btn").addEventListener("click", runTransitScan);
+
+        function renderTransitHits(anchor, hits, natal) {
+          const holder = $("aion-transit-list");
+          holder.innerHTML = "";
+          $("aion-transit-out").hidden = false;
+          $("aion-transit-empty").hidden = true;
+          if (natal.timeUnknown) {
+            const warn = document.createElement("p");
+            warn.className = "panel-note";
+            warn.textContent =
+              "Birth time unknown — the anchor chart is cast for noon, so hits to the Moon " +
+              "carry up to ±6° of uncertainty and the angles are omitted.";
+            holder.append(warn);
+          }
+          if (!hits.length) {
+            const none = document.createElement("p");
+            none.className = "panel-note";
+            none.textContent = "No exact aspect within this window.";
+            holder.append(none);
+            return;
+          }
+          const G = window.GZ_GLYPHS;
+          let lastDay = "";
+          for (const hit of hits) {
+            const dayKey = hit.when.toISOString().slice(0, 10);
+            if (dayKey !== lastDay) {
+              lastDay = dayKey;
+              const head = document.createElement("div");
+              head.className = "transit-day";
+              head.textContent = hit.when.toLocaleDateString(undefined, {
+                weekday: "short", month: "short", day: "numeric",
+              });
+              holder.append(head);
+            }
+            const row = document.createElement("div");
+            row.className = "transit-hit";
+            const time = document.createElement("time");
+            time.textContent = hit.when.toISOString().slice(11, 16) + " UT";
+            const line = document.createElement("span");
+            line.className = "transit-line";
+            const pointLabel = hit.pointKind === "angle" ? hit.point : "natal " + hit.point;
+            line.innerHTML =
+              (G && G.paths[hit.body] ? G.svg(hit.body, { size: 13, cls: "glyph-cell" }) : "") +
+              "<b>" + hit.body + (hit.retrograde ? " R" : "") + "</b> " +
+              hit.type.toLowerCase() + " " +
+              (G && G.paths[hit.point] ? G.svg(hit.point, { size: 13, cls: "glyph-cell" }) : "") +
+              "<b>" + pointLabel + "</b>" +
+              (hit.isReturn ? ' <i class="transit-return">return</i>' : "");
+            const elect = document.createElement("button");
+            elect.type = "button";
+            elect.className = "ghost-btn transit-elect";
+            elect.textContent = "Elect";
+            elect.addEventListener("click", async () => {
+              const ok = await seal(
+                "Election · " + hit.body + " " + hit.type + " " + pointLabel,
+                "Elected instant for " + anchor.display_name + ": " +
+                  hit.when.toUTCString() + " — " + hit.body + (hit.retrograde ? " (retrograde)" : "") +
+                  " " + hit.type + " " + pointLabel + ", geometrically exact.",
+                { kind: "action", occurredAt: hit.when.toISOString(),
+                  meta: { due: dayKey, transit: { body: hit.body, point: hit.point, type: hit.type } } }
+              );
+              if (ok) toast("Elected into Operations for " + dayKey + ".");
+            });
+            row.append(time, line, elect);
+            holder.append(row);
+          }
+        }
+
+        function runSynastry() {
+          if (!window.GZ_ASTRO) return toast("Calculation engine failed to load.");
+          const withBirth = peopleWithBirth();
+          const personA = withBirth.find((p) => p.id === $("syn-a").value);
+          const personB = withBirth.find((p) => p.id === $("syn-b").value);
+          if (!personA || !personB) return toast("Choose two profiles with birth data.");
+          if (personA.id === personB.id) return toast("Choose two different people.");
+          localStorage.setItem("gz-syn-a", personA.id);
+          localStorage.setItem("gz-syn-b", personB.id);
+          const chartA = chartForPerson(personA);
+          const chartB = chartForPerson(personB);
+          const syn = window.GZ_ASTRO.computeSynastry(chartA, chartB);
+          renderSynastry(personA, personB, chartA, chartB, syn);
+          toast(syn.aspects.length + " inter-aspects computed.");
+        }
+        $("syn-run").addEventListener("click", runSynastry);
+
+        function renderSynastry(personA, personB, chartA, chartB, syn) {
+          $("syn-out").hidden = false;
+          $("syn-empty").hidden = true;
+          const G = window.GZ_GLYPHS;
+          const order = ["Conjunction", "Trine", "Sextile", "Square", "Opposition"];
+          $("syn-tally").innerHTML = order.map((name) =>
+            '<span class="syn-tally-cell"><b>' + syn.tally[name] + "</b> " +
+            (G && G.paths[name] ? G.svg(name, { size: 12, cls: "glyph-cell" }) : "") +
+            name.toLowerCase() + (syn.tally[name] === 1 ? "" : "s") + "</span>"
+          ).join("");
+          const list = $("syn-aspects");
+          list.innerHTML = "";
+          const timeNote = [];
+          if (chartA.timeUnknown) timeNote.push(personA.display_name);
+          if (chartB.timeUnknown) timeNote.push(personB.display_name);
+          if (timeNote.length) {
+            const warn = document.createElement("p");
+            warn.className = "panel-note";
+            warn.textContent = "Noon chart for " + timeNote.join(" and ") +
+              " (birth time unknown) — Moon aspects approximate, angles omitted.";
+            list.append(warn);
+          }
+          for (const hit of syn.aspects.slice(0, 48)) {
+            const row = document.createElement("div");
+            row.className = "syn-row";
+            row.innerHTML =
+              '<span class="syn-who">' + escText(personA.display_name.split(" ")[0]) + "</span>" +
+              (G && G.paths[hit.a] ? G.svg(hit.a, { size: 13, cls: "glyph-cell" }) : "") +
+              "<b>" + hit.a + "</b>" +
+              '<span class="syn-asp">' +
+              (G && G.paths[hit.type] ? G.svg(hit.type, { size: 12, cls: "glyph-cell" }) : "") +
+              hit.type.toLowerCase() + "</span>" +
+              (G && G.paths[hit.b] ? G.svg(hit.b, { size: 13, cls: "glyph-cell" }) : "") +
+              "<b>" + hit.b + "</b>" +
+              '<span class="syn-who">' + escText(personB.display_name.split(" ")[0]) + "</span>" +
+              '<span class="syn-orb">' + hit.orb.toFixed(2) + "&deg;</span>";
+            list.append(row);
+          }
+          if (syn.aspects.length > 48) {
+            const more = document.createElement("p");
+            more.className = "panel-note";
+            more.textContent = (syn.aspects.length - 48) + " wider aspects not shown.";
+            list.append(more);
+          }
+          const balance = $("syn-balance");
+          const renderBalance = (label, bal) =>
+            '<div class="syn-bal"><small>' + escText(label) + "</small>" +
+            bal.elements.map((e) => '<span>' + e.name + " <b>" + e.count + "</b></span>").join("") +
+            '<i></i>' +
+            bal.modalities.map((m) => '<span>' + m.name + " <b>" + m.count + "</b></span>").join("") +
+            "</div>";
+          balance.innerHTML =
+            renderBalance(personA.display_name, syn.balanceA) +
+            renderBalance(personB.display_name, syn.balanceB);
+          $("syn-mutual").innerHTML = syn.mutualPairs.length
+            ? '<span class="kicker">MUTUAL PAIRS</span><p class="panel-note" style="margin-top:6px">' +
+              syn.mutualPairs.map((pair) => escText(pair[0] + " ↔ " + pair[1])).join(" · ") +
+              " — aspected in both directions.</p>"
+            : "";
         }
 
         /* ---------- search palette ---------- */
