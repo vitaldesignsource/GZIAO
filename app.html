@@ -1130,14 +1130,24 @@
             <span class="kicker" style="color: var(--violet)">INTELLIGENCE KEY</span>
             <h2 id="scribe-key-title">Connect the Scribe</h2>
             <p class="panel-sub">
-              The Scribe runs on your own Anthropic API key. It is stored only in this browser and sent
-              only to api.anthropic.com &mdash; never to this site's host or anywhere else. Remove it any time.
+              The Scribe runs on your own key from either provider. Google's Gemini has a free tier
+              (aistudio.google.com &mdash; no card needed); Anthropic's Claude is paid. Either key is stored
+              only in this browser and sent only to that provider &mdash; never to this site's host.
             </p>
-            <div class="intake" style="grid-template-columns: 1fr auto auto">
-              <label>ANTHROPIC API KEY<input type="password" id="scribe-key" placeholder="sk-ant-&hellip;" autocomplete="off" /></label>
+            <div class="intake" style="grid-template-columns: auto 1fr auto auto">
+              <label>PROVIDER<select id="scribe-provider">
+                <option value="gemini">Google Gemini — free tier</option>
+                <option value="anthropic">Anthropic Claude — paid</option>
+              </select></label>
+              <label id="scribe-key-label">API KEY<input type="password" id="scribe-key" placeholder="AIza&hellip;" autocomplete="off" /></label>
               <button class="prime-btn" id="scribe-key-save" type="button">Save key</button>
               <button class="ghost-btn" id="scribe-key-clear" type="button" style="height: 40px">Remove</button>
             </div>
+            <p class="panel-note" id="scribe-privacy-note" style="margin-top: 12px">
+              Plain speech about the free tier: Google may use content sent on it to improve their products;
+              the paid tiers of both providers do not. For routine entries that hardly matters &mdash; for
+              sensitive documents, use a paid key or type the entry by hand.
+            </p>
           </section>
 
           <section class="panel">
@@ -6100,32 +6110,65 @@
         }
 
         /* ---------- the Scribe: AI-assisted data entry ---------- */
-        const SCRIBE_KEY_STORE = "gz-anthropic-key";
-        const SCRIBE_MODEL = "claude-sonnet-5";
+        const SCRIBE_PROVIDERS = {
+          gemini: {
+            label: "Gemini",
+            store: "gz-gemini-key",
+            model: "gemini-2.5-flash",
+            placeholder: "AIza…",
+          },
+          anthropic: {
+            label: "Claude",
+            store: "gz-anthropic-key",
+            model: "claude-sonnet-5",
+            placeholder: "sk-ant-…",
+          },
+        };
         let scribeProposals = null;
         let scribeFile = null;
 
+        function scribeProviderId() {
+          const stored = localStorage.getItem("gz-scribe-provider");
+          return SCRIBE_PROVIDERS[stored] ? stored : "gemini";
+        }
+
+        function scribeProvider() {
+          return SCRIBE_PROVIDERS[scribeProviderId()];
+        }
+
         function scribeKey() {
-          return localStorage.getItem(SCRIBE_KEY_STORE) || "";
+          return localStorage.getItem(scribeProvider().store) || "";
         }
 
         function refreshScribeState() {
+          const provider = scribeProvider();
+          $("scribe-provider").value = scribeProviderId();
           const has = Boolean(scribeKey());
-          $("scribe-state").textContent = has ? "SCRIBE CONNECTED" : "NO KEY SET";
-          $("scribe-key-title").textContent = has ? "Key held in this browser" : "Connect the Scribe";
-          $("scribe-key").placeholder = has ? "•••••••••••• (saved)" : "sk-ant-…";
+          $("scribe-state").textContent = has
+            ? "SCRIBE CONNECTED · " + provider.label.toUpperCase()
+            : "NO KEY SET · " + provider.label.toUpperCase();
+          $("scribe-key-title").textContent = has
+            ? provider.label + " key held in this browser"
+            : "Connect the Scribe";
+          $("scribe-key").placeholder = has ? "•••••••••••• (saved)" : provider.placeholder;
         }
+
+        $("scribe-provider").addEventListener("change", () => {
+          localStorage.setItem("gz-scribe-provider", $("scribe-provider").value);
+          $("scribe-key").value = "";
+          refreshScribeState();
+        });
 
         $("scribe-key-save").addEventListener("click", () => {
           const value = $("scribe-key").value.trim();
           if (!value) return toast("Paste a key first.");
-          localStorage.setItem(SCRIBE_KEY_STORE, value);
+          localStorage.setItem(scribeProvider().store, value);
           $("scribe-key").value = "";
           refreshScribeState();
-          toast("Key held in this browser only.");
+          toast(scribeProvider().label + " key held in this browser only.");
         });
         $("scribe-key-clear").addEventListener("click", () => {
-          localStorage.removeItem(SCRIBE_KEY_STORE);
+          localStorage.removeItem(scribeProvider().store);
           refreshScribeState();
           toast("Key removed.");
         });
@@ -6211,6 +6254,122 @@
           });
         }
 
+        async function scribeAskClaude(ask, fileBlock, fileText) {
+          const content = [];
+          if (fileBlock) {
+            content.push(fileBlock.media === "application/pdf"
+              ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: fileBlock.data } }
+              : { type: "image", source: { type: "base64", media_type: fileBlock.media, data: fileBlock.data } });
+          }
+          if (fileText) content.push({ type: "text", text: fileText });
+          content.push({ type: "text", text: ask });
+          const response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-api-key": scribeKey(),
+              "anthropic-version": "2023-06-01",
+              "anthropic-dangerous-direct-browser-access": "true",
+            },
+            body: JSON.stringify({
+              model: SCRIBE_PROVIDERS.anthropic.model,
+              max_tokens: 3000,
+              system: scribeSystemPrompt(),
+              tools: [SCRIBE_TOOL],
+              tool_choice: { type: "tool", name: "commit_intents" },
+              messages: [{ role: "user", content }],
+            }),
+          });
+          if (!response.ok) {
+            const detail = await response.json().catch(() => null);
+            throw new Error((detail && detail.error && detail.error.message) || "API returned " + response.status);
+          }
+          const message = await response.json();
+          const toolUse = (message.content || []).find((block) => block.type === "tool_use");
+          return toolUse && toolUse.input && Array.isArray(toolUse.input.intents) ? toolUse.input.intents : [];
+        }
+
+        /* the same schema in Gemini's dialect — structure enforced by
+           responseSchema, so no prose parsing on this path either */
+        const GEMINI_SCHEMA = {
+          type: "OBJECT",
+          properties: {
+            intents: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  action: { type: "STRING", enum: ["create_person", "update_person", "create_record"] },
+                  reason: { type: "STRING" },
+                  person: {
+                    type: "OBJECT",
+                    properties: {
+                      display_name: { type: "STRING" },
+                      match_name: { type: "STRING" },
+                      relation: { type: "STRING" },
+                      birth_date: { type: "STRING" },
+                      birth_time: { type: "STRING" },
+                      birth_place: { type: "STRING" },
+                      address: { type: "STRING" },
+                      notes: { type: "STRING" },
+                    },
+                  },
+                  record: {
+                    type: "OBJECT",
+                    properties: {
+                      title: { type: "STRING" },
+                      body: { type: "STRING" },
+                      kind: { type: "STRING", enum: ["record", "journal", "action", "document"] },
+                      occurred_at: { type: "STRING" },
+                      due: { type: "STRING" },
+                    },
+                  },
+                },
+                required: ["action", "reason"],
+              },
+            },
+          },
+          required: ["intents"],
+        };
+
+        async function scribeAskGemini(ask, fileBlock, fileText) {
+          const parts = [];
+          if (fileBlock) parts.push({ inline_data: { mime_type: fileBlock.media, data: fileBlock.data } });
+          if (fileText) parts.push({ text: fileText });
+          parts.push({ text: ask });
+          const response = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+            SCRIBE_PROVIDERS.gemini.model + ":generateContent",
+            {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                "x-goog-api-key": scribeKey(),
+              },
+              body: JSON.stringify({
+                system_instruction: { parts: [{ text: scribeSystemPrompt() }] },
+                contents: [{ role: "user", parts }],
+                generationConfig: {
+                  responseMimeType: "application/json",
+                  responseSchema: GEMINI_SCHEMA,
+                  maxOutputTokens: 3000,
+                },
+              }),
+            }
+          );
+          if (!response.ok) {
+            const detail = await response.json().catch(() => null);
+            throw new Error((detail && detail.error && detail.error.message) || "API returned " + response.status);
+          }
+          const message = await response.json();
+          const text = message.candidates && message.candidates[0] &&
+            message.candidates[0].content && message.candidates[0].content.parts &&
+            message.candidates[0].content.parts[0] && message.candidates[0].content.parts[0].text;
+          if (!text) throw new Error("Gemini returned no content.");
+          const parsed = JSON.parse(text);
+          return Array.isArray(parsed.intents) ? parsed.intents : [];
+        }
+
         async function scribePropose() {
           const instruction = $("scribe-input").value.trim();
           if (!instruction && !scribeFile) return toast("Tell the Scribe what to enter, or attach a document.");
@@ -6221,47 +6380,26 @@
           $("scribe-send").disabled = true;
           $("scribe-status").textContent = "The Scribe is reading…";
           try {
-            const content = [];
+            /* gather the material once, provider-neutrally */
+            let fileBlock = null;
+            let fileText = null;
             if (scribeFile) {
               const media = scribeFile.type || "";
-              if (media === "application/pdf") {
-                content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: await fileToBase64(scribeFile) } });
-              } else if (/^image\//.test(media)) {
-                content.push({ type: "image", source: { type: "base64", media_type: media, data: await fileToBase64(scribeFile) } });
+              if (media === "application/pdf" || /^image\//.test(media)) {
+                fileBlock = { media: media || "application/pdf", data: await fileToBase64(scribeFile) };
               } else {
-                content.push({ type: "text", text: "Attached document “" + scribeFile.name + "”:\n\n" + (await scribeFile.text()).slice(0, 60000) });
+                fileText = "Attached document “" + scribeFile.name + "”:\n\n" + (await scribeFile.text()).slice(0, 60000);
               }
             }
-            content.push({ type: "text", text: instruction || "File the attached document appropriately." });
-            const response = await fetch("https://api.anthropic.com/v1/messages", {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                "x-api-key": scribeKey(),
-                "anthropic-version": "2023-06-01",
-                "anthropic-dangerous-direct-browser-access": "true",
-              },
-              body: JSON.stringify({
-                model: SCRIBE_MODEL,
-                max_tokens: 3000,
-                system: scribeSystemPrompt(),
-                tools: [SCRIBE_TOOL],
-                tool_choice: { type: "tool", name: "commit_intents" },
-                messages: [{ role: "user", content }],
-              }),
-            });
-            if (!response.ok) {
-              const detail = await response.json().catch(() => null);
-              throw new Error((detail && detail.error && detail.error.message) || "API returned " + response.status);
-            }
-            const message = await response.json();
-            const toolUse = (message.content || []).find((block) => block.type === "tool_use");
-            const intents = toolUse && toolUse.input && Array.isArray(toolUse.input.intents) ? toolUse.input.intents : [];
+            const ask = instruction || "File the attached document appropriately.";
+            const intents = scribeProviderId() === "anthropic"
+              ? await scribeAskClaude(ask, fileBlock, fileText)
+              : await scribeAskGemini(ask, fileBlock, fileText);
             if (!intents.length) throw new Error("The Scribe proposed nothing — try stating the entry more directly.");
             scribeProposals = { intents, hasFile: Boolean(scribeFile) };
             renderScribeProposals();
             $("scribe-status").textContent = "";
-            $("scribe-model-note").textContent = SCRIBE_MODEL.toUpperCase() + " · REVIEW BEFORE COMMIT";
+            $("scribe-model-note").textContent = scribeProvider().model.toUpperCase() + " · REVIEW BEFORE COMMIT";
           } catch (error) {
             $("scribe-status").textContent = "The Scribe could not draft entries: " + error.message;
           } finally {
