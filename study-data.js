@@ -76,7 +76,7 @@ window.GZ_STUDY = {
         title: "The Garden of Eden Diagram",
         tier: "correspondence",
         body:
-          "The grade's closing lecture uses the biblical Garden of Eden as a map of the Tree of Life before the 'Fall' — before the sephiroth were divided from one another. A single river leaves Eden and splits into four: Pison (gold, associated with Chesed), Gihon (associated with Geburah), Hiddekel (associated with Tiphareth), and Phrath (associated with the lower sephiroth, flowing down to the earth). For a Practicus, the diagram is a reminder that the ordering, dividing work of Hod (Mercury's sphere) mirrors a much older division — the single source differentiating into the many.",
+          "The grade's closing lecture uses the biblical Garden of Eden as a map of the Tree of Life before the 'Fall' — before the sephiroth were divided from one another. A single river, Naher, leaves Eden and splits into four heads: Pison, the river of Fire, flowing to Geburah (whence there is gold); Gihon, the river of Waters, flowing to Chesed; Hiddekel, the river of Air, flowing to Tiphareth; and Phrath (Euphrates), the river of Earth, flowing down upon the earth itself. For a Practicus, the diagram is a reminder that the ordering, dividing work of Hod (Mercury's sphere) mirrors a much older division — the single source differentiating into the many.",
       },
       {
         title: "The Planetary Squares Beyond This Grade",
@@ -107,6 +107,12 @@ window.GZ_STUDY = {
       { front: "Source of the 31st Path's 'fire' speeches", back: "The Chaldean Oracles (a later, unrelated body of texts)" },
       { front: "Kasmilos's traditional identification", back: "A herald or attendant deity, often linked to Hermes" },
       { front: "Rivers of the Eden diagram", back: "Pison, Gihon, Hiddekel, Phrath" },
+      { front: "Pison — element and sephirah", back: "Fire, flowing to Geburah (whence there is gold)" },
+      { front: "Gihon — element and sephirah", back: "Water, flowing to Chesed" },
+      { front: "Hiddekel — element and sephirah", back: "Air, flowing to Tiphareth" },
+      { front: "Phrath (Euphrates) — element and destination", back: "Earth, flowing down upon the earth" },
+      { front: "Saturn's kamea rows", back: "4 9 2 / 3 5 7 / 8 1 6 — every line sums to 15" },
+      { front: "The Solar Greek Cross is formed of", back: "Thirteen squares — the Sun and the twelve zodiac signs" },
       { front: "Hierophant's fire-name", back: "AVD — life-giving solar fire" },
       { front: "Hiereus's fire-name", back: "AVB — volcanic and terrestrial fire" },
       { front: "Anaktoron (Samothrace)", back: "Northern building; site of the first-degree rite of myesis (hiddenness)" },
@@ -193,6 +199,57 @@ window.GZ_STUDY = {
         q: "In the study system's evidence-tier labeling, the IAO acronym reading of the Kabiri names is marked as which tier?",
         options: ["Historical", "Correspondence", "Interpretation", "Calculated fact"],
         correct: 2,
+      },
+      {
+        q: "In the Eden diagram, Pison — the river of Fire — flows to which sephirah?",
+        options: ["Chesed", "Geburah", "Tiphareth", "Malkuth"],
+        correct: 1,
+      },
+      {
+        q: "Every row, column, and diagonal of Saturn's 3×3 magical square sums to what?",
+        options: ["9", "12", "15", "45"],
+        correct: 2,
+      },
+      {
+        q: "The thirteen squares of the Solar Greek Cross represent what?",
+        options: [
+          "The thirteen lunar months",
+          "The Sun and the twelve zodiac signs",
+          "The twelve apostles and their master",
+          "Thirteen paths below the abyss",
+        ],
+        correct: 1,
+      },
+    ],
+
+    diagrams: [
+      {
+        title: "The Pyramid of Flame, Unfolded",
+        tier: "correspondence",
+        caption:
+          "The Solid Triangular Pyramid — admission badge of the 31st Path — opened flat. Three faces bear the fire-names spoken by the officers; the central face is the base the assembled solid always conceals: ASCH, latent heat, the fire that is never directly seen.",
+        svg: '<svg viewBox="0 0 300 230" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke-width="1.4"><polygon points="150,28 62,192 238,192" stroke="var(--amber)"/><polygon points="106,110 194,110 150,192" fill="#d0ad6d14" stroke="var(--amber)"/><line x1="106" y1="110" x2="194" y2="110" stroke="var(--amber)"/><line x1="106" y1="110" x2="150" y2="192" stroke="var(--amber)"/><line x1="194" y1="110" x2="150" y2="192" stroke="var(--amber)"/></g><g font-family="Georgia,serif" text-anchor="middle"><text x="150" y="86" fill="var(--gold)" font-size="13">AVD</text><text x="150" y="100" fill="var(--muted)" font-size="7">SOLAR · LIFE-GIVING</text><text x="103" y="164" fill="var(--gold)" font-size="13">AVB</text><text x="103" y="178" fill="var(--muted)" font-size="7">VOLCANIC</text><text x="197" y="164" fill="var(--gold)" font-size="13">AVR</text><text x="197" y="178" fill="var(--muted)" font-size="7">ASTRAL LIGHT</text><text x="150" y="134" fill="var(--violet)" font-size="13">ASCH</text><text x="150" y="148" fill="var(--violet)" font-size="7" opacity="0.8">LATENT · THE HIDDEN FACE</text><text x="150" y="216" fill="var(--muted)" font-size="8" letter-spacing="2">FOLD THE THREE UPWARD AND ASCH DISAPPEARS</text></g></svg>',
+      },
+      {
+        title: "The Four Rivers of Eden",
+        tier: "correspondence",
+        caption:
+          "One river goes out of Eden and becomes four heads. Each head carries one element to one station of the Tree: fire to Geburah, water to Chesed, air to Tiphareth, earth down to the world itself.",
+        svg: '<svg viewBox="0 0 300 230" xmlns="http://www.w3.org/2000/svg"><g font-family="Georgia,serif" text-anchor="middle"><text x="150" y="24" fill="var(--gold)" font-size="12" letter-spacing="4">EDEN</text><line x1="150" y1="32" x2="150" y2="72" stroke="var(--gold)" stroke-width="1.6"/><text x="163" y="58" fill="var(--muted)" font-size="7">NAHER</text><path d="M150 72 C 90 96 55 110 45 138" fill="none" stroke="#d97b7b" stroke-width="1.3"/><path d="M150 72 C 130 100 115 116 115 142" fill="none" stroke="var(--m3)" stroke-width="1.3"/><path d="M150 72 C 170 100 185 116 185 142" fill="none" stroke="var(--gold)" stroke-width="1.3"/><path d="M150 72 C 210 96 245 110 255 138" fill="none" stroke="var(--amber)" stroke-width="1.3"/><text x="45" y="158" fill="#d97b7b" font-size="10">PISON</text><text x="45" y="170" fill="var(--muted)" font-size="6.2">FIRE → GEBURAH</text><text x="45" y="180" fill="var(--muted)" font-size="6">whence there is gold</text><text x="115" y="158" fill="var(--m3)" font-size="10">GIHON</text><text x="115" y="170" fill="var(--muted)" font-size="6.2">WATER → CHESED</text><text x="185" y="158" fill="var(--gold)" font-size="10">HIDDEKEL</text><text x="183" y="170" fill="var(--muted)" font-size="6.2">AIR → TIPHARETH</text><text x="255" y="158" fill="var(--amber)" font-size="10">PHRATH</text><text x="258" y="170" fill="var(--muted)" font-size="6.2">EARTH → THE WORLD</text><text x="150" y="214" fill="var(--muted)" font-size="8" letter-spacing="2">ONE SOURCE DIFFERENTIATING INTO THE MANY</text></g></svg>',
+      },
+      {
+        title: "Saturn's Kamea and Its Seal",
+        tier: "correspondence",
+        caption:
+          "The smallest planetary magical square: three cells to a side, the numbers 1–9, every row, column, and diagonal summing to 15. The violet line traces the numbers in order — the lineal figure from which Saturn's seal is drawn. Hod's ordering intelligence is what makes this system usable.",
+        svg: '<svg viewBox="0 0 300 230" xmlns="http://www.w3.org/2000/svg"><g transform="translate(84,26)"><g fill="none" stroke="var(--amber)" stroke-width="1.2"><rect x="0" y="0" width="132" height="132"/><line x1="44" y1="0" x2="44" y2="132"/><line x1="88" y1="0" x2="88" y2="132"/><line x1="0" y1="44" x2="132" y2="44"/><line x1="0" y1="88" x2="132" y2="88"/></g><g font-family="Georgia,serif" font-size="15" fill="var(--gold)" text-anchor="middle"><text x="22" y="27">4</text><text x="66" y="27">9</text><text x="110" y="27">2</text><text x="22" y="71">3</text><text x="66" y="71">5</text><text x="110" y="71">7</text><text x="22" y="115">8</text><text x="66" y="115">1</text><text x="110" y="115">6</text></g><polyline points="66,110 110,22 22,66 22,22 66,66 110,110 110,66 22,110 66,22" fill="none" stroke="var(--violet)" stroke-width="1.6" opacity="0.85"/><circle cx="66" cy="110" r="3" fill="var(--violet)"/><circle cx="66" cy="22" r="3" fill="none" stroke="var(--violet)" stroke-width="1.4"/></g><g font-family="Georgia,serif" text-anchor="middle"><text x="150" y="188" fill="var(--muted)" font-size="7.6" letter-spacing="0.6">EVERY LINE SUMS TO 15 · THE PATH 1→9 IS THE SEAL</text><text x="150" y="204" fill="var(--muted)" font-size="6.4">SATURN 3×3 · JUPITER 4×4 · MARS 5×5 · SUN 6×6 · VENUS 7×7 · MERCURY 8×8 · MOON 9×9</text></g></svg>',
+      },
+      {
+        title: "The Solar Greek Cross of Thirteen Squares",
+        tier: "correspondence",
+        caption:
+          "Handed to the candidate on the 30th Path: a Greek cross of thirteen squares — the Sun at center, the twelve signs of the zodiac arranged around it in the arms, the year's whole circuit held in a single balanced figure.",
+        svg: '<svg viewBox="0 0 300 230" xmlns="http://www.w3.org/2000/svg"><g transform="translate(150,120) scale(0.9)" font-family="Georgia,serif"><g fill="none" stroke="var(--amber)" stroke-width="1.2"><rect x="-16" y="-112" width="32" height="32"/><rect x="-16" y="-80" width="32" height="32"/><rect x="-16" y="-48" width="32" height="32"/><rect x="-16" y="-16" width="32" height="32" fill="#d0ad6d1a"/><rect x="-16" y="16" width="32" height="32"/><rect x="-16" y="48" width="32" height="32"/><rect x="-16" y="80" width="32" height="32"/><rect x="-112" y="-16" width="32" height="32"/><rect x="-80" y="-16" width="32" height="32"/><rect x="-48" y="-16" width="32" height="32"/><rect x="16" y="-16" width="32" height="32"/><rect x="48" y="-16" width="32" height="32"/><rect x="80" y="-16" width="32" height="32"/></g><g fill="var(--gold)" font-size="13" text-anchor="middle"><text x="0" y="-91">♈</text><text x="0" y="-59">♉</text><text x="0" y="-27">♊</text><text x="0" y="5" font-size="15">☉</text><text x="-96" y="5">♋</text><text x="-64" y="5">♌</text><text x="-32" y="5">♍</text><text x="32" y="5">♎</text><text x="64" y="5">♏</text><text x="96" y="5">♐</text><text x="0" y="37">♑</text><text x="0" y="69">♒</text><text x="0" y="101">♓</text></g></g><text x="150" y="11" fill="var(--muted)" font-family="Georgia,serif" font-size="7.6" letter-spacing="0.8" text-anchor="middle">THE SUN IN THE CENTRE OF THE FOUR ELEMENTS</text></svg>',
       },
     ],
 

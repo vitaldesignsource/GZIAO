@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=13" />
+    <link rel="stylesheet" href="command.css?v=14" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -37,7 +37,7 @@
     <script src="auth.js?v=2"></script>
     <script src="vendor/astronomy.browser.min.js"></script>
     <script src="astro.js?v=2"></script>
-    <script src="study-data.js?v=2"></script>
+    <script src="study-data.js?v=5"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -1124,10 +1124,16 @@
                   <small id="study-mastery-label">0% mastery</small>
                 </div>
               </div>
+              <div class="mercury-strip" id="mercury-strip" hidden>
+                <span id="mercury-now"></span>
+                <span class="tier-badge tier-correspondence">Correspondence</span>
+                <em id="mercury-note"></em>
+              </div>
               <div class="chips" id="study-nav" style="margin-top: 18px">
                 <button class="is-on" type="button" data-pane="lessons">Lessons <em id="nav-lessons-count"></em></button>
                 <button type="button" data-pane="flashcards">Flashcards <em id="nav-flash-count"></em></button>
                 <button type="button" data-pane="quiz">Quiz <em id="nav-quiz-count"></em></button>
+                <button type="button" data-pane="diagrams">Diagrams</button>
                 <button type="button" data-pane="reflect">Reflect</button>
                 <button type="button" data-pane="practice">Practice <em id="nav-practice-count"></em></button>
               </div>
@@ -1163,15 +1169,27 @@
                     <div class="flashcard-face flashcard-back" id="flash-back"></div>
                   </div>
                 </div>
-                <p class="panel-note" style="text-align: center">Click or press Space to flip.</p>
-                <div class="rec-actions" style="justify-content: center; gap: 14px">
+                <p class="panel-note" style="text-align: center">Click or press Space to flip. Grade the card after seeing the answer.</p>
+                <div class="srs-actions">
+                  <button class="srs-btn srs-again" id="srs-again" type="button">Again<em>relearn now</em></button>
+                  <button class="srs-btn srs-good" id="srs-good" type="button">Good<em id="srs-good-int"></em></button>
+                  <button class="srs-btn srs-easy" id="srs-easy" type="button">Easy<em id="srs-easy-int"></em></button>
+                </div>
+                <div class="rec-actions" style="justify-content: center; gap: 14px; margin-top: 14px">
                   <button class="ghost-btn" id="flash-prev" type="button">&larr; Previous</button>
-                  <button class="ghost-btn" id="flash-know" type="button">Mark known</button>
-                  <button class="ghost-btn" id="flash-next" type="button">Next &rarr;</button>
+                  <button class="ghost-btn" id="flash-deck" type="button">Deck: due</button>
+                  <button class="ghost-btn" id="flash-next" type="button">Skip &rarr;</button>
                 </div>
               </section>
 
               <section class="panel" id="pane-quiz" hidden>
+                <div class="exam-banner" id="exam-banner">
+                  <div>
+                    <b>Formal examination</b>
+                    <span id="exam-status">Ten questions drawn at random · pass mark 8 of 10 · attempts are recorded</span>
+                  </div>
+                  <button class="prime-btn" id="exam-start" type="button">Begin examination</button>
+                </div>
                 <div id="quiz-active">
                   <div class="privacy-row" style="margin-bottom: 14px">
                     <span id="quiz-progress">Question 1 of 1</span>
@@ -1187,6 +1205,10 @@
                   <p class="panel-sub">Best score: <span id="quiz-best"></span></p>
                   <button class="prime-btn" id="quiz-retry" type="button">Retake quiz</button>
                 </div>
+              </section>
+
+              <section class="panel" id="pane-diagrams" hidden>
+                <div id="study-diagrams" class="diagram-grid"></div>
               </section>
 
               <section class="panel" id="pane-reflect" hidden>
@@ -2739,7 +2761,7 @@
 
         async function loadStudyProgress(gradeName) {
           if (studyProgress[gradeName]) return studyProgress[gradeName];
-          const state = { known: new Set(), quizBest: 0, practiceChecked: new Set(), lessonsRead: new Set(), recordId: null };
+          const state = { known: new Set(), quizBest: 0, practiceChecked: new Set(), lessonsRead: new Set(), srs: {}, exams: [], recordId: null };
           const { data } = await GZ.client
             .from("records")
             .select("id, meta")
@@ -2753,6 +2775,14 @@
             state.quizBest = meta.quizBest || 0;
             state.practiceChecked = new Set(meta.practiceChecked || []);
             state.lessonsRead = new Set(meta.lessonsRead || []);
+            state.srs = meta.srs || {};
+            state.exams = meta.exams || [];
+            /* migrate the old binary known-set into spaced repetition */
+            if (!meta.srs && state.known.size) {
+              for (const idx of state.known) {
+                state.srs[idx] = { interval: 3, due: srsToday(3), reps: 1 };
+              }
+            }
           }
           studyProgress[gradeName] = state;
           return state;
@@ -2766,6 +2796,8 @@
             quizBest: state.quizBest,
             practiceChecked: [...state.practiceChecked],
             lessonsRead: [...state.lessonsRead],
+            srs: state.srs,
+            exams: state.exams.slice(-20),
           };
           if (state.recordId) {
             await GZ.client.from("records").update({ meta }).eq("id", state.recordId);
@@ -2785,10 +2817,12 @@
             $("study-mastery").hidden = true;
             return;
           }
+          const mastered = Object.values(state.srs).filter((entry) => entry.interval >= 14).length;
+          const examPassed = state.exams.some((attempt) => attempt.passed);
           const parts = [
             data.lessons.length ? state.lessonsRead.size / data.lessons.length : 0,
-            data.flashcards.length ? state.known.size / data.flashcards.length : 0,
-            data.quiz.length ? state.quizBest / data.quiz.length : 0,
+            data.flashcards.length ? mastered / data.flashcards.length : 0,
+            examPassed ? 1 : data.quiz.length ? state.quizBest / data.quiz.length : 0,
             data.practice.length ? state.practiceChecked.size / data.practice.length : 0,
           ];
           const pct = Math.round((parts.reduce((sum, part) => sum + part, 0) / parts.length) * 100);
@@ -2796,8 +2830,8 @@
           $("study-mastery-bar").style.setProperty("--bar-pct", pct);
           $("study-mastery-label").textContent = pct + "% mastery";
           $("nav-lessons-count").textContent = state.lessonsRead.size + "/" + data.lessons.length;
-          $("nav-flash-count").textContent = state.known.size + "/" + data.flashcards.length;
-          $("nav-quiz-count").textContent = state.quizBest + "/" + data.quiz.length;
+          $("nav-flash-count").textContent = srsDuePool(data).length + " due";
+          $("nav-quiz-count").textContent = examPassed ? "passed" : state.quizBest + "/" + data.quiz.length;
           $("nav-practice-count").textContent = state.practiceChecked.size + "/" + data.practice.length;
         }
 
@@ -2884,35 +2918,132 @@
           });
         }
 
-        function renderFlashcard(data) {
-          const cards = data.flashcards;
+        /* ---- spaced repetition ---- */
+        let deckMode = "due";
+
+        function srsToday(plusDays) {
+          const d = new Date();
+          d.setDate(d.getDate() + (plusDays || 0));
+          return d.toISOString().slice(0, 10);
+        }
+
+        function srsDuePool(data) {
           const state = studyProgress[studyGradeLoaded];
-          const known = state ? state.known : new Set();
-          const card = cards[flashIndex];
-          $("flash-progress").textContent = "Card " + (flashIndex + 1) + " of " + cards.length;
-          $("flash-known-count").textContent = known.size + " / " + cards.length + " known";
+          const srs = state ? state.srs : {};
+          const today = srsToday(0);
+          const pool = [];
+          for (let i = 0; i < data.flashcards.length; i++) {
+            const entry = srs[i];
+            if (!entry || entry.due <= today) pool.push(i);
+          }
+          return pool;
+        }
+
+        function srsActivePool(data) {
+          if (deckMode === "all") return data.flashcards.map((_, i) => i);
+          return srsDuePool(data);
+        }
+
+        function srsNextIntervals(entry) {
+          const current = entry ? entry.interval : 0;
+          return {
+            good: current < 1 ? 1 : Math.round(current * 2.2),
+            easy: current < 1 ? 3 : Math.round(current * 3),
+          };
+        }
+
+        function renderFlashcard(data) {
+          const state = studyProgress[studyGradeLoaded];
+          const srs = state ? state.srs : {};
+          const pool = srsActivePool(data);
+          const mastered = Object.values(srs).filter((entry) => entry.interval >= 14).length;
+          const dueCount = srsDuePool(data).length;
+          $("flash-known-count").textContent = mastered + " mastered · " + dueCount + " due";
+          $("flash-deck").textContent = "Deck: " + (deckMode === "due" ? "due (" + dueCount + ")" : "all (" + data.flashcards.length + ")");
+
+          const gradeButtons = [$("srs-again"), $("srs-good"), $("srs-easy")];
+          if (!pool.length) {
+            $("flash-progress").textContent = "Review complete";
+            $("flash-front").textContent = "Nothing due for review.";
+            $("flash-back").textContent = "Every card is scheduled ahead. Switch the deck to All to browse freely.";
+            $("flashcard").classList.remove("is-flipped");
+            flashFlipped = false;
+            gradeButtons.forEach((button) => (button.disabled = true));
+            return;
+          }
+          gradeButtons.forEach((button) => (button.disabled = false));
+          if (flashIndex >= pool.length) flashIndex = 0;
+          const cardIdx = pool[flashIndex];
+          const card = data.flashcards[cardIdx];
+          const entry = srs[cardIdx];
+          const nextIv = srsNextIntervals(entry);
+          $("flash-progress").textContent =
+            "Card " + (flashIndex + 1) + " of " + pool.length +
+            (entry ? " · interval " + entry.interval + "d" : " · new");
+          $("srs-good-int").textContent = "+" + nextIv.good + "d";
+          $("srs-easy-int").textContent = "+" + nextIv.easy + "d";
           $("flash-front").textContent = card.front;
           $("flash-back").textContent = card.back;
           $("flashcard").classList.toggle("is-flipped", flashFlipped);
-          $("flash-know").textContent = known.has(flashIndex) ? "Known ✓" : "Mark known";
+        }
+
+        async function srsGrade(action) {
+          const data = window.GZ_STUDY[studyGradeLoaded];
+          const state = studyProgress[studyGradeLoaded];
+          if (!state) return;
+          const pool = srsActivePool(data);
+          if (!pool.length) return;
+          const cardIdx = pool[flashIndex];
+          const entry = state.srs[cardIdx];
+          if (action === "again") {
+            state.srs[cardIdx] = { interval: 0, due: srsToday(0), reps: 0 };
+            flashIndex++;
+          } else {
+            const nextIv = srsNextIntervals(entry);
+            const interval = action === "easy" ? nextIv.easy : nextIv.good;
+            state.srs[cardIdx] = { interval, due: srsToday(interval), reps: (entry ? entry.reps : 0) + 1 };
+            if (deckMode === "all") flashIndex++;
+            /* in due mode the graded card leaves the pool, so flashIndex now
+               points at the next due card automatically */
+          }
+          flashFlipped = false;
+          await saveStudyProgress(studyGradeLoaded);
+          renderFlashcard(data);
+          renderStudyMastery(data);
+        }
+
+        let quizList = null;
+        let quizMode = "practice";
+
+        function activeQuiz(data) {
+          return quizList || data.quiz;
         }
 
         function renderQuizQuestion(data) {
-          const questions = data.quiz;
+          const questions = activeQuiz(data);
           if (quizIndex >= questions.length) {
             $("quiz-active").hidden = true;
             $("quiz-done").hidden = false;
             $("quiz-final").textContent = quizScore;
             $("quiz-final-total").textContent = " / " + questions.length;
             const state = studyProgress[studyGradeLoaded];
-            const best = state ? Math.max(state.quizBest, quizScore) : quizScore;
-            $("quiz-best").textContent = best + " / " + questions.length;
+            if (quizMode === "exam") {
+              const passed = quizScore >= 8;
+              $("quiz-best").textContent = passed
+                ? "EXAMINATION PASSED"
+                : "Not passed — the pass mark is 8 of 10";
+            } else {
+              const best = state ? Math.max(state.quizBest, quizScore) : quizScore;
+              $("quiz-best").textContent = best + " / " + questions.length;
+            }
             return;
           }
           $("quiz-active").hidden = false;
           $("quiz-done").hidden = true;
           const q = questions[quizIndex];
-          $("quiz-progress").textContent = "Question " + (quizIndex + 1) + " of " + questions.length;
+          $("quiz-progress").innerHTML =
+            (quizMode === "exam" ? "<span class='exam-mode-tag'>EXAMINATION · </span>" : "") +
+            "Question " + (quizIndex + 1) + " of " + questions.length;
           $("quiz-score-live").textContent = quizScore + " correct";
           $("quiz-question").textContent = q.q;
           const optionsHolder = $("quiz-options");
@@ -2929,7 +3060,7 @@
 
         async function answerQuiz(index) {
           const data = window.GZ_STUDY[studyGradeLoaded];
-          const q = data.quiz[quizIndex];
+          const q = activeQuiz(data)[quizIndex];
           const buttons = [...$("quiz-options").querySelectorAll("button")];
           buttons.forEach((button, i) => {
             button.disabled = true;
@@ -2939,15 +3070,44 @@
           if (index === q.correct) quizScore++;
           await new Promise((resolve) => setTimeout(resolve, 650));
           quizIndex++;
-          if (quizIndex >= data.quiz.length) {
+          if (quizIndex >= activeQuiz(data).length) {
             const state = studyProgress[studyGradeLoaded];
             if (state) {
-              state.quizBest = Math.max(state.quizBest, quizScore);
+              if (quizMode === "exam") {
+                state.exams.push({
+                  date: new Date().toISOString(),
+                  score: quizScore,
+                  total: activeQuiz(data).length,
+                  passed: quizScore >= 8,
+                });
+              } else {
+                state.quizBest = Math.max(state.quizBest, quizScore);
+              }
               await saveStudyProgress(studyGradeLoaded);
               renderStudyMastery(data);
+              renderExamBanner();
             }
           }
           renderQuizQuestion(data);
+        }
+
+        function renderExamBanner() {
+          const state = studyProgress[studyGradeLoaded];
+          if (!state) return;
+          const attempts = state.exams;
+          const passed = attempts.some((attempt) => attempt.passed);
+          $("exam-banner").classList.toggle("is-passed", passed);
+          if (!attempts.length) {
+            $("exam-status").textContent = "Ten questions drawn at random · pass mark 8 of 10 · attempts are recorded";
+          } else {
+            const last = attempts[attempts.length - 1];
+            $("exam-status").textContent =
+              (passed ? "Examination passed ✓ · " : "") +
+              attempts.length + " attempt" + (attempts.length === 1 ? "" : "s") +
+              " · last: " + last.score + "/" + last.total +
+              " on " + new Date(last.date).toLocaleDateString();
+          }
+          $("exam-start").textContent = passed ? "Retake examination" : "Begin examination";
         }
 
         function renderReflections(data) {
@@ -3018,10 +3178,58 @@
 
           renderStudyLessons(data);
           renderFlashcard(data);
+          quizList = null;
+          quizMode = "practice";
           renderQuizQuestion(data);
+          renderExamBanner();
+          renderDiagrams(data);
           renderReflections(data);
           renderPractice(data);
           renderStudyMastery(data);
+          renderMercuryStrip();
+        }
+
+        function renderDiagrams(data) {
+          const holder = $("study-diagrams");
+          holder.innerHTML = "";
+          for (const diagram of data.diagrams || []) {
+            const card = document.createElement("div");
+            card.className = "diagram-card";
+            const h3 = document.createElement("h3");
+            h3.textContent = diagram.title;
+            const badge = document.createElement("span");
+            badge.className = "tier-badge tier-" + (diagram.tier || "correspondence");
+            badge.textContent = TIER_LABELS[diagram.tier || "correspondence"];
+            h3.append(badge);
+            const svgWrap = document.createElement("div");
+            svgWrap.innerHTML = diagram.svg;
+            const caption = document.createElement("p");
+            caption.textContent = diagram.caption;
+            card.append(h3, svgWrap, caption);
+            holder.append(card);
+          }
+        }
+
+        let mercuryCache = null;
+        function renderMercuryStrip() {
+          try {
+            if (!window.GZ_ASTRO) return;
+            if (!mercuryCache || Date.now() - mercuryCache.at > 600000) {
+              mercuryCache = { at: Date.now(), chart: window.GZ_ASTRO.computeChart(new Date()) };
+            }
+            const chart = mercuryCache.chart;
+            const mercury = chart.placements.find((place) => place.body === "Mercury");
+            const moon = chart.placements.find((place) => place.body === "Moon");
+            $("mercury-strip").hidden = false;
+            $("mercury-now").textContent =
+              "☿ Mercury now: " + mercury.tropical.label + " · " +
+              (mercury.retrograde ? "retrograde ℞" : "direct");
+            $("mercury-note").textContent =
+              "The grade's ruler, computed live · Moon " + moon.tropical.label +
+              " — timing context for study sessions, not instruction";
+          } catch (error) {
+            $("mercury-strip").hidden = true;
+          }
         }
 
         $("study-nav").addEventListener("click", (event) => {
@@ -3030,7 +3238,7 @@
           document.querySelectorAll("#study-nav button").forEach((tab) => tab.classList.remove("is-on"));
           button.classList.add("is-on");
           const pane = button.dataset.pane;
-          ["lessons", "flashcards", "quiz", "reflect", "practice"].forEach((name) => {
+          ["lessons", "flashcards", "quiz", "diagrams", "reflect", "practice"].forEach((name) => {
             $("pane-" + name).hidden = name !== pane;
           });
         });
@@ -3048,26 +3256,47 @@
         });
         $("flash-prev").addEventListener("click", () => {
           const data = window.GZ_STUDY[studyGradeLoaded];
-          flashIndex = (flashIndex - 1 + data.flashcards.length) % data.flashcards.length;
+          const pool = srsActivePool(data);
+          if (!pool.length) return;
+          flashIndex = (flashIndex - 1 + pool.length) % pool.length;
           flashFlipped = false;
           renderFlashcard(data);
         });
         $("flash-next").addEventListener("click", () => {
           const data = window.GZ_STUDY[studyGradeLoaded];
-          flashIndex = (flashIndex + 1) % data.flashcards.length;
+          const pool = srsActivePool(data);
+          if (!pool.length) return;
+          flashIndex = (flashIndex + 1) % pool.length;
           flashFlipped = false;
           renderFlashcard(data);
         });
-        $("flash-know").addEventListener("click", async () => {
-          const state = studyProgress[studyGradeLoaded];
-          if (!state) return;
-          if (state.known.has(flashIndex)) state.known.delete(flashIndex);
-          else state.known.add(flashIndex);
-          await saveStudyProgress(studyGradeLoaded);
+        $("flash-deck").addEventListener("click", () => {
+          deckMode = deckMode === "due" ? "all" : "due";
+          flashIndex = 0;
+          flashFlipped = false;
           renderFlashcard(window.GZ_STUDY[studyGradeLoaded]);
-          renderStudyMastery(window.GZ_STUDY[studyGradeLoaded]);
+        });
+        $("srs-again").addEventListener("click", () => srsGrade("again"));
+        $("srs-good").addEventListener("click", () => srsGrade("good"));
+        $("srs-easy").addEventListener("click", () => srsGrade("easy"));
+
+        $("exam-start").addEventListener("click", () => {
+          const data = window.GZ_STUDY[studyGradeLoaded];
+          const indices = data.quiz.map((_, i) => i);
+          for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+          }
+          quizList = indices.slice(0, Math.min(10, indices.length)).map((i) => data.quiz[i]);
+          quizMode = "exam";
+          quizIndex = 0;
+          quizScore = 0;
+          renderQuizQuestion(data);
+          toast("Examination begun. " + quizList.length + " questions.");
         });
         $("quiz-retry").addEventListener("click", () => {
+          quizList = null;
+          quizMode = "practice";
           quizIndex = 0;
           quizScore = 0;
           renderQuizQuestion(window.GZ_STUDY[studyGradeLoaded]);
