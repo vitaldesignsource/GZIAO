@@ -38,9 +38,9 @@
     <script src="vendor/astronomy.browser.min.js"></script>
     <script src="astro.js?v=2"></script>
     <script src="glyphs.js?v=2"></script>
-    <script src="pyramid.js?v=1"></script>
+    <script src="pyramid.js?v=2"></script>
     <script src="tree.js?v=2"></script>
-    <script src="study-data.js?v=9"></script>
+    <script src="study-data.js?v=12"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -3930,9 +3930,16 @@
                 const tr = document.createElement("tr");
                 row.forEach((cell, cellIndex) => {
                   const td = document.createElement("td");
-                  if (typeof cell === "string" && cell.startsWith("@") && window.GZ_GLYPHS && window.GZ_GLYPHS.paths[cell.slice(1)]) {
+                  /* "@Venus" draws the glyph and names it; "@Venus Qedemel"
+                     draws the glyph and labels it with the rest of the cell */
+                  const at = typeof cell === "string" && cell.startsWith("@") ? cell.indexOf(" ") : -1;
+                  const glyphName = typeof cell === "string" && cell.startsWith("@")
+                    ? (at > 0 ? cell.slice(1, at) : cell.slice(1))
+                    : null;
+                  if (glyphName && window.GZ_GLYPHS && window.GZ_GLYPHS.paths[glyphName]) {
                     td.className = "cell-glyph" + (cellIndex > 0 ? " t-dim" : "");
-                    td.innerHTML = window.GZ_GLYPHS.svg(cell.slice(1), { size: 13, cls: "glyph-cell" }) + "<span>" + cell.slice(1) + "</span>";
+                    td.innerHTML = window.GZ_GLYPHS.svg(glyphName, { size: 13, cls: "glyph-cell" }) +
+                      "<span>" + (at > 0 ? cell.slice(at + 1) : glyphName) + "</span>";
                   } else {
                     td.textContent = cell;
                     if (cellIndex > 0) td.className = "t-dim";

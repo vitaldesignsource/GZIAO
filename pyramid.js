@@ -10,11 +10,13 @@
     [-1, -1, 1],
   ].map((v) => v.map((n) => n / Math.sqrt(3))); // unit-ish tetrahedron
 
+  /* the lecture's own words for the four triangles: three visible fires and
+     the concealed base, which is yet the synthesis of the rest */
   const FACES = [
-    { idx: [0, 2, 1], name: "AVD", sub: "SOLAR", color: "#d0ad6d" },
-    { idx: [0, 1, 3], name: "AVB", sub: "VOLCANIC", color: "#c98a5e" },
-    { idx: [0, 3, 2], name: "AVR", sub: "ASTRAL", color: "#63dfca" },
-    { idx: [1, 2, 3], name: "ASCH", sub: "LATENT · HIDDEN", color: "#a78bfa" },
+    { idx: [0, 2, 1], name: "SOLAR", sub: "LIFE-GIVING FIRE", color: "#d0ad6d" },
+    { idx: [0, 1, 3], name: "VOLCANIC", sub: "TERRESTRIAL FIRE", color: "#c98a5e" },
+    { idx: [0, 3, 2], name: "ASTRAL", sub: "VITAL LIGHT", color: "#63dfca" },
+    { idx: [1, 2, 3], name: "LATENT", sub: "HEAT · THE SYNTHESIS", color: "#a78bfa" },
   ];
 
   function mount(container) {
@@ -84,7 +86,7 @@
       for (const d of drawn) {
         const front = d.facing > 0;
         const light = Math.max(0.12, d.facing);
-        const isAsch = d.face.name === "ASCH";
+        const isAsch = d.face.name === "LATENT";
         if (isAsch && front) aschVisible = true;
         const fillOpacity = front ? 0.14 + light * 0.3 : 0.05;
         const strokeOpacity = front ? 0.95 : 0.28;
@@ -104,7 +106,7 @@
       facesLayer.innerHTML = facesHtml;
       labelsLayer.innerHTML = labelsHtml;
       stateLine.textContent = aschVisible
-        ? "ASCH TURNED TOWARD YOU — THE HIDDEN FACE REVEALED"
+        ? "THE BASAL TRIANGLE TURNED TOWARD YOU — LATENT HEAT REVEALED"
         : "DRAG TO TURN · THE FOURTH FACE STAYS HIDDEN UNTIL SOUGHT";
     }
 
