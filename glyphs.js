@@ -47,6 +47,13 @@
     Pisces:
       '<path d="M7.6 4.4a10.6 10.6 0 0 1 0 15.2M16.4 4.4a10.6 10.6 0 0 0 0 15.2M5.8 12h12.4"/>',
 
+    /* ---- elements (the alchemical triangles) ---- */
+    Fire: '<path d="M12 3.6L21 19.4H3Z"/>',
+    Water: '<path d="M12 20.4L3 4.6h18Z"/>',
+    Air: '<path d="M12 3.6L21 19.4H3Z"/><path d="M6.4 14.8h11.2"/>',
+    Earth: '<path d="M12 20.4L3 4.6h18Z"/><path d="M6.4 9.2h11.2"/>',
+    Spirit: '<circle cx="12" cy="12" r="8.2"/><path d="M12 3.8v16.4M3.8 12h16.4"/>',
+
     /* ---- aspects ---- */
     Conjunction: '<circle cx="9.4" cy="14.6" r="4.6"/><path d="M12.7 11.3L19 5"/>',
     Sextile:

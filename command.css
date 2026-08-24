@@ -9,6 +9,11 @@
   --panel-line-bright: #2a3a4d;
   --green: #5ce0a1;
   --blue: #6fb0e8;
+  --tree-line: #35485f;
+  --tree-pillar: #10151e;
+  --tree-node: #0a0f16;
+  --tree-badge: #0b1119;
+  --tree-hot: #ecd9a8;
 }
 
 html[data-theme="light"] {
@@ -20,6 +25,11 @@ html[data-theme="light"] {
   --panel-line-bright: #b9c2ca;
   --green: #1f8f5f;
   --blue: #2f6cb0;
+  --tree-line: #a9b6c3;
+  --tree-pillar: #e9edf1;
+  --tree-node: #ffffff;
+  --tree-badge: #ffffff;
+  --tree-hot: #8a6512;
 }
 
 body.command-body {
@@ -2826,6 +2836,170 @@ body.command-body {
   color: var(--muted);
   margin: 12px 0 0;
   font: 400 11.5px / 1.7 Georgia, serif;
+}
+
+/* ---- the Tree of Life, interactive ---- */
+.diagram-wide {
+  grid-column: 1 / -1;
+}
+
+.tree-wrap {
+  display: grid;
+  grid-template-columns: minmax(300px, 470px) minmax(240px, 420px);
+  justify-content: center;
+  gap: 34px;
+  align-items: start;
+}
+
+.tree-stage svg {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tree-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 6px;
+}
+
+.tree-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tree-modes-label {
+  color: var(--faint);
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+.tree-modes button {
+  border: 1px solid var(--panel-line-bright);
+  background: none;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font: 400 10px/1 Georgia, serif;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.tree-modes button:hover {
+  color: var(--gold);
+  border-color: var(--gold-soft, var(--panel-line-bright));
+}
+
+.tree-modes button.is-on {
+  color: var(--amber);
+  border-color: var(--amber);
+  background: #d0ad6d14;
+}
+
+.tree-readout {
+  border-left: 2px solid var(--amber);
+  padding: 4px 0 4px 14px;
+  min-height: 62px;
+}
+
+.tree-readout strong {
+  display: block;
+  color: var(--amber);
+  font: 400 15px/1.4 Georgia, serif;
+  margin-bottom: 6px;
+}
+
+.tree-readout em {
+  color: var(--faint);
+  font-style: italic;
+}
+
+.tree-readout span {
+  color: var(--muted);
+  font: 400 11.5px/1.75 Georgia, serif;
+  display: block;
+}
+
+.tree-readout .tree-sub {
+  color: var(--faint);
+  font-size: 10.5px;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.tree-readout .glyph-cell {
+  vertical-align: -2px;
+  margin-right: 4px;
+  color: var(--gold);
+}
+
+.tree-readout .tree-attr {
+  display: inline;
+  color: var(--gold);
+}
+
+.tree-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  border-top: 1px solid var(--panel-line);
+  padding-top: 14px;
+}
+
+.tree-legend span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--faint);
+  font: 400 10px/1.5 Georgia, serif;
+  letter-spacing: 0.04em;
+}
+
+.tree-legend i {
+  width: 22px;
+  height: 0;
+  border-top: 2px solid var(--tree-line);
+  flex: none;
+}
+
+.tree-legend .lg-lit {
+  border-color: var(--amber);
+}
+
+.tree-legend .lg-veil {
+  border-top-style: dashed;
+  border-color: var(--violet);
+}
+
+.tree-legend .lg-focus {
+  height: 11px;
+  width: 11px;
+  border: 1.5px solid var(--amber);
+  border-radius: 50%;
+  box-shadow: 0 0 7px #d0ad6d55;
+  margin: 0 5px;
+}
+
+.tree-legend .lg-daath {
+  border-top-style: dashed;
+}
+
+@media (max-width: 1100px) {
+  .tree-wrap {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .tree-stage {
+    max-width: 430px;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 900px) {

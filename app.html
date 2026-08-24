@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=19" />
+    <link rel="stylesheet" href="command.css?v=21" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -37,9 +37,10 @@
     <script src="auth.js?v=2"></script>
     <script src="vendor/astronomy.browser.min.js"></script>
     <script src="astro.js?v=2"></script>
-    <script src="glyphs.js?v=1"></script>
+    <script src="glyphs.js?v=2"></script>
     <script src="pyramid.js?v=1"></script>
-    <script src="study-data.js?v=8"></script>
+    <script src="tree.js?v=2"></script>
+    <script src="study-data.js?v=9"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -4282,7 +4283,7 @@
           holder.innerHTML = "";
           for (const diagram of data.diagrams || []) {
             const card = document.createElement("div");
-            card.className = "diagram-card";
+            card.className = "diagram-card" + (diagram.wide ? " diagram-wide" : "");
             const h3 = document.createElement("h3");
             h3.textContent = diagram.title;
             const badge = document.createElement("span");
@@ -4292,8 +4293,13 @@
             const svgWrap = document.createElement("div");
             if (diagram.interactive === "pyramid3d" && window.GZ_PYRAMID) {
               window.GZ_PYRAMID.mount(svgWrap);
-            } else if (diagram.interactive === "tree") {
-              svgWrap.innerHTML = buildTree();
+            } else if (diagram.interactive === "tree" && window.GZ_TREE) {
+              window.GZ_TREE.mount(svgWrap, {
+                focus: "Hod",
+                lit: [31, 30],
+                veiled: [23],
+                litColors: { 31: "#d97b7b", 30: "var(--m2)" },
+              });
             } else if (diagram.interactive === "greekcross" && window.GZ_GLYPHS) {
               svgWrap.innerHTML = buildGreekCross();
             } else {
@@ -4444,53 +4450,6 @@
         }
 
         /* ---- tree of life locator ---- */
-        function buildTree() {
-          const S = {
-            Kether: [150, 26], Chokmah: [232, 72], Binah: [68, 72],
-            Chesed: [232, 150], Geburah: [68, 150], Tiphareth: [150, 196],
-            Netzach: [232, 262], Hod: [68, 262], Yesod: [150, 306], Malkuth: [150, 360],
-          };
-          const EDGES = [
-            ["Kether","Chokmah"],["Kether","Binah"],["Kether","Tiphareth"],["Chokmah","Binah"],
-            ["Chokmah","Tiphareth"],["Chokmah","Chesed"],["Binah","Tiphareth"],["Binah","Geburah"],
-            ["Chesed","Geburah"],["Chesed","Tiphareth"],["Chesed","Netzach"],["Geburah","Tiphareth"],
-            ["Tiphareth","Netzach"],["Tiphareth","Hod"],["Tiphareth","Yesod"],["Netzach","Hod"],
-            ["Netzach","Yesod"],["Netzach","Malkuth"],["Hod","Yesod"],["Hod","Malkuth"],
-            ["Yesod","Malkuth"],["Geburah","Hod"],
-          ];
-          let html = '<svg viewBox="0 0 300 392" xmlns="http://www.w3.org/2000/svg" style="width:72%;height:auto;display:block;margin:0 auto">';
-          for (const [a, b] of EDGES) {
-            const special =
-              (a === "Hod" && b === "Malkuth") ? { stroke: "#d97b7b", w: 2, label: "31 · SHIN" } :
-              (a === "Hod" && b === "Yesod") ? { stroke: "var(--m2)", w: 2, label: "30 · RESH", t: 0.5, dy: 12 } :
-              (a === "Geburah" && b === "Hod") ? { stroke: "var(--violet)", w: 1.6, dash: "5 4", label: "23 · MEM" } :
-              null;
-            html += '<line x1="' + S[a][0] + '" y1="' + S[a][1] + '" x2="' + S[b][0] + '" y2="' + S[b][1] +
-              '" stroke="' + (special ? special.stroke : "var(--panel-line-bright)") + '" stroke-width="' + (special ? special.w : 1) + '"' +
-              (special && special.dash ? ' stroke-dasharray="' + special.dash + '"' : "") + "/>";
-            if (special) {
-              const t = special.t || 0.5;
-              const mx = S[a][0] + (S[b][0] - S[a][0]) * t;
-              const my = S[a][1] + (S[b][1] - S[a][1]) * t;
-              html += '<text x="' + (mx + (special.anchor === "start" ? 8 : -8)) + '" y="' + (my + (special.dy || -5)) +
-                '" fill="' + special.stroke + '" font-size="7.5" letter-spacing="1" text-anchor="' +
-                (special.anchor || "end") + '" font-family="Georgia,serif">' + special.label + "</text>";
-            }
-          }
-          for (const [name, [x, y]] of Object.entries(S)) {
-            const isHod = name === "Hod";
-            html += '<circle cx="' + x + '" cy="' + y + '" r="' + (isHod ? 17 : 13) + '" fill="' +
-              (isHod ? "#d0ad6d22" : "var(--panel-solid)") + '" stroke="' +
-              (isHod ? "var(--amber)" : "var(--panel-line-bright)") + '" stroke-width="' + (isHod ? 1.8 : 1) + '"' +
-              (isHod ? ' filter="drop-shadow(0 0 8px #d0ad6d55)"' : "") + "/>";
-            html += '<text x="' + x + '" y="' + (y + 2.5) + '" fill="' + (isHod ? "var(--amber)" : "var(--muted)") +
-              '" font-size="' + (isHod ? 8 : 6.8) + '" text-anchor="middle" font-family="Georgia,serif" letter-spacing="0.5">' +
-              name.toUpperCase() + "</text>";
-          }
-          html += "</svg>";
-          return html;
-        }
-
         function buildGreekCross() {
           const G = window.GZ_GLYPHS;
           const cell = 30;

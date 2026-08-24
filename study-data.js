@@ -358,8 +358,9 @@ window.GZ_STUDY = {
         title: "Where Practicus Stands on the Tree",
         tier: "correspondence",
         interactive: "tree",
+        wide: true,
         caption:
-          "The Tree of Life with the Practicus position lit: Hod, the eighth sephirah, reached by the 31st Path of Shin rising from Malkuth (fire) and the 30th Path of Resh rising from Yesod (sun). The dashed violet path is the 23rd, Mem — waiting above, crossed only at Adeptus Major.",
+          "The whole Tree, live: ten sephiroth on the three pillars, the veil of Daath, and all twenty-two paths. Hod is lit — the eighth sephirah, your seat at 3°=8▫ — reached by the 31st Path of Shin rising from Malkuth (fire) and the 30th Path of Resh rising from Yesod (sun). The dashed violet path is the 23rd, Mem, waiting above until Adeptus Major. Hover or tap any path to read its Hebrew letter, Tarot key and attribution; tap a sephirah to see its Hebrew name, planetary attribution, grade and every path that meets there. The row of buttons changes what each path wears — number, letter, key, or glyph.",
       },
       {
         title: "The Pyramid of Flame",
