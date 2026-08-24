@@ -97,6 +97,7 @@ window.GZ_STUDY = {
             ["The wall and its stones", "The circle of the zodiac; its degrees and divisions"],
             ["Two children on Water and Earth", "The passive elements, quickened by the Sun's rays"],
             ["The children as a sign", "Gemini — uniting earthy Taurus with watery Cancer"],
+            ["The badge that admits to this path", "The Solar Greek Cross of thirteen squares — the signs set in its arms by element"],
           ],
         },
       },
@@ -542,6 +543,11 @@ window.GZ_STUDY = {
       { cat: "Soul", front: "Fear, in the side lecture's phrase", back: "\"Fear is failure and the forerunner of failure\"", note: "\"And courage is the beginning of virtue.\"" },
       { cat: "Soul", front: "What true prayer is", back: "As much action as word — it is Will", note: "The gods will not do for a man what his own higher powers can do." },
       { cat: "Soul", front: "The first step toward magical power", back: "Learn to control thought", note: "Admit only ideas in harmony with the end desired." },
+      { cat: "Symbols", front: "How the signs are arranged on the Solar Greek Cross", back: "By element — one triplicity to each arm, nearest sign first", note: "Earth up, water down, fire left, air right; the Sun at the centre." },
+      { cat: "Symbols", front: "The upper arm of the Greek Cross", back: "Capricorn, Taurus, Virgo — earth", note: "Capricorn nearest the Sun, Virgo at the tip." },
+      { cat: "Symbols", front: "The lower arm of the Greek Cross", back: "Cancer, Scorpio, Pisces — water", note: "The grade's own triplicity, descending." },
+      { cat: "Symbols", front: "The left and right arms of the Greek Cross", back: "Aries, Leo, Sagittarius — fire · Libra, Aquarius, Gemini — air", note: "" },
+      { cat: "Symbols", front: "Where the sephiroth sit on the Mercury symbol", back: "Horns to Chokmah and Binah from Daath · circle to Geburah, Chesed, Tiphareth · cross to Hod, Yesod, Netzach and Malkuth", note: "Kether stands above the figure and outside it." },
       { cat: "Colour", front: "The two scales of the painted Tree", back: "Sephiroth in the Queen scale; paths in the King scale", note: "The Minutum Mundum — the 'small world'." },
       { cat: "Colour", front: "Queen scale of Hod", back: "Orange", note: "Yellow from the Sun above it, scarlet from Mars beside it." },
       { cat: "Colour", front: "Queen scale of Malkuth", back: "Quartered — citrine, olive, russet and black", note: "The only sephirah that is not one colour." },
@@ -1147,7 +1153,7 @@ window.GZ_STUDY = {
         tier: "correspondence",
         interactive: "greekcross",
         caption:
-          "Handed to the candidate on the 30th Path: a Greek cross of thirteen squares — the Sun at center, the twelve signs of the zodiac arranged around it in the arms, the year's whole circuit held in a single balanced figure.",
+          "Handed to the candidate on the 30th Path: a Greek cross of thirteen squares, the Sun at the centre as the luminary of the whole. The twelve signs are not laid out in zodiacal order but by element, one triplicity to each arm, with the sign nearest the Sun first: earth rising (Capricorn, Taurus, Virgo), water descending (Cancer, Scorpio, Pisces), fire to the left (Aries, Leo, Sagittarius) and air to the right (Libra, Aquarius, Gemini).",
       },
       {
         title: "The Cup of Stolistes",
@@ -1160,8 +1166,15 @@ window.GZ_STUDY = {
         title: "The Symbol of Mercury on the Tree",
         tier: "correspondence",
         caption:
-          "The grade's planet laid over the whole Tree. The symbol embraces everything but Kether: the horns spring from Daath and reach up to Chokmah and Binah, the sphere is drawn about Tiphareth through Chesed, Geburah, Netzach and Hod, and the cross descends from Yesod to Malkuth. Daath is not properly a sephirah — it is a conjunction of Chokmah and Binah — so the sign of the intellect is rooted at the one place on the Tree that has no sphere of its own.",
-        svg: '<svg viewBox="0 0 300 392" xmlns="http://www.w3.org/2000/svg"><g stroke="var(--panel-line-bright)" stroke-width="0.8" fill="none"><line x1="150" y1="26" x2="68" y2="72"/><line x1="150" y1="26" x2="232" y2="72"/><line x1="68" y1="72" x2="232" y2="72"/><line x1="68" y1="72" x2="68" y2="150"/><line x1="232" y1="72" x2="232" y2="150"/><line x1="68" y1="150" x2="232" y2="150"/><line x1="68" y1="150" x2="150" y2="196"/><line x1="232" y1="150" x2="150" y2="196"/><line x1="68" y1="242" x2="232" y2="242"/><line x1="150" y1="196" x2="68" y2="242"/><line x1="150" y1="196" x2="232" y2="242"/><line x1="68" y1="242" x2="150" y2="290"/><line x1="232" y1="242" x2="150" y2="290"/><line x1="150" y1="290" x2="150" y2="344"/><line x1="68" y1="242" x2="150" y2="344"/><line x1="232" y1="242" x2="150" y2="344"/><line x1="150" y1="26" x2="150" y2="196"/></g><g fill="none" stroke="var(--amber)" stroke-width="2.6" stroke-linecap="round"><path d="M 68 72 A 127 127 0 0 0 232 72"/><circle cx="150" cy="196" r="94"/><line x1="150" y1="290" x2="150" y2="344"/><line x1="116" y1="317" x2="184" y2="317"/></g><circle cx="150" cy="110" r="11" fill="none" stroke="var(--violet)" stroke-width="1.1" stroke-dasharray="3 3"/><g font-family="Georgia,serif" text-anchor="middle"><g fill="var(--panel-solid)" stroke="var(--panel-line-bright)" stroke-width="0.9"><circle cx="150" cy="26" r="12"/><circle cx="68" cy="72" r="12"/><circle cx="232" cy="72" r="12"/><circle cx="68" cy="150" r="12"/><circle cx="232" cy="150" r="12"/><circle cx="150" cy="196" r="12"/><circle cx="68" cy="242" r="12"/><circle cx="232" cy="242" r="12"/><circle cx="150" cy="290" r="12"/><circle cx="150" cy="344" r="12"/></g><g fill="var(--muted)" font-size="4.9" letter-spacing="0.3"><text x="150" y="28">KETHER</text><text x="68" y="74">BINAH</text><text x="232" y="74">CHOKMAH</text><text x="68" y="152">GEBURAH</text><text x="232" y="152">CHESED</text><text x="150" y="198">TIPHARETH</text><text x="68" y="244">HOD</text><text x="232" y="244">NETZACH</text><text x="150" y="292">YESOD</text><text x="150" y="346">MALKUTH</text></g><text x="150" y="112" fill="var(--violet)" font-size="5.6" letter-spacing="0.6">DAATH</text><text x="150" y="374" fill="var(--muted)" font-size="7.6" letter-spacing="2">ALL BUT KETHER</text></g></svg>',
+          "The grade's planet drawn as the ceremony shows it — the symbol of Mercury with the sephiroth marked on its own parts. The horns spring from Daath and their tips reach Chokmah and Binah; the circle carries Geburah and Chesed on its sides and Tiphareth at its foot; the cross below takes Hod, Yesod and Netzach on its bar and Malkuth at its foot. It embraces all but Kether, which stands above the figure and outside it. Daath is not properly a sephirah — it is the conjunction of Chokmah and Binah — so the sign of the intellect is rooted at the one place on the Tree that has no sphere of its own.",
+        svg: '<svg viewBox="0 0 300 388" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="var(--amber)" stroke-width="2.4" stroke-linecap="round"><path d="M 92 76 A 59 59 0 0 0 208 76"/><circle cx="150" cy="192" r="54"/><line x1="150" y1="246" x2="150" y2="352"/><line x1="98" y1="300" x2="202" y2="300"/></g><g font-family="Georgia,serif" text-anchor="middle"><g id="mk"></g><circle cx="150" cy="26" r="13" fill="var(--panel-solid)" stroke="var(--panel-line-bright)" stroke-width="1" stroke-dasharray="3 3"/><text x="150" y="30" fill="var(--faint)" font-size="11">\u05db</text><text x="168" y="29" fill="var(--faint)" font-size="6" text-anchor="start">KETHER — OUTSIDE THE FIGURE</text><g fill="var(--panel-solid)" stroke="var(--amber)" stroke-width="1.2"><circle cx="92" cy="76" r="13"/><circle cx="208" cy="76" r="13"/><circle cx="150" cy="120" r="13"/><circle cx="96" cy="192" r="13"/><circle cx="204" cy="192" r="13"/><circle cx="150" cy="246" r="13"/><circle cx="98" cy="300" r="13"/><circle cx="150" cy="300" r="13"/><circle cx="202" cy="300" r="13"/><circle cx="150" cy="352" r="13"/></g><g fill="var(--gold)" font-size="12"><text x="92" y="80">\u05d1</text><text x="208" y="80">\u05d7</text><text x="150" y="124">\u05d3</text><text x="96" y="196">\u05d2</text><text x="204" y="196">\u05d7</text><text x="150" y="250">\u05ea</text><text x="98" y="304">\u05d4</text><text x="150" y="304">\u05d9</text><text x="202" y="304">\u05e0</text><text x="150" y="356">\u05de</text></g><g fill="var(--muted)" font-size="6">' +
+          '<text x="76" y="79" text-anchor="end">BINAH</text><text x="224" y="79" text-anchor="start">CHOKMAH</text>' +
+          '<text x="166" y="108" text-anchor="start" fill="var(--violet)">DAATH</text>' +
+          '<text x="150" y="378" fill="var(--faint)" font-size="6.4" letter-spacing="1.6">THE HORNS SPRING FROM DAATH · THE FIGURE EMBRACES ALL BUT KETHER</text>' +
+          '<text x="80" y="195" text-anchor="end">GEBURAH</text><text x="220" y="195" text-anchor="start">CHESED</text>' +
+          '<text x="166" y="249" text-anchor="start">TIPHARETH</text>' +
+          '<text x="82" y="282">HOD</text><text x="150" y="282">YESOD</text><text x="218" y="282">NETZACH</text>' +
+          '<text x="150" y="374">MALKUTH</text></g></g></svg>',
       },
       {
         title: "The Vesica and the Rhomboid",

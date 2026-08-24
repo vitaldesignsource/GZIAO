@@ -40,7 +40,7 @@
     <script src="glyphs.js?v=2"></script>
     <script src="pyramid.js?v=2"></script>
     <script src="tree.js?v=4"></script>
-    <script src="study-data.js?v=15"></script>
+    <script src="study-data.js?v=17"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -4460,15 +4460,22 @@
         function buildGreekCross() {
           const G = window.GZ_GLYPHS;
           const cell = 30;
+          /* one triplicity to each arm, innermost sign nearest the Sun —
+             the signs are arranged by element, not in zodiacal order */
           const layout = [
-            ["Aries", 0, -3], ["Taurus", 0, -2], ["Gemini", 0, -1],
-            ["Cancer", -3, 0], ["Leo", -2, 0], ["Virgo", -1, 0],
-            ["Libra", 1, 0], ["Scorpio", 2, 0], ["Sagittarius", 3, 0],
-            ["Capricorn", 0, 1], ["Aquarius", 0, 2], ["Pisces", 0, 3],
+            ["Capricorn", 0, -1], ["Taurus", 0, -2], ["Virgo", 0, -3],
+            ["Cancer", 0, 1], ["Scorpio", 0, 2], ["Pisces", 0, 3],
+            ["Aries", -1, 0], ["Leo", -2, 0], ["Sagittarius", -3, 0],
+            ["Libra", 1, 0], ["Aquarius", 2, 0], ["Gemini", 3, 0],
           ];
-          let html = '<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
-          html += '<text x="150" y="12" fill="var(--muted)" font-family="Georgia,serif" font-size="7.6" letter-spacing="0.8" text-anchor="middle">THE SUN IN THE CENTRE OF THE FOUR ELEMENTS</text>';
+          let html = '<svg viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
+          html += '<text x="150" y="11" fill="var(--muted)" font-family="Georgia,serif" font-size="7.6" letter-spacing="0.8" text-anchor="middle">THE SUN IN THE CENTRE OF THE FOUR ELEMENTS</text>';
           const cx = 150, cy = 128;
+          [["EARTH", 172, 42, "start"], ["WATER", 172, 220, "start"],
+           ["FIRE", 60, 106, "middle"], ["AIR", 240, 106, "middle"]].forEach(([label, lx, ly, anchor]) => {
+            html += '<text x="' + lx + '" y="' + ly + '" fill="var(--faint)" font-family="Georgia,serif" ' +
+              'font-size="6.6" letter-spacing="1.8" text-anchor="' + anchor + '">' + label + "</text>";
+          });
           const boxes = layout.concat([[null, 0, 0]]);
           for (const [name, gx, gy] of boxes) {
             const x = cx + gx * cell - cell / 2;
