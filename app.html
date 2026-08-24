@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=16" />
+    <link rel="stylesheet" href="command.css?v=17" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -449,6 +449,24 @@
                 </label>
                 <button type="submit">Seal record</button>
               </form>
+
+              <span class="kicker" style="display: block; margin-top: 26px">PRESERVE A DOCUMENT</span>
+              <div class="doc-drop" id="doc-drop">
+                <input type="file" id="doc-file" hidden />
+                <b>Drop a file here or click to choose</b>
+                <span>PDF, images, and documents up to 50&nbsp;MB. Stored encrypted in your private vault; downloadable any time.</span>
+              </div>
+              <div class="doc-pending" id="doc-pending" hidden>
+                <span id="doc-pending-name"></span>
+                <label class="share-toggle" style="margin: 10px 0">
+                  <input type="checkbox" id="doc-shared" />
+                  <span></span>
+                  Share to the relationship field
+                </label>
+                <button class="prime-btn" id="doc-upload" type="button" style="width: 100%">Preserve document</button>
+                <button class="modal-cancel" id="doc-cancel" type="button">Cancel</button>
+              </div>
+              <p class="panel-note" id="doc-status" style="margin-top: 10px" hidden></p>
             </section>
             <section class="panel">
               <span class="kicker">HELD IN THE VAULT</span>
@@ -641,7 +659,7 @@
             </div>
             <div class="mp-actions">
               <div class="pill-status" style="--pill-color: var(--violet)"><i></i>RESEARCH FIELD FORMING</div>
-              <button class="prime-btn" data-soon="The research index connects in a later build." type="button">Refresh brief</button>
+              <button class="prime-btn" id="wt-refresh" type="button">Refresh brief</button>
             </div>
           </div>
           <section class="principles" style="--pr-color: var(--violet)">
@@ -649,39 +667,49 @@
             <div><i class="pr-mark"></i><div><b>Tradition in context</b><span>Spiritual systems remain labeled by source and culture.</span></div></div>
             <div><i class="pr-mark"></i><div><b>Safety before interpretation</b><span>Danger, illness, or loss of function requires qualified help.</span></div></div>
           </section>
-          <section class="tabbar">
-            <button class="is-on" type="button"><b>Daily brief</b><span>Latest indexed research</span></button>
-            <button data-soon="The defense academy opens in a later build." type="button"><b>Defense academy</b><span>0/23 lessons complete</span></button>
-            <div class="tab-progress"><span>TRAINING PROGRESS</span><div class="bar-track"><div class="bar-fill" style="--bar-pct: 1"></div></div><span>0%</span></div>
+          <section class="tabbar" id="wt-tabs">
+            <button class="is-on" type="button" data-wtab="brief"><b>Daily brief</b><span>Live from the Crossref scholarly index</span></button>
+            <button type="button" data-wtab="academy"><b>Defense academy</b><span>Daily protocol &amp; curriculum</span></button>
+            <div class="tab-progress"><span>TODAY&rsquo;S PROTOCOL</span><div class="bar-track"><div class="bar-fill" id="wt-proto-bar" style="--bar-pct: 1"></div></div><span id="wt-proto-pct">0/5</span></div>
           </section>
           <section class="chrono-row">
             <div class="panel" style="border-color: #8b5cf640">
-              <span class="kicker is-violet">DAILY INTELLIGENCE BRIEF</span>
-              <h2 id="wt-date"></h2>
-              <div class="chips">
-                <button class="is-on" type="button">All signals</button>
-                <button type="button">Narcissism</button>
-                <button type="button">Personality</button>
-                <button type="button">Hungry ghosts</button>
-                <button type="button">Psychic defense</button>
-                <button type="button">Exorcism &amp; ethics</button>
+              <div id="wt-brief-wrap">
+                <span class="kicker is-violet">DAILY INTELLIGENCE BRIEF</span>
+                <h2 id="wt-date"></h2>
+                <div class="chips" id="wt-chips"></div>
+                <p class="panel-sub" id="wt-status">Connecting to the scholarly index&hellip;</p>
+                <div id="wt-feed"></div>
+                <p class="panel-note">Titles, authors, and links come live from the Crossref scholarly index. Read the original work before relying on a finding.</p>
               </div>
-              <div class="empty-center">
-                <div class="glyph" style="background: #8b5cf615; border-color: #8b5cf655"></div>
-                <b>The research index is not yet connected.</b>
-                <span>Source-linked scholarship appears here once the indexing layer comes online. Publication titles will come from Crossref&rsquo;s scholarly index.</span>
+              <div id="wt-academy-wrap" hidden>
+                <span class="kicker is-violet">DEFENSE ACADEMY</span>
+                <h2>The curriculum forms from your material</h2>
+                <p class="panel-sub">
+                  The academy becomes a lesson-by-lesson training course the same way the Temple
+                  Journal's study chambers did: provide the source material and it is built into
+                  lessons, drills, and examinations here. Until then, the daily protocol at right
+                  is the working practice &mdash; check each step as you complete it today.
+                </p>
+                <div class="oracle-facts" style="margin-top: 18px">
+                  <div><small>PROTOCOL DAYS COMPLETED</small><b id="wt-proto-days">0</b></div>
+                  <div><small>CURRENT STREAK</small><b id="wt-proto-streak">0 days</b></div>
+                  <div><small>CURRICULUM</small><b>Awaiting source material</b></div>
+                </div>
               </div>
-              <p class="panel-note">Publication titles and links come from scholarly indexes. Read the original work before relying on a finding.</p>
             </div>
             <div class="panel">
-              <span class="kicker is-violet">DAILY DEFENSIVE PROTOCOL</span>
+              <span class="kicker is-violet" style="display: flex; justify-content: space-between">
+                <span>DAILY DEFENSIVE PROTOCOL</span>
+                <span id="wt-proto-today" style="color: var(--faint)">0/5 TODAY</span>
+              </span>
               <h2>Stabilize before you interpret</h2>
-              <ul class="wf-list">
-                <li><small>01</small><span class="wf-mark">&#9678;</span><div><b>Orient</b><span>Name the concrete issue in one sentence.</span></div></li>
-                <li><small>02</small><span class="wf-mark">&#9678;</span><div><b>Regulate</b><span>Sleep, eat, breathe, and lower physiological pressure.</span></div></li>
-                <li><small>03</small><span class="wf-mark">&#9678;</span><div><b>Separate</b><span>Write observation and interpretation in different columns.</span></div></li>
-                <li><small>04</small><span class="wf-mark">&#9678;</span><div><b>Verify</b><span>Preserve sources and check ordinary explanations.</span></div></li>
-                <li><small>05</small><span class="wf-mark">&#9678;</span><div><b>Act</b><span>Choose the smallest ethical, practical response.</span></div></li>
+              <ul class="wf-list" id="wt-protocol">
+                <li data-step="0"><small>01</small><span class="wf-mark">&#9678;</span><div><b>Orient</b><span>Name the concrete issue in one sentence.</span></div></li>
+                <li data-step="1"><small>02</small><span class="wf-mark">&#9678;</span><div><b>Regulate</b><span>Sleep, eat, breathe, and lower physiological pressure.</span></div></li>
+                <li data-step="2"><small>03</small><span class="wf-mark">&#9678;</span><div><b>Separate</b><span>Write observation and interpretation in different columns.</span></div></li>
+                <li data-step="3"><small>04</small><span class="wf-mark">&#9678;</span><div><b>Verify</b><span>Preserve sources and check ordinary explanations.</span></div></li>
+                <li data-step="4"><small>05</small><span class="wf-mark">&#9678;</span><div><b>Act</b><span>Choose the smallest ethical, practical response.</span></div></li>
               </ul>
               <div class="warn-note">If anyone may be harmed, is severely confused, cannot sleep for an extended period, or is losing contact with reality, pause spiritual techniques and seek urgent qualified help.</div>
             </div>
@@ -1530,6 +1558,13 @@
               onAuthStateChange: () => {},
               signOut: async () => location.replace("signin.html"),
             },
+            storage: {
+              from: () => ({
+                upload: async () => ({ error: null }),
+                remove: async () => ({ error: null }),
+                createSignedUrl: async () => ({ data: { signedUrl: "data:text/plain,mock-download" }, error: null }),
+              }),
+            },
             from: (table) => {
               const rows = store[table] || (store[table] = []);
               return {
@@ -1854,7 +1889,8 @@
           for (const record of records) {
             const item = document.createElement("li");
             const title = document.createElement("b");
-            title.textContent = record.title;
+            const isDoc = record.kind === "document";
+            title.textContent = (isDoc ? "📄 " : "") + record.title;
             if (isShared(record)) {
               const badge = document.createElement("i");
               badge.className = "share-badge";
@@ -1864,7 +1900,12 @@
             const stamp = document.createElement("time");
             stamp.textContent = new Date(record.created_at).toLocaleDateString();
             item.append(title, stamp);
-            if (record.body) {
+            if (isDoc && record.meta && record.meta.size) {
+              const info = document.createElement("p");
+              info.style.cssText = "color: var(--faint); font-size: 10px";
+              info.textContent = formatBytes(record.meta.size) + (record.meta.type && record.meta.type !== "file" ? " · " + record.meta.type : "");
+              item.append(info);
+            } else if (record.body) {
               const body = document.createElement("p");
               body.textContent = record.body;
               item.append(body);
@@ -1872,6 +1913,15 @@
 
             const actions = document.createElement("span");
             actions.className = "rec-actions-row";
+
+            if (isDoc) {
+              const download = document.createElement("button");
+              download.type = "button";
+              download.textContent = "Download";
+              download.style.color = "var(--gold)";
+              download.addEventListener("click", () => downloadDocument(record));
+              actions.append(download);
+            }
 
             if (isMine(record)) {
               const share = document.createElement("button");
@@ -1885,11 +1935,14 @@
               remove.className = "is-destroy";
               remove.textContent = "Destroy";
               remove.addEventListener("click", async () => {
+                if (isDoc && record.meta && record.meta.path) {
+                  await GZ.client.storage.from("vault").remove([record.meta.path]);
+                }
                 const { error } = await GZ.client.from("records").delete().eq("id", record.id);
                 if (!error) {
                   records = records.filter((held) => held.id !== record.id);
                   renderAll();
-                  toast("Record destroyed.");
+                  toast(isDoc ? "Document and file destroyed." : "Record destroyed.");
                 }
               });
               actions.append(remove);
@@ -2285,6 +2338,10 @@
           $("crumb-name").textContent = module.name;
           $("crumb-desc").textContent = module.desc;
           $("side").classList.remove("is-open");
+          if (id === "watchtower" && !wtLoaded) {
+            wtLoaded = true;
+            loadBrief(false);
+          }
           if (location.hash !== "#/" + id) history.replaceState(null, "", "#/" + id);
           window.scrollTo(0, 0);
         }
@@ -2408,6 +2465,108 @@
             toast("Record sealed into the vault.");
           }
         });
+
+        /* ---------- document preservation ---------- */
+        let pendingFile = null;
+
+        function docStatus(message, isError) {
+          const el = $("doc-status");
+          el.hidden = !message;
+          el.textContent = message || "";
+          el.style.color = isError ? "#d98181" : "";
+        }
+
+        function formatBytes(bytes) {
+          if (bytes < 1024) return bytes + " B";
+          if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+          return (bytes / 1048576).toFixed(1) + " MB";
+        }
+
+        $("doc-drop").addEventListener("click", () => $("doc-file").click());
+        $("doc-drop").addEventListener("dragover", (event) => {
+          event.preventDefault();
+          $("doc-drop").classList.add("is-over");
+        });
+        $("doc-drop").addEventListener("dragleave", () => $("doc-drop").classList.remove("is-over"));
+        $("doc-drop").addEventListener("drop", (event) => {
+          event.preventDefault();
+          $("doc-drop").classList.remove("is-over");
+          if (event.dataTransfer.files.length) stageFile(event.dataTransfer.files[0]);
+        });
+        $("doc-file").addEventListener("change", () => {
+          if ($("doc-file").files.length) stageFile($("doc-file").files[0]);
+        });
+
+        function stageFile(file) {
+          if (file.size > 50 * 1048576) {
+            docStatus("That file is " + formatBytes(file.size) + " — the limit is 50 MB.", true);
+            return;
+          }
+          pendingFile = file;
+          $("doc-pending").hidden = false;
+          $("doc-pending-name").textContent = file.name + " · " + formatBytes(file.size);
+          docStatus("");
+        }
+
+        $("doc-cancel").addEventListener("click", () => {
+          pendingFile = null;
+          $("doc-pending").hidden = true;
+          $("doc-file").value = "";
+        });
+
+        $("doc-upload").addEventListener("click", async () => {
+          if (!pendingFile) return;
+          const shared = $("doc-shared").checked;
+          const safeName = pendingFile.name.replace(/[^\w.\-]+/g, "_");
+          const path = user.id + "/" + Date.now() + "_" + safeName;
+          $("doc-upload").disabled = true;
+          docStatus("Preserving " + pendingFile.name + "…");
+          const { error: uploadError } = await GZ.client.storage
+            .from("vault")
+            .upload(path, pendingFile, { contentType: pendingFile.type || "application/octet-stream" });
+          if (uploadError) {
+            $("doc-upload").disabled = false;
+            docStatus("Upload failed: " + uploadError.message, true);
+            return;
+          }
+          const ok = await seal(pendingFile.name, null, {
+            kind: "document",
+            shared,
+            meta: { path, size: pendingFile.size, type: pendingFile.type || "file" },
+          });
+          $("doc-upload").disabled = false;
+          if (!ok) {
+            await GZ.client.storage.from("vault").remove([path]);
+            docStatus("The file was stored but its record failed — rolled back. Try again.", true);
+            return;
+          }
+          pendingFile = null;
+          $("doc-pending").hidden = true;
+          $("doc-file").value = "";
+          $("doc-shared").checked = false;
+          docStatus("");
+          toast("Document preserved in the vault.");
+        });
+
+        async function downloadDocument(record) {
+          const path = record.meta && record.meta.path;
+          if (!path) {
+            toast("This record has no stored file.");
+            return;
+          }
+          const { data, error } = await GZ.client.storage
+            .from("vault")
+            .createSignedUrl(path, 300, { download: record.title });
+          if (error) {
+            toast("Could not open the file: " + error.message);
+            return;
+          }
+          const anchor = document.createElement("a");
+          anchor.href = data.signedUrl;
+          anchor.rel = "noopener";
+          anchor.click();
+          toast("Download started.");
+        }
 
         /* ---------- constellations ---------- */
         function initials(name) {
@@ -2694,6 +2853,201 @@
         document.querySelectorAll("[data-soon]").forEach((button) => {
           button.addEventListener("click", () => toast(button.dataset.soon));
         });
+
+        /* ---------- watchtower: live research brief ---------- */
+        const WT_TOPICS = [
+          { label: "Narcissism", q: "narcissistic abuse psychology" },
+          { label: "Personality", q: "personality disorder clinical" },
+          { label: "Hungry ghosts", q: "hungry ghosts buddhism" },
+          { label: "Psychic defense", q: "apotropaic ritual protection" },
+          { label: "Exorcism & ethics", q: "exorcism ritual ethics" },
+        ];
+        let wtActive = "All signals";
+        let wtCache = {};
+
+        function wtCacheKey(topic) {
+          return "gz-wt-" + srsToday(0) + "-" + topic;
+        }
+
+        async function fetchTopic(topic) {
+          if (wtCache[topic.label]) return wtCache[topic.label];
+          try {
+            const stored = localStorage.getItem(wtCacheKey(topic.label));
+            if (stored) {
+              wtCache[topic.label] = JSON.parse(stored);
+              return wtCache[topic.label];
+            }
+          } catch (error) {}
+          const url =
+            "https://api.crossref.org/works?query.bibliographic=" + encodeURIComponent(topic.q) +
+            "&rows=8&filter=type:journal-article,from-pub-date:2012-01-01&select=DOI,title,author,container-title,issued";
+          const response = await fetch(url);
+          if (!response.ok) throw new Error("index returned " + response.status);
+          const json = await response.json();
+          const items = (json.message.items || [])
+            .filter((item) => item.title && item.title[0])
+            .map((item) => ({
+              title: item.title[0],
+              authors: (item.author || []).slice(0, 3).map((a) => [a.given, a.family].filter(Boolean).join(" ")).join(", "),
+              journal: (item["container-title"] || [])[0] || "",
+              year: item.issued && item.issued["date-parts"] && item.issued["date-parts"][0] ? item.issued["date-parts"][0][0] : "",
+              doi: item.DOI,
+            }));
+          wtCache[topic.label] = items;
+          try { localStorage.setItem(wtCacheKey(topic.label), JSON.stringify(items)); } catch (error) {}
+          return items;
+        }
+
+        function renderWtChips() {
+          const holder = $("wt-chips");
+          holder.innerHTML = "";
+          for (const label of ["All signals", ...WT_TOPICS.map((t) => t.label)]) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = label === wtActive ? "is-on" : "";
+            const count = label === "All signals"
+              ? Object.values(wtCache).reduce((sum, list) => sum + list.length, 0)
+              : (wtCache[label] || []).length;
+            chip.textContent = label + (count ? " " + count : "");
+            chip.addEventListener("click", () => {
+              wtActive = label;
+              renderWtChips();
+              renderWtFeed();
+            });
+            holder.append(chip);
+          }
+        }
+
+        function renderWtFeed() {
+          const feed = $("wt-feed");
+          feed.innerHTML = "";
+          let items = [];
+          if (wtActive === "All signals") {
+            for (const topic of WT_TOPICS) {
+              items = items.concat((wtCache[topic.label] || []).slice(0, 2).map((item) => ({ ...item, signal: topic.label })));
+            }
+          } else {
+            items = (wtCache[wtActive] || []).map((item) => ({ ...item, signal: wtActive }));
+          }
+          if (!items.length) {
+            $("wt-status").textContent = "No articles held for this signal today. Refresh the brief to re-query the index.";
+            return;
+          }
+          $("wt-status").textContent = items.length + " source-linked articles · cached for today · every link opens the original record";
+          for (const item of items) {
+            const card = document.createElement("div");
+            card.className = "wt-article";
+            const kicker = document.createElement("small");
+            kicker.textContent = item.signal.toUpperCase() + (item.year ? " · " + item.year : "");
+            const title = document.createElement("a");
+            title.href = "https://doi.org/" + item.doi;
+            title.target = "_blank";
+            title.rel = "noopener";
+            title.textContent = item.title;
+            const meta = document.createElement("p");
+            meta.textContent = [item.authors, item.journal].filter(Boolean).join(" — ");
+            const preserve = document.createElement("button");
+            preserve.type = "button";
+            preserve.className = "chrono-open";
+            preserve.textContent = "PRESERVE TO VAULT";
+            preserve.addEventListener("click", async () => {
+              const ok = await seal(item.title, [item.authors, item.journal, item.year, "doi.org/" + item.doi].filter(Boolean).join("\n"), {
+                meta: { doi: item.doi, signal: item.signal, source: "crossref" },
+              });
+              if (ok) toast("Source preserved to the vault.");
+            });
+            card.append(kicker, title, meta, preserve);
+            feed.append(card);
+          }
+        }
+
+        async function loadBrief(force) {
+          if (force) {
+            wtCache = {};
+            for (const topic of WT_TOPICS) {
+              try { localStorage.removeItem(wtCacheKey(topic.label)); } catch (error) {}
+            }
+          }
+          $("wt-status").textContent = "Querying the scholarly index…";
+          let failures = 0;
+          for (const topic of WT_TOPICS) {
+            try {
+              await fetchTopic(topic);
+            } catch (error) {
+              failures++;
+            }
+            renderWtChips();
+            renderWtFeed();
+          }
+          if (failures === WT_TOPICS.length) {
+            $("wt-status").textContent = "The scholarly index is unreachable right now. The brief returns when the connection does.";
+          }
+        }
+
+        let wtLoaded = false;
+        $("wt-refresh").addEventListener("click", () => loadBrief(true));
+        $("wt-tabs").addEventListener("click", (event) => {
+          const button = event.target.closest("button[data-wtab]");
+          if (!button) return;
+          document.querySelectorAll("#wt-tabs button").forEach((tab) => tab.classList.remove("is-on"));
+          button.classList.add("is-on");
+          $("wt-brief-wrap").hidden = button.dataset.wtab !== "brief";
+          $("wt-academy-wrap").hidden = button.dataset.wtab !== "academy";
+          if (button.dataset.wtab === "academy") renderProtocolStats();
+        });
+
+        /* ---------- daily defensive protocol tracker ---------- */
+        function protoKey(offset) {
+          return "gz-protocol-" + srsToday(offset || 0);
+        }
+
+        function protoState() {
+          try { return new Set(JSON.parse(localStorage.getItem(protoKey()) || "[]")); }
+          catch (error) { return new Set(); }
+        }
+
+        function renderProtocol() {
+          const done = protoState();
+          document.querySelectorAll("#wt-protocol li").forEach((li) => {
+            const step = Number(li.dataset.step);
+            li.classList.toggle("is-done-step", done.has(step));
+            li.querySelector(".wf-mark").textContent = done.has(step) ? "✓" : "◎";
+          });
+          $("wt-proto-today").textContent = done.size + "/5 TODAY";
+          $("wt-proto-pct").textContent = done.size + "/5";
+          $("wt-proto-bar").style.setProperty("--bar-pct", done.size * 20 || 1);
+        }
+
+        function renderProtocolStats() {
+          let days = 0;
+          let streak = 0;
+          let streakAlive = true;
+          for (let i = 0; i < 365; i++) {
+            try {
+              const stored = JSON.parse(localStorage.getItem(protoKey(-i)) || "[]");
+              const complete = stored.length >= 5;
+              if (complete) days++;
+              if (i > 0 || complete) {
+                if (complete && streakAlive) streak++;
+                else if (i > 0) streakAlive = false;
+              }
+            } catch (error) {}
+          }
+          $("wt-proto-days").textContent = days;
+          $("wt-proto-streak").textContent = streak + " day" + (streak === 1 ? "" : "s");
+        }
+
+        $("wt-protocol").addEventListener("click", (event) => {
+          const li = event.target.closest("li[data-step]");
+          if (!li) return;
+          const done = protoState();
+          const step = Number(li.dataset.step);
+          if (done.has(step)) done.delete(step);
+          else done.add(step);
+          try { localStorage.setItem(protoKey(), JSON.stringify([...done])); } catch (error) {}
+          renderProtocol();
+        });
+        renderProtocol();
 
         /* ---------- module page wiring ---------- */
         $("wt-date").textContent = new Date().toLocaleDateString(undefined, {

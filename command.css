@@ -3111,3 +3111,106 @@ body.command-body {
   font-size: 9px;
   margin-top: 10px;
 }
+
+/* ---------------- documents ---------------- */
+
+.doc-drop {
+  border: 1px dashed var(--panel-line-bright);
+  border-radius: 10px;
+  margin-top: 12px;
+  padding: 22px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.doc-drop:hover,
+.doc-drop.is-over {
+  border-color: var(--gold-soft);
+  background: #63dfca0a;
+}
+
+.doc-drop b {
+  display: block;
+  font: 400 13.5px Georgia, serif;
+  margin-bottom: 5px;
+}
+
+.doc-drop span {
+  color: var(--faint);
+  font-size: 9.5px;
+  display: block;
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.doc-pending {
+  border: 1px solid var(--gold-soft);
+  border-radius: 10px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-pending > span {
+  font: 400 12px Georgia, serif;
+  color: var(--gold);
+  word-break: break-all;
+}
+
+/* ---------------- watchtower feed ---------------- */
+
+.wt-article {
+  border-bottom: 1px solid var(--panel-line);
+  padding: 14px 2px;
+}
+
+.wt-article:last-child {
+  border-bottom: 0;
+}
+
+.wt-article small {
+  color: var(--violet);
+  letter-spacing: 0.16em;
+  font-size: 7.5px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.wt-article a {
+  color: var(--paper);
+  text-decoration: none;
+  font: 400 14px / 1.5 Georgia, serif;
+  display: block;
+}
+
+.wt-article a:hover {
+  color: var(--gold);
+}
+
+.wt-article p {
+  color: var(--faint);
+  margin: 5px 0 8px;
+  font-size: 10.5px;
+}
+
+#wt-protocol li {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+#wt-protocol li:hover {
+  background: #8b5cf60d;
+}
+
+#wt-protocol li.is-done-step b {
+  color: var(--gold);
+}
+
+#wt-protocol li.is-done-step .wf-mark {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: #63dfca12;
+}
