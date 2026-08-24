@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=31" />
+    <link rel="stylesheet" href="command.css?v=33" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -35,8 +35,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=3"></script>
     <script src="auth.js?v=2"></script>
+    <link rel="stylesheet" href="vendor/leaflet.css" />
     <script src="vendor/astronomy.browser.min.js"></script>
-    <script src="astro.js?v=3"></script>
+    <script src="vendor/leaflet.js"></script>
+    <script src="astro.js?v=4"></script>
     <script src="glyphs.js?v=2"></script>
     <script src="pyramid.js?v=2"></script>
     <script src="tree.js?v=4"></script>
@@ -559,10 +561,11 @@
               Every aspect between one person's placements and another's, with exact orbs &mdash; the
               second rung of the chart ladder. Counts and angles are calculated; meaning is not asserted.
             </p>
-            <div class="intake" style="grid-template-columns: 1fr 1fr auto">
+            <div class="intake" style="grid-template-columns: 1fr 1fr auto auto">
               <label>FIRST CHART<select id="syn-a"></select></label>
               <label>SECOND CHART<select id="syn-b"></select></label>
               <button class="prime-btn" id="syn-run" type="button">Weave &rarr;</button>
+              <button class="ghost-btn" id="syn-comp" type="button" style="height: 40px">Composite &rarr;</button>
             </div>
             <div id="syn-out" hidden>
               <div class="syn-tally" id="syn-tally"></div>
@@ -575,6 +578,23 @@
                   <span class="kicker">ELEMENT &amp; MODALITY BALANCE</span>
                   <div id="syn-balance"></div>
                   <div id="syn-mutual" style="margin-top: 12px"></div>
+                  <div id="syn-overlay" style="margin-top: 12px"></div>
+                </div>
+              </div>
+            </div>
+            <div id="syn-composite" hidden>
+              <div class="temple-divider" style="margin: 18px 0 12px"></div>
+              <span class="kicker" style="color: var(--violet)" id="syn-comp-title">COMPOSITE · MIDPOINT METHOD</span>
+              <div class="tier-note">
+                <b>CALCULATED FACT</b> &mdash; each composite body is the shorter-arc midpoint of the
+                two natal longitudes. Midpoints do not move, so there is no speed and no retrogradation;
+                without one shared birth moment and place there are no angles and no houses.
+              </div>
+              <div class="duo" style="margin-top: 12px">
+                <div id="syn-comp-places"></div>
+                <div>
+                  <span class="kicker">INTERNAL ASPECTS OF THE COMPOSITE</span>
+                  <div id="syn-comp-aspects" class="syn-aspects"></div>
                 </div>
               </div>
             </div>
@@ -1506,11 +1526,14 @@
               <p class="panel-note">Locations resolve through OpenStreetMap's public geocoder only when you select a pin, and the result is cached to the profile.</p>
             </div>
             <div class="panel">
-              <div class="map-blank" id="atlas-map-blank">Select a pin to open its map field.<br />Tiles load from OpenStreetMap at that moment &mdash; never before.</div>
+              <div class="map-blank" id="atlas-map-blank">
+                <span>The map field is closed. Tiles load from the tile server only when you open it &mdash; never before.</span>
+                <button class="prime-btn" id="atlas-open-map" type="button" style="margin-top: 14px">Open the map field &rarr;</button>
+              </div>
               <div id="atlas-map-wrap" hidden>
-                <iframe id="atlas-map" style="width: 100%; height: 340px; border: 1px solid var(--panel-line-bright); border-radius: 10px; display: block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <div id="atlas-map" class="atlas-leaflet"></div>
                 <div class="privacy-row" style="margin-top: 10px">
-                  <span id="atlas-map-caption"></span>
+                  <span id="atlas-map-caption">All located pins shown &middot; select one to fly to it</span>
                   <span id="atlas-map-coords"></span>
                 </div>
               </div>
@@ -1661,13 +1684,15 @@
                 id: "p-demo-1", owner_id: "mock-user", display_name: "Demo Anchor",
                 relation: "self", birth_date: "1990-06-15", birth_time: "08:30:00",
                 birth_time_known: true, birth_tz_offset: -7, birth_lat: 33.45, birth_lon: -111.94,
-                birth_place: "Phoenix, AZ", created_at: new Date().toISOString(), meta: {},
+                birth_place: "Phoenix, AZ", created_at: new Date().toISOString(),
+                meta: { geo: { lat: 33.4484, lon: -112.074, resolved: "Phoenix, AZ" } },
               },
               {
                 id: "p-demo-2", owner_id: "mock-user", display_name: "Demo Partner",
                 relation: "partner", birth_date: "1992-11-03", birth_time: "21:15:00",
                 birth_time_known: true, birth_tz_offset: -6, birth_lat: 41.88, birth_lon: -87.63,
-                birth_place: "Chicago, IL", created_at: new Date().toISOString(), meta: {},
+                birth_place: "Chicago, IL", created_at: new Date().toISOString(),
+                meta: { geo: { lat: 41.8781, lon: -87.6298, resolved: "Chicago, IL" } },
               },
             ],
           };
@@ -2636,6 +2661,9 @@
           $("crumb-name").textContent = module.name;
           $("crumb-desc").textContent = module.desc;
           $("side").classList.remove("is-open");
+          if (id === "atlas" && atlasMap) {
+            setTimeout(() => atlasMap.invalidateSize(), 60);
+          }
           if (id === "watchtower" && !wtLoaded) {
             wtLoaded = true;
             loadBrief(false);
@@ -3223,15 +3251,80 @@
               return;
             }
           }
-          const d = 0.008;
-          const bbox = [lon - d, lat - d / 2, lon + d, lat + d / 2].join("%2C");
-          $("atlas-map").src =
-            "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox + "&layer=mapnik&marker=" + lat + "%2C" + lon;
+          ensureAtlasMap();
+          refreshAtlasMarkers();
+          atlasMap.flyTo([lat, lon], 14, { duration: 1.1 });
+          const marker = atlasMarkers[person.id];
+          if (marker) setTimeout(() => marker.openPopup(), 1200);
+          $("atlas-map-caption").textContent = person.display_name + " · " + place.label;
+          $("atlas-map-coords").textContent = lat.toFixed(5) + ", " + lon.toFixed(5);
+        }
+
+        /* ---------- the real map: vendored Leaflet over dark raster tiles ---------- */
+        let atlasMap = null;
+        let atlasLayer = null;
+        let atlasMarkers = {};
+
+        function ensureAtlasMap() {
+          if (atlasMap || !window.L) return;
           $("atlas-map-blank").hidden = true;
           $("atlas-map-wrap").hidden = false;
-          $("atlas-map-caption").textContent = person.display_name + " · " + place.label;
-          $("atlas-map-coords").textContent = lat.toFixed(5) + ", " + lon.toFixed(5) + " · OpenStreetMap";
+          atlasMap = L.map("atlas-map", {
+            zoomControl: true,
+            attributionControl: true,
+            worldCopyJump: true,
+          }).setView([20, 0], 2);
+          L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+            maxZoom: 19,
+            subdomains: "abcd",
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          }).addTo(atlasMap);
+          atlasLayer = L.layerGroup().addTo(atlasMap);
+          setTimeout(() => atlasMap.invalidateSize(), 60);
         }
+
+        function refreshAtlasMarkers() {
+          if (!atlasMap) return;
+          atlasLayer.clearLayers();
+          atlasMarkers = {};
+          const located = people.filter(
+            (person) => person.meta && person.meta.geo && Number.isFinite(person.meta.geo.lat)
+          );
+          for (const person of located) {
+            const geo = person.meta.geo;
+            const place = personPlace(person);
+            const marker = L.circleMarker([geo.lat, geo.lon], {
+              radius: 8,
+              color: "#d0ad6d",
+              weight: 1.6,
+              fillColor: "#d0ad6d",
+              fillOpacity: 0.35,
+            }).addTo(atlasLayer);
+            marker.bindPopup(
+              '<b class="atlas-pop-name">' + escText(person.display_name) + "</b>" +
+              (person.relation ? '<span class="atlas-pop-rel">' + escText(person.relation) + "</span>" : "") +
+              (place ? '<span class="atlas-pop-place">' + escText(place.label) + "</span>" : "") +
+              '<span class="atlas-pop-coords">' + geo.lat.toFixed(4) + ", " + geo.lon.toFixed(4) + "</span>"
+            );
+            atlasMarkers[person.id] = marker;
+          }
+          return located.length;
+        }
+
+        function openAtlasField() {
+          ensureAtlasMap();
+          const count = refreshAtlasMarkers();
+          if (count) {
+            const bounds = L.latLngBounds(
+              Object.values(atlasMarkers).map((marker) => marker.getLatLng())
+            );
+            atlasMap.fitBounds(bounds.pad(0.35), { maxZoom: 10 });
+          }
+          $("atlas-map-caption").textContent = count
+            ? count + " located pin" + (count === 1 ? "" : "s") + " shown · select one to fly to it"
+            : "No pins located yet — select a person to geocode their place.";
+        }
+        $("atlas-open-map").addEventListener("click", openAtlasField);
 
         /* ---------- operations engine ---------- */
         let opsShowDone = false;
@@ -4901,6 +4994,23 @@
             );
           }
           planetLayer.innerHTML = planetHtml;
+          if (chart.houses) {
+            for (const cusp of chart.houses.cusps) {
+              if (cusp.house === 1 || cusp.house === 10) continue; // drawn as ASC/MC
+              const inner = wheelXY(cusp.lon, 96);
+              const outer = wheelXY(cusp.lon, 140);
+              const spoke = document.createElementNS(svgns, "line");
+              spoke.setAttribute("x1", inner.x);
+              spoke.setAttribute("y1", inner.y);
+              spoke.setAttribute("x2", outer.x);
+              spoke.setAttribute("y2", outer.y);
+              spoke.setAttribute("stroke", "#63dfca");
+              spoke.setAttribute("stroke-width", "0.5");
+              spoke.setAttribute("stroke-opacity", "0.35");
+              spoke.setAttribute("stroke-dasharray", "3 3");
+              angleLayer.append(spoke);
+            }
+          }
           if (chart.angles) {
             for (const [lon, label] of [[chart.angles.asc, "ASC"], [chart.angles.mc, "MC"]]) {
               const inner = wheelXY(lon, 96);
@@ -4945,7 +5055,7 @@
           holder.innerHTML = "";
           const table = document.createElement("table");
           table.className = "table-lite";
-          table.innerHTML = "<thead><tr><th></th><th>TROPICAL</th><th>SIDEREAL (LAHIRI)</th><th>NAKSHATRA</th><th>MOTION</th></tr></thead>";
+          table.innerHTML = "<thead><tr><th></th><th>TROPICAL</th><th>SIDEREAL (LAHIRI)</th><th>NAKSHATRA</th><th>MOTION</th>" + (chart.houses ? "<th>HOUSE</th>" : "") + "</tr></thead>";
           const body = document.createElement("tbody");
           for (const place of chart.placements) {
             const tr = document.createElement("tr");
@@ -4969,6 +5079,12 @@
               : "<span>direct</span>";
             if (place.retrograde) mot.style.color = "#e08baf";
             tr.append(name, trop, sid, nak, mot);
+            if (chart.houses) {
+              const house = document.createElement("td");
+              house.className = "t-dim";
+              house.textContent = place.house ? String(place.house) : "—";
+              tr.append(house);
+            }
             body.append(tr);
           }
           if (chart.angles) {
@@ -4989,11 +5105,36 @@
               mot.className = "t-dim";
               mot.textContent = "angle";
               tr.append(name, trop, sid, nak, mot);
+              if (chart.houses) {
+                const house = document.createElement("td");
+                house.className = "t-dim";
+                house.textContent = key === "ascSplit" ? "1 (cusp)" : "10 (cusp)";
+                tr.append(house);
+              }
               body.append(tr);
             }
           }
           table.append(body);
           holder.append(table);
+
+          if (chart.houses) {
+            const houseWrap = document.createElement("div");
+            houseWrap.className = "house-cusps";
+            const sysLabel = document.createElement("small");
+            sysLabel.className = "house-system";
+            sysLabel.textContent = "HOUSES · " + chart.houses.system.toUpperCase() +
+              " · SOLVED FROM THE SEMI-ARC DEFINITION";
+            houseWrap.append(sysLabel);
+            const grid = document.createElement("div");
+            grid.className = "house-grid";
+            for (const cusp of chart.houses.cusps) {
+              const cell = document.createElement("span");
+              cell.innerHTML = "<b>" + cusp.house + "</b>" + cusp.split.label;
+              grid.append(cell);
+            }
+            houseWrap.append(grid);
+            holder.append(houseWrap);
+          }
 
           $("aion-aspects-panel").hidden = false;
           $("aion-aspects-title").textContent = chart.aspects.length + " aspect" + (chart.aspects.length === 1 ? "" : "s");
@@ -5097,6 +5238,8 @@
 
         /* ---------- transits + synastry (the next rungs of the ladder) ---------- */
 
+        const ordinalSuffix = (n) =>
+          n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th";
         const escText = (value) =>
           String(value).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -5268,6 +5411,71 @@
         }
         $("syn-run").addEventListener("click", runSynastry);
 
+        function runComposite() {
+          if (!window.GZ_ASTRO) return toast("Calculation engine failed to load.");
+          const withBirth = peopleWithBirth();
+          const personA = withBirth.find((p) => p.id === $("syn-a").value);
+          const personB = withBirth.find((p) => p.id === $("syn-b").value);
+          if (!personA || !personB) return toast("Choose two profiles with birth data.");
+          if (personA.id === personB.id) return toast("Choose two different people.");
+          const comp = window.GZ_ASTRO.computeComposite(
+            chartForPerson(personA), chartForPerson(personB)
+          );
+          renderComposite(personA, personB, comp);
+          toast("Composite computed — " + comp.aspects.length + " internal aspects.");
+        }
+        $("syn-comp").addEventListener("click", runComposite);
+
+        function renderComposite(personA, personB, comp) {
+          $("syn-composite").hidden = false;
+          $("syn-empty").hidden = true;
+          $("syn-comp-title").textContent =
+            "COMPOSITE · " + personA.display_name.toUpperCase() + " + " +
+            personB.display_name.toUpperCase() + " · MIDPOINT METHOD";
+          const G = window.GZ_GLYPHS;
+          const places = $("syn-comp-places");
+          places.innerHTML = "";
+          const table = document.createElement("table");
+          table.className = "table-lite";
+          table.innerHTML = "<thead><tr><th></th><th>COMPOSITE</th><th>FROM</th></tr></thead>";
+          const body = document.createElement("tbody");
+          for (const place of comp.placements) {
+            const tr = document.createElement("tr");
+            const name = document.createElement("td");
+            name.className = "cell-glyph";
+            name.innerHTML = G.svg(place.body, { size: 14, cls: "glyph-cell" }) +
+              "<span>" + place.body + "</span>";
+            const pos = document.createElement("td");
+            pos.textContent = place.tropical.label;
+            const from = document.createElement("td");
+            from.className = "t-dim";
+            from.textContent = place.fromA + " + " + place.fromB;
+            tr.append(name, pos, from);
+            body.append(tr);
+          }
+          table.append(body);
+          const rail = document.createElement("div");
+          rail.className = "table-scroll";
+          rail.append(table);
+          places.append(rail);
+          const aspects = $("syn-comp-aspects");
+          aspects.innerHTML = "";
+          for (const hit of comp.aspects.slice(0, 18)) {
+            const row = document.createElement("div");
+            row.className = "syn-row";
+            row.innerHTML =
+              (G.paths[hit.a] ? G.svg(hit.a, { size: 13, cls: "glyph-cell" }) : "") +
+              "<b>" + hit.a + "</b>" +
+              '<span class="syn-asp">' +
+              (G.paths[hit.type] ? G.svg(hit.type, { size: 12, cls: "glyph-cell" }) : "") +
+              hit.type.toLowerCase() + "</span>" +
+              (G.paths[hit.b] ? G.svg(hit.b, { size: 13, cls: "glyph-cell" }) : "") +
+              "<b>" + hit.b + "</b>" +
+              '<span class="syn-orb">' + hit.orb.toFixed(2) + "&deg;</span>";
+            aspects.append(row);
+          }
+        }
+
         function renderSynastry(personA, personB, chartA, chartB, syn) {
           $("syn-out").hidden = false;
           $("syn-empty").hidden = true;
@@ -5322,6 +5530,30 @@
           balance.innerHTML =
             renderBalance(personA.display_name, syn.balanceA) +
             renderBalance(personB.display_name, syn.balanceB);
+          const overlay = $("syn-overlay");
+          overlay.innerHTML = "";
+          if (chartA.houses && chartB.houses) {
+            const H = window.GZ_ASTRO.houseOf;
+            const cuspsA = chartA.houses.cusps.map((c) => c.lon);
+            const cuspsB = chartB.houses.cusps.map((c) => c.lon);
+            const chip = (place, house, host) =>
+              '<span class="syn-house-chip">' +
+              (G && G.paths[place.body] ? G.svg(place.body, { size: 12, cls: "glyph-cell" }) : "") +
+              place.body + " &rarr; " + host + "'s " + house + ordinalSuffix(house) + "</span>";
+            overlay.innerHTML =
+              '<span class="kicker">HOUSE OVERLAY · PLANETS IN THE OTHER\'S HOUSES</span>' +
+              '<div class="syn-house-set"><small>' + escText(personA.display_name) + " &rarr; " +
+              escText(personB.display_name) + "</small>" +
+              chartA.placements.map((p) => chip(p, H(p.lon, cuspsB), escText(personB.display_name.split(" ")[0]))).join("") +
+              "</div>" +
+              '<div class="syn-house-set"><small>' + escText(personB.display_name) + " &rarr; " +
+              escText(personA.display_name) + "</small>" +
+              chartB.placements.map((p) => chip(p, H(p.lon, cuspsA), escText(personA.display_name.split(" ")[0]))).join("") +
+              "</div>";
+          } else {
+            overlay.innerHTML =
+              '<p class="panel-note">House overlay needs birth time and place for both charts.</p>';
+          }
           $("syn-mutual").innerHTML = syn.mutualPairs.length
             ? '<span class="kicker">MUTUAL PAIRS</span><p class="panel-note" style="margin-top:6px">' +
               syn.mutualPairs.map((pair) => escText(pair[0] + " ↔ " + pair[1])).join(" · ") +

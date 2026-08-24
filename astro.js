@@ -125,6 +125,118 @@
     return { asc, mc, ramc };
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Placidus houses, solved from the definition: an intermediate cusp   */
+  /* is the ecliptic point whose time from upper culmination is a fixed  */
+  /* fraction of its own diurnal (or nocturnal) semi-arc. Rather than    */
+  /* trust a textbook iteration, we bisect the defining equation and     */
+  /* then verify the property holds — nothing arbitrary.                 */
+  /* ------------------------------------------------------------------ */
+
+  const D2R = Math.PI / 180;
+  const R2D = 180 / Math.PI;
+
+  /* ecliptic-of-date longitude → right ascension and declination */
+  function eclToEq(lonDeg, epsDeg) {
+    const L = lonDeg * D2R;
+    const E = epsDeg * D2R;
+    const alpha = norm(Math.atan2(Math.sin(L) * Math.cos(E), Math.cos(L)) * R2D);
+    const delta = Math.asin(Math.sin(L) * Math.sin(E)) * R2D;
+    return { alpha, delta };
+  }
+
+  function placidusHouses(time, latDeg, lonDeg) {
+    const eps = A.e_tilt(time).tobl;
+    const { asc, mc, ramc } = anglesFor(time, latDeg, lonDeg);
+    const phi = latDeg * D2R;
+
+    /* time from upper culmination (in degrees of rotation), 0 at MC,
+       growing eastward to 180 at IC, for the ecliptic point at lonDeg */
+    const untilCulmination = (lon) => norm(eclToEq(lon, eps).alpha - ramc);
+
+    /* diurnal semi-arc of the ecliptic point; null when circumpolar */
+    const semiArc = (lon) => {
+      const delta = eclToEq(lon, eps).delta * D2R;
+      const x = -Math.tan(phi) * Math.tan(delta);
+      if (x < -1 || x > 1) return null;
+      return Math.acos(x) * R2D;
+    };
+
+    /* g(λ) = time-from-culmination − target-fraction-of-semi-arc.
+       diurnal=true targets f·SA (houses 11, 12); false targets
+       SA + f·(180−SA) (houses 2, 3). */
+    const residual = (lon, f, diurnal) => {
+      const sa = semiArc(lon);
+      if (sa === null) return null;
+      const t = untilCulmination(lon);
+      return t - (diurnal ? f * sa : sa + f * (180 - sa));
+    };
+
+    /* bisect g over the ecliptic arc (from, to) measured eastward */
+    const solveCusp = (fromLon, toLon, f, diurnal) => {
+      const span = norm(toLon - fromLon);
+      let lo = 0, hi = span;
+      let gLo = residual(fromLon, f, diurnal);
+      let gHi = residual(toLon, f, diurnal);
+      if (gLo === null || gHi === null) return null;
+      /* untilCulmination wraps at the MC itself — nudge off the endpoint */
+      if (gLo > 0) { gLo = residual(norm(fromLon + 0.01), f, diurnal); lo = 0.01; }
+      if (gLo === null || gLo > 0 || gHi < 0) return null;
+      for (let iter = 0; iter < 60; iter++) {
+        const mid = (lo + hi) / 2;
+        const g = residual(norm(fromLon + mid), f, diurnal);
+        if (g === null) return null;
+        if (g < 0) lo = mid; else hi = mid;
+      }
+      const lon = norm(fromLon + (lo + hi) / 2);
+      /* verify the defining property actually holds at the solution */
+      const check = residual(lon, f, diurnal);
+      if (check === null || Math.abs(check) > 0.001) return null;
+      return lon;
+    };
+
+    const ic = norm(mc + 180);
+    const c11 = solveCusp(mc, asc, 1 / 3, true);
+    const c12 = solveCusp(mc, asc, 2 / 3, true);
+    const c2 = solveCusp(asc, ic, 1 / 3, false);
+    const c3 = solveCusp(asc, ic, 2 / 3, false);
+
+    let system = "Placidus";
+    let cusps;
+    if (c11 === null || c12 === null || c2 === null || c3 === null) {
+      /* circumpolar ecliptic — Placidus is undefined; fall back to
+         Porphyry (each quadrant of the ecliptic trisected) and say so */
+      system = "Porphyry (polar fallback)";
+      const q1 = norm(asc - mc) / 3;     // MC → Asc
+      const q2 = norm(ic - asc) / 3;     // Asc → IC
+      cusps = [
+        asc, norm(asc + q2), norm(asc + 2 * q2), ic,
+        norm(ic + q1), norm(ic + 2 * q1), norm(asc + 180),
+        norm(asc + 180 + q2), norm(asc + 180 + 2 * q2), mc,
+        norm(mc + q1), norm(mc + 2 * q1),
+      ];
+    } else {
+      cusps = [
+        asc, norm(c2), norm(c3), ic,
+        norm(c11 + 180), norm(c12 + 180), norm(asc + 180),
+        norm(c2 + 180), norm(c3 + 180), mc,
+        norm(c11), norm(c12),
+      ];
+    }
+    return { system, cusps, asc, mc, ramc };
+  }
+
+  /* which house (1-12) a longitude falls in, given the cusp array */
+  function houseOf(lon, cusps) {
+    for (let h = 0; h < 12; h++) {
+      const start = cusps[h];
+      const end = cusps[(h + 1) % 12];
+      const width = norm(end - start);
+      if (norm(lon - start) < width) return h + 1;
+    }
+    return 12;
+  }
+
   function computeChart(dateUtc, options) {
     const opts = options || {};
     const time = A.MakeTime(dateUtc);
@@ -202,8 +314,74 @@
         lat: opts.lat,
         lonGeo: opts.lon,
       };
+      /* houses come with the angles — Placidus, with a stated fallback */
+      const houses = placidusHouses(time, opts.lat, opts.lon);
+      chart.houses = {
+        system: houses.system,
+        cusps: houses.cusps.map((lon, i) => ({
+          house: i + 1, lon, split: splitSign(lon),
+        })),
+      };
+      for (const place of placements) {
+        place.house = houseOf(place.lon, houses.cusps);
+      }
     }
     return chart;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Composite: the midpoint chart of two natals — each body at the      */
+  /* shorter-arc midpoint of the pair, with the composite's own internal */
+  /* aspects. Midpoints have no motion, so no speeds and no retrogrades, */
+  /* and without a shared birth moment there are no angles or houses.    */
+  /* ------------------------------------------------------------------ */
+
+  function midpointLon(a, b) {
+    return norm(a + separation(a, b) / 2);
+  }
+
+  function computeComposite(chartA, chartB) {
+    const placements = chartA.placements.map((pa) => {
+      const pb = chartB.placements.find((p) => p.body === pa.body);
+      const lon = midpointLon(pa.lon, pb.lon);
+      return {
+        body: pa.body,
+        glyph: pa.glyph,
+        lon,
+        tropical: splitSign(lon),
+        fromA: pa.tropical.label,
+        fromB: pb.tropical.label,
+      };
+    });
+    const aspects = [];
+    for (let i = 0; i < placements.length; i++) {
+      for (let j = i + 1; j < placements.length; j++) {
+        const sep = Math.abs(separation(placements[i].lon, placements[j].lon));
+        for (const aspect of ASPECTS) {
+          const luminary = i < 2 || j < 2;
+          const orb = luminary ? 8 : 6;
+          const off = Math.abs(sep - aspect.angle);
+          if (off <= orb) {
+            aspects.push({
+              a: placements[i].body, aGlyph: placements[i].glyph,
+              b: placements[j].body, bGlyph: placements[j].glyph,
+              type: aspect.name, typeGlyph: aspect.glyph, orb: off,
+            });
+            break;
+          }
+        }
+      }
+    }
+    aspects.sort((x, y) => x.orb - y.orb);
+    const sun = placements.find((p) => p.body === "Sun");
+    const moon = placements.find((p) => p.body === "Moon");
+    return {
+      method: "midpoint",
+      placements,
+      aspects,
+      moonPhaseAngle: norm(moon.lon - sun.lon),
+      timeUnknown: Boolean(chartA.timeUnknown || chartB.timeUnknown),
+    };
   }
 
   /* ------------------------------------------------------------------ */
@@ -386,7 +564,7 @@
   }
 
   window.GZ_ASTRO = {
-    computeChart, computeSynastry, computeTransits,
-    splitSign, SIGNS, SIGN_GLYPHS,
+    computeChart, computeSynastry, computeTransits, computeComposite,
+    houseOf, splitSign, SIGNS, SIGN_GLYPHS,
   };
 })();
