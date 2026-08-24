@@ -2662,6 +2662,76 @@ body.command-body {
   color: var(--violet);
 }
 
+.glyph {
+  vertical-align: -3px;
+}
+
+.cell-glyph {
+  white-space: nowrap;
+}
+
+.cell-glyph .glyph {
+  margin-right: 7px;
+}
+
+.aspect-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aspect-chip .glyph-asp {
+  opacity: 0.75;
+}
+
+.aspect-chip span {
+  margin-left: 4px;
+}
+
+#mercury-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fc-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  padding: 6px;
+}
+
+.fc-cat {
+  color: var(--amber);
+  letter-spacing: 0.24em;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 8px;
+}
+
+.fc-text {
+  font: 400 17px / 1.5 Georgia, serif;
+}
+
+.fc-hint {
+  color: var(--faint);
+  letter-spacing: 0.14em;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 7.5px;
+}
+
+.fc-note {
+  color: var(--muted);
+  font: 400 11px / 1.6 Georgia, serif;
+  max-width: 90%;
+}
+
+.flashcard-back .fc-text {
+  color: var(--gold);
+}
+
 .flash-meta {
   color: var(--faint);
   text-align: center;

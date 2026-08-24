@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=14" />
+    <link rel="stylesheet" href="command.css?v=15" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -37,7 +37,9 @@
     <script src="auth.js?v=2"></script>
     <script src="vendor/astronomy.browser.min.js"></script>
     <script src="astro.js?v=2"></script>
-    <script src="study-data.js?v=5"></script>
+    <script src="glyphs.js?v=1"></script>
+    <script src="pyramid.js?v=1"></script>
+    <script src="study-data.js?v=6"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -528,10 +530,7 @@
                 <circle cx="150" cy="150" r="42" style="fill: var(--panel-solid); stroke: #d0ad6d88" />
                 <text x="150" y="146" class="z-core">AION</text>
                 <text x="150" y="162" class="z-core" style="font-size: 8px; fill: #91a8b6">FIELD</text>
-                <text x="150" y="42">&#9800;</text><text x="209" y="58">&#9801;</text><text x="252" y="100">&#9802;</text>
-                <text x="268" y="159">&#9803;</text><text x="252" y="218">&#9804;</text><text x="209" y="260">&#9805;</text>
-                <text x="150" y="276">&#9806;</text><text x="91" y="260">&#9807;</text><text x="48" y="218">&#9808;</text>
-                <text x="32" y="159">&#9809;</text><text x="48" y="100">&#9810;</text><text x="91" y="58">&#9811;</text>
+                <g id="wheel-signs"></g>
               </svg>
               <div class="privacy-row">
                 <span>COORDINATE &middot; <b style="color: var(--paper)">Apparent geocentric</b></span>
@@ -1159,17 +1158,23 @@
               </section>
 
               <section class="panel" id="pane-flashcards" hidden>
-                <div class="privacy-row" style="margin-bottom: 14px">
+                <div class="privacy-row" style="margin-bottom: 10px">
                   <span id="flash-progress">Card 1 of 1</span>
+                  <span id="flash-session">0 reviewed this session</span>
                   <span id="flash-known-count">0 known</span>
                 </div>
+                <div class="chips" id="flash-cats" style="margin: 0 0 16px"></div>
                 <div class="flashcard" id="flashcard" tabindex="0">
                   <div class="flashcard-inner" id="flashcard-inner">
-                    <div class="flashcard-face flashcard-front" id="flash-front"></div>
-                    <div class="flashcard-face flashcard-back" id="flash-back"></div>
+                    <div class="flashcard-face flashcard-front">
+                      <div class="fc-inner"><small class="fc-cat" id="fc-front-cat"></small><div class="fc-text" id="flash-front"></div><small class="fc-hint">tap to reveal</small></div>
+                    </div>
+                    <div class="flashcard-face flashcard-back">
+                      <div class="fc-inner"><div class="fc-text" id="flash-back"></div><small class="fc-note" id="fc-back-note"></small></div>
+                    </div>
                   </div>
                 </div>
-                <p class="panel-note" style="text-align: center">Click or press Space to flip. Grade the card after seeing the answer.</p>
+                <p class="panel-note" style="text-align: center">Space flips · 1 / 2 / 3 grade Again / Good / Easy · arrows move</p>
                 <div class="srs-actions">
                   <button class="srs-btn srs-again" id="srs-again" type="button">Again<em>relearn now</em></button>
                   <button class="srs-btn srs-good" id="srs-good" type="button">Good<em id="srs-good-int"></em></button>
@@ -2920,11 +2925,17 @@
 
         /* ---- spaced repetition ---- */
         let deckMode = "due";
+        let flashCat = "All";
+        let flashSession = 0;
 
         function srsToday(plusDays) {
           const d = new Date();
           d.setDate(d.getDate() + (plusDays || 0));
           return d.toISOString().slice(0, 10);
+        }
+
+        function srsCatMatch(data, index) {
+          return flashCat === "All" || (data.flashcards[index].cat || "General") === flashCat;
         }
 
         function srsDuePool(data) {
@@ -2934,14 +2945,36 @@
           const pool = [];
           for (let i = 0; i < data.flashcards.length; i++) {
             const entry = srs[i];
-            if (!entry || entry.due <= today) pool.push(i);
+            if ((!entry || entry.due <= today) && srsCatMatch(data, i)) pool.push(i);
           }
           return pool;
         }
 
         function srsActivePool(data) {
-          if (deckMode === "all") return data.flashcards.map((_, i) => i);
+          if (deckMode === "all") {
+            return data.flashcards.map((_, i) => i).filter((i) => srsCatMatch(data, i));
+          }
           return srsDuePool(data);
+        }
+
+        function renderFlashCats(data) {
+          const holder = $("flash-cats");
+          const cats = ["All", ...new Set(data.flashcards.map((card) => card.cat || "General"))];
+          holder.innerHTML = "";
+          for (const cat of cats) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = cat === flashCat ? "is-on" : "";
+            chip.textContent = cat;
+            chip.addEventListener("click", () => {
+              flashCat = cat;
+              flashIndex = 0;
+              flashFlipped = false;
+              renderFlashCats(data);
+              renderFlashcard(data);
+            });
+            holder.append(chip);
+          }
         }
 
         function srsNextIntervals(entry) {
@@ -2964,6 +2997,8 @@
           const gradeButtons = [$("srs-again"), $("srs-good"), $("srs-easy")];
           if (!pool.length) {
             $("flash-progress").textContent = "Review complete";
+            $("fc-front-cat").textContent = flashCat === "All" ? "DECK CLEAR" : flashCat.toUpperCase();
+            $("fc-back-note").textContent = "";
             $("flash-front").textContent = "Nothing due for review.";
             $("flash-back").textContent = "Every card is scheduled ahead. Switch the deck to All to browse freely.";
             $("flashcard").classList.remove("is-flipped");
@@ -2980,10 +3015,13 @@
           $("flash-progress").textContent =
             "Card " + (flashIndex + 1) + " of " + pool.length +
             (entry ? " · interval " + entry.interval + "d" : " · new");
+          $("flash-session").textContent = flashSession + " reviewed this session";
           $("srs-good-int").textContent = "+" + nextIv.good + "d";
           $("srs-easy-int").textContent = "+" + nextIv.easy + "d";
+          $("fc-front-cat").textContent = (card.cat || "General").toUpperCase();
           $("flash-front").textContent = card.front;
           $("flash-back").textContent = card.back;
+          $("fc-back-note").textContent = card.note || "";
           $("flashcard").classList.toggle("is-flipped", flashFlipped);
         }
 
@@ -3007,6 +3045,7 @@
                points at the next due card automatically */
           }
           flashFlipped = false;
+          flashSession++;
           await saveStudyProgress(studyGradeLoaded);
           renderFlashcard(data);
           renderStudyMastery(data);
@@ -3171,12 +3210,15 @@
             studyGradeLoaded = gradeName;
             flashIndex = 0;
             flashFlipped = false;
+            flashCat = "All";
+            flashSession = 0;
             quizIndex = 0;
             quizScore = 0;
             await loadStudyProgress(gradeName);
           }
 
           renderStudyLessons(data);
+          renderFlashCats(data);
           renderFlashcard(data);
           quizList = null;
           quizMode = "practice";
@@ -3202,12 +3244,43 @@
             badge.textContent = TIER_LABELS[diagram.tier || "correspondence"];
             h3.append(badge);
             const svgWrap = document.createElement("div");
-            svgWrap.innerHTML = diagram.svg;
+            if (diagram.interactive === "pyramid3d" && window.GZ_PYRAMID) {
+              window.GZ_PYRAMID.mount(svgWrap);
+            } else if (diagram.interactive === "greekcross" && window.GZ_GLYPHS) {
+              svgWrap.innerHTML = buildGreekCross();
+            } else {
+              svgWrap.innerHTML = diagram.svg || "";
+            }
             const caption = document.createElement("p");
             caption.textContent = diagram.caption;
             card.append(h3, svgWrap, caption);
             holder.append(card);
           }
+        }
+
+        function buildGreekCross() {
+          const G = window.GZ_GLYPHS;
+          const cell = 30;
+          const layout = [
+            ["Aries", 0, -3], ["Taurus", 0, -2], ["Gemini", 0, -1],
+            ["Cancer", -3, 0], ["Leo", -2, 0], ["Virgo", -1, 0],
+            ["Libra", 1, 0], ["Scorpio", 2, 0], ["Sagittarius", 3, 0],
+            ["Capricorn", 0, 1], ["Aquarius", 0, 2], ["Pisces", 0, 3],
+          ];
+          let html = '<svg viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
+          html += '<text x="150" y="12" fill="var(--muted)" font-family="Georgia,serif" font-size="7.6" letter-spacing="0.8" text-anchor="middle">THE SUN IN THE CENTRE OF THE FOUR ELEMENTS</text>';
+          const cx = 150, cy = 128;
+          const boxes = layout.concat([[null, 0, 0]]);
+          for (const [name, gx, gy] of boxes) {
+            const x = cx + gx * cell - cell / 2;
+            const y = cy + gy * cell - cell / 2;
+            html += '<rect x="' + x + '" y="' + y + '" width="' + cell + '" height="' + cell +
+              '" fill="' + (name ? "none" : "#d0ad6d1a") + '" stroke="var(--amber)" stroke-width="1.1"/>';
+            if (name) html += G.group(name, cx + gx * cell, cy + gy * cell, 16, "var(--gold)", 1.5);
+          }
+          html += G.group("Sun", cx, cy, 17, "var(--amber)", 1.6);
+          html += "</svg>";
+          return html;
         }
 
         let mercuryCache = null;
@@ -3221,9 +3294,10 @@
             const mercury = chart.placements.find((place) => place.body === "Mercury");
             const moon = chart.placements.find((place) => place.body === "Moon");
             $("mercury-strip").hidden = false;
-            $("mercury-now").textContent =
-              "☿ Mercury now: " + mercury.tropical.label + " · " +
-              (mercury.retrograde ? "retrograde ℞" : "direct");
+            $("mercury-now").innerHTML =
+              window.GZ_GLYPHS.svg("Mercury", { size: 14, cls: "glyph-cell" }) +
+              "<span>Mercury now: " + mercury.tropical.label + " · " +
+              (mercury.retrograde ? "retrograde" : "direct") + "</span>";
             $("mercury-note").textContent =
               "The grade's ruler, computed live · Moon " + moon.tropical.label +
               " — timing context for study sessions, not instruction";
@@ -3253,6 +3327,15 @@
             event.preventDefault();
             flipFlashcard();
           }
+        });
+        window.addEventListener("keydown", (event) => {
+          if ($("pane-flashcards").hidden || $("tw-study-field").hidden) return;
+          if (event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA") return;
+          if (event.key === "1") srsGrade("again");
+          else if (event.key === "2") srsGrade("good");
+          else if (event.key === "3") srsGrade("easy");
+          else if (event.key === "ArrowLeft") $("flash-prev").click();
+          else if (event.key === "ArrowRight") $("flash-next").click();
         });
         $("flash-prev").addEventListener("click", () => {
           const data = window.GZ_STUDY[studyGradeLoaded];
@@ -3358,7 +3441,20 @@
           return { x: 150 + radius * Math.sin(theta), y: 150 - radius * Math.cos(theta) };
         }
 
+        function buildWheelSigns() {
+          if (!window.GZ_GLYPHS) return;
+          const ring = $("wheel-signs");
+          if (!ring || ring.childNodes.length) return;
+          let html = "";
+          window.GZ_ASTRO.SIGNS.forEach((sign, index) => {
+            const pos = wheelXY(index * 30 + 15, 118);
+            html += window.GZ_GLYPHS.group(sign, pos.x, pos.y, 15, "var(--violet)", 1.5);
+          });
+          ring.innerHTML = html;
+        }
+
         function renderWheel(chart) {
+          buildWheelSigns();
           const planetLayer = $("wheel-planets");
           const angleLayer = $("wheel-angles");
           planetLayer.innerHTML = "";
@@ -3368,6 +3464,7 @@
           const sorted = [...chart.placements].sort((a, b) => a.lon - b.lon);
           let lastLon = -999;
           let toggle = false;
+          let planetHtml = "";
           for (const place of sorted) {
             if (Math.abs(separation(lastLon, place.lon)) < 10) toggle = !toggle;
             else toggle = false;
@@ -3375,21 +3472,15 @@
             const pos = wheelXY(place.lon, toggle ? 58 : 76);
             const tick = wheelXY(place.lon, 92);
             const tickOuter = wheelXY(place.lon, 96);
-            const line = document.createElementNS(svgns, "line");
-            line.setAttribute("x1", tick.x);
-            line.setAttribute("y1", tick.y);
-            line.setAttribute("x2", tickOuter.x);
-            line.setAttribute("y2", tickOuter.y);
-            line.setAttribute("stroke", "#d0ad6d");
-            line.setAttribute("stroke-width", "1.4");
-            planetLayer.append(line);
-            const glyph = document.createElementNS(svgns, "text");
-            glyph.setAttribute("x", pos.x);
-            glyph.setAttribute("y", pos.y + 4);
-            glyph.setAttribute("style", "fill: var(--paper); font-size: 12px; text-anchor: middle" + (place.retrograde ? "; fill: #e08baf" : ""));
-            glyph.textContent = place.glyph;
-            planetLayer.append(glyph);
+            planetHtml +=
+              '<line x1="' + tick.x + '" y1="' + tick.y + '" x2="' + tickOuter.x + '" y2="' + tickOuter.y +
+              '" stroke="#d0ad6d" stroke-width="1.4"/>';
+            planetHtml += window.GZ_GLYPHS.group(
+              place.body, pos.x, pos.y, 15,
+              place.retrograde ? "#e08baf" : "var(--paper)", 1.5
+            );
           }
+          planetLayer.innerHTML = planetHtml;
           if (chart.angles) {
             for (const [lon, label] of [[chart.angles.asc, "ASC"], [chart.angles.mc, "MC"]]) {
               const inner = wheelXY(lon, 96);
@@ -3439,7 +3530,10 @@
           for (const place of chart.placements) {
             const tr = document.createElement("tr");
             const name = document.createElement("td");
-            name.textContent = place.glyph + " " + place.body;
+            name.innerHTML =
+              window.GZ_GLYPHS.svg(place.body, { size: 15, cls: "glyph-cell" }) +
+              "<span>" + place.body + "</span>";
+            name.className = "cell-glyph";
             const trop = document.createElement("td");
             trop.textContent = place.tropical.label;
             const sid = document.createElement("td");
@@ -3449,8 +3543,10 @@
             nak.className = "t-dim";
             nak.textContent = place.nakshatra.name + " · pada " + place.nakshatra.pada;
             const mot = document.createElement("td");
-            mot.className = "t-dim";
-            mot.textContent = place.retrograde ? "℞ retrograde" : "direct";
+            mot.className = "t-dim cell-glyph";
+            mot.innerHTML = place.retrograde
+              ? window.GZ_GLYPHS.svg("Retrograde", { size: 13, cls: "glyph-cell" }) + "<span>retrograde</span>"
+              : "<span>direct</span>";
             if (place.retrograde) mot.style.color = "#e08baf";
             tr.append(name, trop, sid, nak, mot);
             body.append(tr);
@@ -3486,11 +3582,14 @@
           for (const aspect of chart.aspects) {
             const chip = document.createElement("button");
             chip.type = "button";
+            chip.className = "aspect-chip";
             chip.style.cursor = "default";
-            chip.textContent =
-              aspect.aGlyph + " " + aspect.typeGlyph + " " + aspect.bGlyph + "  " +
-              aspect.a + " " + aspect.type.toLowerCase() + " " + aspect.b +
-              " · orb " + aspect.orb.toFixed(1) + "°";
+            chip.innerHTML =
+              window.GZ_GLYPHS.svg(aspect.a, { size: 13 }) +
+              window.GZ_GLYPHS.svg(aspect.type, { size: 12, cls: "glyph-asp" }) +
+              window.GZ_GLYPHS.svg(aspect.b, { size: 13 }) +
+              "<span>" + aspect.a + " " + aspect.type.toLowerCase() + " " + aspect.b +
+              " · orb " + aspect.orb.toFixed(1) + "°</span>";
             aspectHolder.append(chip);
           }
         }
