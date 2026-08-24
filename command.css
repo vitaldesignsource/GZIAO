@@ -3260,3 +3260,167 @@ body.command-body {
   background: #63dfca1c;
   border-color: var(--gold-soft);
 }
+
+/* ================= temple esoterica ================= */
+
+#view-thework {
+  position: relative;
+  --grade-accent: var(--amber);
+  --grade-accent-soft: #d0ad6d33;
+}
+
+/* sacred-geometry watermark: circle, squared, diamond */
+#view-thework::before {
+  content: "";
+  position: absolute;
+  top: 40px;
+  right: -140px;
+  width: 640px;
+  height: 640px;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23a78bfa' stroke-opacity='0.055'%3E%3Ccircle cx='100' cy='100' r='92'/%3E%3Ccircle cx='100' cy='100' r='64'/%3E%3Crect x='36' y='36' width='128' height='128'/%3E%3Crect x='36' y='36' width='128' height='128' transform='rotate(45 100 100)'/%3E%3Ccircle cx='100' cy='100' r='30'/%3E%3Cpath d='M100 8v184M8 100h184'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+#view-thework > * {
+  position: relative;
+}
+
+/* ornamental divider */
+.temple-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--grade-accent);
+  opacity: 0.75;
+  font-size: 11px;
+  margin: -4px 0;
+}
+
+.temple-divider::before,
+.temple-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--grade-accent-soft) 30%, var(--grade-accent-soft) 70%, transparent);
+}
+
+.temple-divider span {
+  animation: gz-breathe 5s ease-in-out infinite;
+}
+
+/* grade track as elemental chambers */
+#tw-track .grade-cell {
+  border-bottom: 2px solid transparent;
+  transition: background 0.25s, border-color 0.25s;
+}
+
+#tw-track .grade-cell .grade-el {
+  flex: none;
+  opacity: 0.8;
+}
+
+#tw-track .grade-cell.is-on {
+  border-bottom-color: var(--grade-accent);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--grade-accent) 7%, transparent));
+}
+
+#tw-track .grade-cell.is-on b {
+  color: var(--grade-accent);
+}
+
+#tw-track .grade-cell.is-on .grade-mark {
+  border-color: var(--grade-accent);
+  box-shadow: 0 0 12px var(--grade-accent-soft);
+}
+
+/* the current chamber as an altar */
+.altar {
+  border-color: var(--grade-accent-soft) !important;
+  background:
+    radial-gradient(circle at 50% 24%, color-mix(in srgb, var(--grade-accent) 9%, transparent), transparent 62%),
+    var(--panel) !important;
+}
+
+.altar::after {
+  inset: 6px !important;
+  height: auto !important;
+  background: none !important;
+  border: 1px solid color-mix(in srgb, var(--grade-accent) 14%, transparent);
+  border-radius: 9px;
+}
+
+.altar .chamber-glyph {
+  border-color: var(--grade-accent);
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--grade-accent) 28%, transparent),
+    inset 0 0 22px color-mix(in srgb, var(--grade-accent) 12%, transparent);
+  animation: altar-breathe 6s ease-in-out infinite;
+}
+
+@keyframes altar-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 18px color-mix(in srgb, var(--grade-accent) 18%, transparent),
+      inset 0 0 16px color-mix(in srgb, var(--grade-accent) 8%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 34px color-mix(in srgb, var(--grade-accent) 38%, transparent),
+      inset 0 0 26px color-mix(in srgb, var(--grade-accent) 16%, transparent);
+  }
+}
+
+.altar .chamber-glyph span {
+  color: var(--grade-accent);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--grade-accent) 55%, transparent);
+}
+
+.altar #tw-element {
+  color: var(--grade-accent) !important;
+}
+
+.altar .warn-note {
+  border-color: color-mix(in srgb, var(--grade-accent) 26%, transparent) !important;
+  font-family: var(--font-serif, Georgia), serif;
+}
+
+/* journal register entries: illuminated ledger lines */
+#tw-list li {
+  border-left: 2px solid var(--grade-accent-soft);
+}
+
+#tw-list li b::before {
+  content: "◆ ";
+  color: var(--grade-accent);
+  font-size: 8px;
+  vertical-align: 2px;
+}
+
+/* the dream field under stars */
+#tw-dream-field .panel:first-child {
+  background:
+    radial-gradient(1px 1px at 12% 22%, #ffffff2e 50%, transparent 51%),
+    radial-gradient(1px 1px at 34% 68%, #ffffff22 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 18%, #ffffff30 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 48%, #ffffff26 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 80%, #ffffff1e 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 22% 86%, #ffffff28 50%, transparent 51%),
+    radial-gradient(1px 1px at 66% 90%, #ffffff20 50%, transparent 51%),
+    radial-gradient(circle at 20% 10%, #8b5cf614, transparent 46%),
+    var(--panel) !important;
+  border-color: #8b5cf63d !important;
+}
+
+#tw-dream-field .chamber-glyph {
+  border-color: var(--violet);
+  box-shadow: 0 0 26px #8b5cf63a, inset 0 0 20px #8b5cf61c;
+  animation: altar-breathe 7s ease-in-out infinite;
+  --grade-accent: #a78bfa;
+}
+
+html[data-theme="light"] #view-thework::before {
+  opacity: 0.8;
+}

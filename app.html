@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=2" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=18" />
+    <link rel="stylesheet" href="command.css?v=19" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1147,6 +1147,8 @@
             <button type="button" data-field="dream"><b>&#9790; Dream field</b><span>Oneiric record + celestial timestamps</span></button>
           </section>
 
+          <div class="temple-divider" aria-hidden="true"><span>&#10022;</span></div>
+
           <!-- ---- grade work ---- -->
           <div id="tw-grade-field">
             <section class="grade-track" id="tw-track"></section>
@@ -1157,7 +1159,7 @@
               <div class="strip-cell"><div><small>DREAM FOLIO</small><b id="tw-dreamcount">0</b></div><span>Sealed dreams</span></div>
             </section>
             <section class="chrono-row" style="margin-top: 18px">
-              <div class="panel" style="max-width: 400px">
+              <div class="panel altar" style="max-width: 400px">
                 <span class="kicker is-amber">CURRENT CHAMBER</span>
                 <div class="chamber-glyph"><span id="tw-glyph">0&deg;=0&#9633;</span></div>
                 <h2 style="margin-top: 0" id="tw-name">Neophyte</h2>
@@ -2272,6 +2274,21 @@
         }
 
         /* ---------- temple journal ---------- */
+        const GRADE_ACCENTS = {
+          Neophyte: "#a78bfa",
+          Zelator: "#9aa86a",
+          Theoricus: "#e3c76a",
+          Practicus: "#6fb0e8",
+          Philosophus: "#d97b7b",
+        };
+        const ELEMENT_MARKS = {
+          Neophyte: '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.1"><circle cx="7" cy="7" r="5.4"/><circle cx="7" cy="7" r="1" fill="currentColor" stroke="none"/></svg>',
+          Zelator: '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M7 12L1.8 2.6h10.4Z"/><path d="M3.4 8.4h7.2"/></svg>',
+          Theoricus: '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M7 2l5.2 9.4H1.8Z"/><path d="M3.4 7.6h7.2"/></svg>',
+          Practicus: '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M7 12L1.8 2.6h10.4Z"/></svg>',
+          Philosophus: '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M7 2l5.2 9.4H1.8Z"/></svg>',
+        };
+
         const GRADES = [
           {
             num: "00", sig: "0°=0□", name: "Neophyte", element: "THRESHOLD",
@@ -2328,6 +2345,7 @@
             cell.type = "button";
             cell.className = "grade-cell" + (index === activeGrade ? " is-on" : "");
             cell.innerHTML =
+              "<span class='grade-el' style='color:" + GRADE_ACCENTS[grade.name] + "'>" + ELEMENT_MARKS[grade.name] + "</span>" +
               "<div><small>" + grade.num + " · " + grade.sig + "</small><b>" + grade.name +
               "</b><span>" + grade.element.charAt(0) + grade.element.slice(1).toLowerCase() + " · " + count +
               " entr" + (count === 1 ? "y" : "ies") + "</span></div><i class='grade-mark'></i>";
@@ -2340,6 +2358,9 @@
           });
 
           const grade = GRADES[activeGrade];
+          const accent = GRADE_ACCENTS[grade.name];
+          $("view-thework").style.setProperty("--grade-accent", accent);
+          $("view-thework").style.setProperty("--grade-accent-soft", accent + "40");
           $("tw-glyph").textContent = grade.sig;
           $("tw-name").textContent = grade.name;
           $("tw-element").textContent = grade.element;
