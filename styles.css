@@ -718,3 +718,170 @@ html[data-theme="light"] .install-later {
 .install-go:hover {
   filter: brightness(1.06);
 }
+
+/* ---- hero install buttons ---- */
+.entry-install {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entry-install-kicker {
+  color: var(--faint);
+  font-size: 8.5px;
+  letter-spacing: 0.24em;
+}
+
+.entry-install-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.install-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 190px;
+  padding: 11px 18px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.install-btn:hover {
+  border-color: var(--gold);
+  color: var(--paper);
+  transform: translateY(-1px);
+}
+
+.install-btn svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  color: var(--gold);
+}
+
+.install-btn span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.install-btn small {
+  font-size: 7.5px;
+  letter-spacing: 0.22em;
+  color: var(--faint);
+}
+
+.install-btn b {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.install-btn.is-this-device {
+  border-color: var(--amber);
+}
+
+.install-btn.is-this-device small::after {
+  content: " · THIS DEVICE";
+  color: var(--amber);
+}
+
+.entry-install.is-installed .entry-install-row {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.entry-install-note {
+  color: var(--faint);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+}
+
+/* ---- install guide overlay ---- */
+.install-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #050812d9;
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.install-guide-panel {
+  position: relative;
+  width: min(430px, 100%);
+  background: var(--panel, #0a101c);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px 30px;
+  box-shadow: 0 30px 80px #00000090;
+}
+
+.install-guide-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.install-guide-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.install-guide-head strong {
+  color: var(--paper);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+
+.install-guide ol {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.install-guide ol b {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.install-guide-note {
+  margin: 16px 0 0;
+  color: var(--faint);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+
+@media (max-width: 560px) {
+  .entry-install-row {
+    flex-direction: column;
+  }
+
+  .install-btn {
+    width: 100%;
+  }
+}

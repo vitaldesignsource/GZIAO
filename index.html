@@ -41,7 +41,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=2" />
+    <link rel="stylesheet" href="styles.css?v=3" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -117,6 +117,20 @@
             <span>Encrypted hosted storage</span>
             <span>Source-aware records</span>
           </div>
+          <div class="entry-install" id="entry-install">
+            <small class="entry-install-kicker">CARRY THE FIELD &middot; INSTALLS FROM THIS PAGE, NO APP STORE</small>
+            <div class="entry-install-row">
+              <button class="install-btn" id="install-ios" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 12.54c-.03-2.89 2.36-4.28 2.47-4.35-1.35-1.97-3.44-2.24-4.18-2.27-1.78-.18-3.47 1.05-4.37 1.05-.9 0-2.29-1.02-3.77-1-1.94.03-3.72 1.13-4.72 2.86-2.01 3.49-.51 8.66 1.45 11.49.96 1.39 2.1 2.94 3.6 2.88 1.44-.06 1.99-.93 3.73-.93 1.74 0 2.23.93 3.76.9 1.55-.03 2.53-1.41 3.48-2.8 1.09-1.61 1.54-3.17 1.57-3.25-.04-.02-3.01-1.15-3.02-4.58zM14.16 4.04c.79-.96 1.33-2.29 1.18-3.62-1.14.05-2.53.76-3.35 1.72-.73.85-1.38 2.21-1.21 3.51 1.28.1 2.59-.65 3.38-1.61z"/></svg>
+                <span><small>INSTALL FOR</small><b>iPhone &amp; iPad</b></span>
+              </button>
+              <button class="install-btn" id="install-android" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.14-.52.38.38 0 0 0-.52.14L16.9 9.14a11.46 11.46 0 0 0-9.8 0L5.22 5.92a.38.38 0 0 0-.52-.14.38.38 0 0 0-.14.52L6.4 9.48A10.88 10.88 0 0 0 1 18h22a10.88 10.88 0 0 0-5.4-8.52zM7 15.25A1.25 1.25 0 1 1 8.25 14 1.25 1.25 0 0 1 7 15.25zm10 0A1.25 1.25 0 1 1 18.25 14 1.25 1.25 0 0 1 17 15.25z"/></svg>
+                <span><small>INSTALL FOR</small><b>Android</b></span>
+              </button>
+            </div>
+            <small class="entry-install-note" id="entry-install-note">Also installs on desktop Chrome and Edge from the address bar.</small>
+          </div>
         </div>
       </section>
 
@@ -148,35 +162,18 @@
         <b>Authorized access only</b>
       </footer>
 
-      <aside class="install-card" id="install-card" hidden>
-        <button class="install-close" id="install-close" type="button" aria-label="Dismiss">
-          &times;
-        </button>
-        <div class="install-head">
-          <div class="install-badge" aria-hidden="true">
-            <div class="brand-mark">
-              <span>GZ</span>
-              <i></i>
-            </div>
-            <b>+</b>
+      <div class="install-guide" id="install-guide" hidden>
+        <div class="install-guide-panel">
+          <button class="install-guide-close" id="install-guide-close" type="button" aria-label="Close">&times;</button>
+          <div class="install-guide-head">
+            <div class="brand-mark" aria-hidden="true"><span>G</span><i></i><span>Z</span></div>
+            <strong id="install-guide-title">Install on iPhone &amp; iPad</strong>
           </div>
-          <div>
-            <small>GIMEL ZAYIN &middot; MOBILE FIELD</small>
-            <strong>Install the private command app</strong>
-          </div>
+          <ol id="install-guide-steps"></ol>
+          <p class="install-guide-note" id="install-guide-note"></p>
         </div>
-        <p>
-          Launch full screen from your Home Screen with a dedicated icon and faster return to
-          your field.
-        </p>
-        <div class="install-actions">
-          <button class="install-later" id="install-later" type="button">Not now</button>
-          <button class="install-go" id="install-go" type="button">
-            Install app <span aria-hidden="true">&nearr;</span>
-          </button>
-        </div>
-      </aside>
+      </div>
     </main>
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=4"></script>
   </body>
 </html>
