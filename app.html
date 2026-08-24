@@ -39,7 +39,7 @@
     <script src="astro.js?v=2"></script>
     <script src="glyphs.js?v=1"></script>
     <script src="pyramid.js?v=1"></script>
-    <script src="study-data.js?v=7"></script>
+    <script src="study-data.js?v=8"></script>
   </head>
   <body class="command-body">
     <div class="shell" id="shell">
@@ -3929,8 +3929,13 @@
                 const tr = document.createElement("tr");
                 row.forEach((cell, cellIndex) => {
                   const td = document.createElement("td");
-                  td.textContent = cell;
-                  if (cellIndex > 0) td.className = "t-dim";
+                  if (typeof cell === "string" && cell.startsWith("@") && window.GZ_GLYPHS && window.GZ_GLYPHS.paths[cell.slice(1)]) {
+                    td.className = "cell-glyph" + (cellIndex > 0 ? " t-dim" : "");
+                    td.innerHTML = window.GZ_GLYPHS.svg(cell.slice(1), { size: 13, cls: "glyph-cell" }) + "<span>" + cell.slice(1) + "</span>";
+                  } else {
+                    td.textContent = cell;
+                    if (cellIndex > 0) td.className = "t-dim";
+                  }
                   tr.append(td);
                 });
                 tbody.append(tr);
@@ -4342,7 +4347,16 @@
           $("drill-best").textContent = "Best " + (state ? state.drillBest : 0);
           $("drill-note").textContent = set.prompt;
 
-          const options = [...new Set(set.rows.map((r) => r[colIndex]))];
+          const correctValue = row[colIndex];
+          let options = [...new Set(set.rows.map((r) => r[colIndex]))];
+          if (options.length > 6) {
+            const distractors = options.filter((option) => option !== correctValue);
+            for (let i = distractors.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
+            }
+            options = [correctValue, ...distractors.slice(0, 5)];
+          }
           for (let i = options.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [options[i], options[j]] = [options[j], options[i]];
