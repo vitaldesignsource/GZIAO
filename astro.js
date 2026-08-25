@@ -563,8 +563,116 @@
     return hits;
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Planetary hours: the day runs sunrise to sunrise, split into twelve  */
+  /* unequal hours of day and twelve of night. The first hour of the day  */
+  /* belongs to the weekday's ruler; the rest follow the Chaldean order.  */
+  /* Sunrise and sunset come from the ephemeris, not from approximation.  */
+  /* ------------------------------------------------------------------ */
+
+  const CHALDEAN = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"];
+  /* weekday (0=Sunday) → its ruler's index in the Chaldean sequence */
+  const DAY_RULER_INDEX = [3, 6, 2, 5, 1, 4, 0]; // Sun Moon Mars Mercury Jupiter Venus Saturn
+
+  function weekdayInZone(dateUtc, zone) {
+    try {
+      const name = new Intl.DateTimeFormat("en-US", { timeZone: zone, weekday: "short" }).format(dateUtc);
+      return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(name);
+    } catch (error) {
+      return dateUtc.getUTCDay();
+    }
+  }
+
+  /* the sunrise/sunset events bracketing the instant, found by search */
+  function sunEventsAround(dateUtc, lat, lon) {
+    const observer = new A.Observer(lat, lon, 0);
+    const start = A.MakeTime(new Date(dateUtc.getTime() - 2 * 86400000));
+    const events = [];
+    for (const dir of [+1, -1]) {
+      let cursor = start;
+      for (let i = 0; i < 5; i++) {
+        const found = A.SearchRiseSet(A.Body.Sun, observer, dir, cursor, 2);
+        if (!found) break;
+        events.push({ kind: dir > 0 ? "rise" : "set", when: found.date });
+        cursor = found.AddDays(0.05);
+        if (found.date.getTime() > dateUtc.getTime() + 2 * 86400000) break;
+      }
+    }
+    events.sort((x, y) => x.when - y.when);
+    return events;
+  }
+
+  function planetaryHour(dateUtc, lat, lon, zone) {
+    let events;
+    try {
+      events = sunEventsAround(dateUtc, lat, lon);
+    } catch (error) {
+      return null;
+    }
+    const t = dateUtc.getTime();
+    const lastRise = [...events].reverse().find((e) => e.kind === "rise" && e.when.getTime() <= t);
+    const lastSet = [...events].reverse().find((e) => e.kind === "set" && e.when.getTime() <= t);
+    if (!lastRise) return null; // polar conditions — no honest answer
+    const isDay = !lastSet || lastRise.when.getTime() > lastSet.when.getTime();
+    let index, hourStart, hourEnd;
+    if (isDay) {
+      const nextSet = events.find((e) => e.kind === "set" && e.when.getTime() > lastRise.when.getTime());
+      if (!nextSet) return null;
+      const span = (nextSet.when.getTime() - lastRise.when.getTime()) / 12;
+      index = Math.min(11, Math.floor((t - lastRise.when.getTime()) / span));
+      hourStart = new Date(lastRise.when.getTime() + index * span);
+      hourEnd = new Date(lastRise.when.getTime() + (index + 1) * span);
+    } else {
+      const nextRise = events.find((e) => e.kind === "rise" && e.when.getTime() > lastSet.when.getTime());
+      if (!nextRise) return null;
+      const span = (nextRise.when.getTime() - lastSet.when.getTime()) / 12;
+      index = 12 + Math.min(11, Math.floor((t - lastSet.when.getTime()) / span));
+      hourStart = new Date(lastSet.when.getTime() + (index - 12) * span);
+      hourEnd = new Date(lastSet.when.getTime() + (index - 11) * span);
+    }
+    /* the planetary day began at the last sunrise; its weekday names the ruler */
+    const weekday = weekdayInZone(lastRise.when, zone);
+    const startIndex = DAY_RULER_INDEX[weekday];
+    const ruler = CHALDEAN[(startIndex + index) % 7];
+    return {
+      ruler,
+      index: index + 1,          // 1..24
+      isDay,
+      dayRuler: CHALDEAN[startIndex],
+      hourStart: hourStart.toISOString(),
+      hourEnd: hourEnd.toISOString(),
+      sunrise: lastRise.when.toISOString(),
+    };
+  }
+
+  /* the moment's sky, reduced to a journal stamp */
+  const PHASE_NAMES = [
+    [22.5, "New Moon"], [67.5, "Waxing Crescent"], [112.5, "First Quarter"],
+    [157.5, "Waxing Gibbous"], [202.5, "Full Moon"], [247.5, "Waning Gibbous"],
+    [292.5, "Last Quarter"], [337.5, "Waning Crescent"], [360.1, "New Moon"],
+  ];
+
+  function celestialStamp(dateUtc, lat, lon, zone) {
+    const time = A.MakeTime(dateUtc);
+    const sunLon = A.SunPosition(time).elon;
+    const moonLon = A.EclipticGeoMoon(time).lon;
+    const phaseAngle = norm(A.MoonPhase(time));
+    const stamp = {
+      utc: dateUtc.toISOString(),
+      sun: splitSign(sunLon),
+      moon: splitSign(moonLon),
+      phaseAngle,
+      phaseName: PHASE_NAMES.find(([limit]) => phaseAngle < limit)[1],
+      illumination: (1 - Math.cos(phaseAngle * Math.PI / 180)) / 2,
+    };
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      stamp.hour = planetaryHour(dateUtc, lat, lon, zone);
+    }
+    return stamp;
+  }
+
   window.GZ_ASTRO = {
     computeChart, computeSynastry, computeTransits, computeComposite,
-    houseOf, splitSign, SIGNS, SIGN_GLYPHS,
+    planetaryHour, celestialStamp, houseOf, splitSign, SIGNS, SIGN_GLYPHS,
   };
 })();

@@ -4965,3 +4965,71 @@ small.ritual-note {
 }
 
 .nv-rise { transform-origin: 12px 19.6px; }
+
+/* ---- celestial stamps on entries ---- */
+.entry-celestial {
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  margin: 4px 0 0;
+}
+
+.entry-celestial.is-personal {
+  color: var(--violet);
+}
+
+.cap-celestial {
+  border: 1px solid var(--panel-line);
+  border-left: 2px solid var(--gold);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 4px 0 2px;
+}
+
+.cap-celestial b {
+  display: block;
+  color: var(--gold);
+  font: 400 12px Georgia, serif;
+  letter-spacing: 0.04em;
+}
+
+.cap-celestial small {
+  display: block;
+  color: var(--faint);
+  font-size: 9.5px;
+  margin-top: 3px;
+}
+
+/* ---- intake banner ---- */
+.intake-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-color: #d0ad6d55 !important;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.intake-banner:hover {
+  border-color: var(--amber) !important;
+  transform: translateY(-1px);
+}
+
+.intake-banner b {
+  color: var(--amber);
+  font: 400 14px Georgia, serif;
+  white-space: nowrap;
+}
+
+.intake-banner span {
+  color: var(--muted);
+  font-size: 11px;
+  flex: 1;
+}
+
+.intake-banner i {
+  color: var(--amber);
+  font-style: normal;
+}
