@@ -5634,3 +5634,181 @@ small.ritual-note {
 .strip-phour .glyph-cell {
   vertical-align: middle;
 }
+
+/* ================= figures, memory, rings, seals ================= */
+.fig-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.fig-row > small {
+  color: var(--faint);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+.fig-chip {
+  border: 1px solid #a78bfa44;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.fig-chip b {
+  color: var(--violet);
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+.fm-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.fm-tier {
+  flex: 0 0 auto;
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+.fm-tier.is-pattern {
+  color: var(--violet);
+  border-color: #a78bfa55;
+}
+
+.ring-two-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.ring-two-row label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--faint);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+.ring-two-row select {
+  border: 1px solid var(--line);
+  background: var(--panel-solid);
+  color: var(--paper);
+  height: 34px;
+  padding: 0 10px;
+  font: 400 12px Georgia, serif;
+}
+#wheel-ring-note {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+#ws-play {
+  color: var(--gold);
+  border-color: #d0ad6d55;
+  min-width: 34px;
+}
+
+.sen-hash {
+  display: block;
+  color: var(--faint);
+  font: 400 10px ui-monospace, Menlo, monospace;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+.side-item {
+  position: relative;
+}
+.nv-alert {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #141414;
+  font: 600 9px Inter, sans-serif;
+  font-style: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* ================= the printable chronology ================= */
+#print-sheet {
+  display: none;
+}
+@media print {
+  body.print-mode > *:not(#print-sheet) {
+    display: none !important;
+  }
+  body.print-mode {
+    background: #fff !important;
+  }
+  body.print-mode #print-sheet {
+    display: block;
+    color: #111;
+    font: 400 12px/1.5 Georgia, serif;
+    padding: 24px;
+  }
+  #print-sheet h1 {
+    font: 600 22px "Playfair Display", Georgia, serif;
+    margin: 0 0 4px;
+  }
+  #print-sheet h2 {
+    font: 600 15px Georgia, serif;
+    margin: 22px 0 8px;
+  }
+  #print-sheet .ps-meta {
+    color: #555;
+    margin: 0 0 16px;
+  }
+  #print-sheet table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  #print-sheet th, #print-sheet td {
+    border: 1px solid #999;
+    padding: 5px 8px;
+    text-align: left;
+    font-size: 11px;
+  }
+  #print-sheet th {
+    background: #eee;
+    letter-spacing: 0.06em;
+  }
+  #print-sheet .ps-matter {
+    border-left: 2px solid #999;
+    padding: 4px 10px;
+    margin: 0 0 10px;
+  }
+  #print-sheet .ps-matter b { display: block; }
+  #print-sheet .ps-matter span { color: #555; font-size: 11px; }
+  #print-sheet .ps-matter p { margin: 4px 0 0; font-size: 11px; }
+  #print-sheet .ps-matter code {
+    display: block;
+    font-size: 9px;
+    color: #666;
+    margin-top: 4px;
+    word-break: break-all;
+  }
+  #print-sheet .ps-foot {
+    margin-top: 18px;
+    color: #555;
+    font-size: 10px;
+    border-top: 1px solid #999;
+    padding-top: 8px;
+  }
+}

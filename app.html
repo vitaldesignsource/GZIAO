@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=51" />
+    <link rel="stylesheet" href="command.css?v=52" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -45,7 +45,7 @@
     <link rel="stylesheet" href="vendor/leaflet.css" />
     <script src="vendor/astronomy.browser.min.js"></script>
     <script src="vendor/leaflet.js"></script>
-    <script src="astro.js?v=6"></script>
+    <script src="astro.js?v=7"></script>
     <script src="glyphs.js?v=2"></script>
     <script src="pyramid.js?v=2"></script>
     <script src="tree.js?v=4"></script>
@@ -481,12 +481,17 @@
         <!-- ================= VAULT VIEW ================= -->
         <div class="content" id="view-vault" hidden>
           <section class="panel">
-            <span class="kicker">MODULE 10 &middot; PROTECT</span>
+            <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
+              <span>MODULE 10 &middot; PROTECT</span>
+              <button class="chrono-open" id="vault-export" type="button">&#10515; EXPORT COMPLETE ARCHIVE</button>
+            </span>
             <h2>The Vault</h2>
             <p class="panel-sub">
               Private records, sealed under your identity. Row-level security keeps every record
-              readable by you alone.
+              readable by you alone. The export bundles every record, profile, and stored file
+              into one zip &mdash; a copy of the field that lives with you, not with any host.
             </p>
+            <p class="panel-note" id="vault-export-state" hidden></p>
           </section>
           <div class="vault-grid">
             <section class="panel">
@@ -687,6 +692,7 @@
               <button type="button" data-rung="solar">Solar return</button>
               <button type="button" data-rung="lunar">Lunar returns</button>
               <button type="button" data-rung="dasha">Dashas</button>
+              <button type="button" data-rung="eclipse">Eclipses</button>
             </div>
 
             <div id="rung-progressions">
@@ -727,6 +733,16 @@
               <p class="panel-note" id="dasha-head" style="margin-top: 14px"></p>
               <div id="dasha-out" style="margin-top: 8px"></div>
             </div>
+
+            <div id="rung-eclipse" hidden>
+              <p class="panel-note" style="margin-top: 14px">
+                The next eight eclipses, with any that strike the anchor&rsquo;s chart &mdash;
+                a conjunction or opposition to a natal planet or angle within 3&deg;.
+                Eclipse instants and paths are ephemeris output; the 3&deg; orb is the one
+                stated convention here.
+              </p>
+              <ul class="vault-list" id="eclipse-list" style="margin-top: 10px"></ul>
+            </div>
           </section>
           <section class="duo-wide">
             <div class="panel" style="border-color: #d0ad6d44">
@@ -736,6 +752,15 @@
               </span>
               <h2 id="aion-wheel-title">Awaiting calculation</h2>
               <p class="panel-note" id="aion-wheel-sub" style="margin: 2px 0 0" hidden></p>
+              <div class="ring-two-row" id="ring-two-row" hidden>
+                <label>RING TWO
+                  <select id="wheel-overlay">
+                    <option value="">None &mdash; single wheel</option>
+                    <option value="sky">The sky &middot; live transits</option>
+                  </select>
+                </label>
+                <span id="wheel-ring-note"></span>
+              </div>
               <svg class="zwheel" viewBox="0 0 300 300" aria-hidden="true">
                 <circle cx="150" cy="150" r="140" />
                 <circle cx="150" cy="150" r="96" />
@@ -750,6 +775,7 @@
               </svg>
               <div class="wheel-scrub" id="wheel-scrub" hidden>
                 <div class="ws-row">
+                  <button type="button" id="ws-play" aria-label="Let time flow">&#9654;</button>
                   <button type="button" data-ws="-720">&minus;1mo</button>
                   <button type="button" data-ws="-168">&minus;1w</button>
                   <button type="button" data-ws="-24">&minus;1d</button>
@@ -1036,7 +1062,13 @@
               </div>
             </div>
             <div class="panel">
-              <span class="kicker is-amber">AUTHORITATIVE TIMELINE</span>
+              <span class="kicker is-amber" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px">
+                <span>AUTHORITATIVE TIMELINE</span>
+                <span style="display: flex; gap: 10px">
+                  <button class="chrono-open" id="sen-ics" type="button">&#10515; .ICS</button>
+                  <button class="chrono-open" id="sen-print" type="button">&#9113; PRINT CHRONOLOGY</button>
+                </span>
+              </span>
               <h2>Every date, in order</h2>
               <p class="panel-sub">Key dates and Scribe-extracted dates from all matters. Court dates control.</p>
               <ul class="chrono-list" id="sen-timeline" style="margin-top: 8px; max-height: 430px; overflow-y: auto"></ul>
@@ -1177,6 +1209,15 @@
                   <select id="ops-category" style="border: 1px solid var(--line); background: var(--panel-solid); color: var(--paper); height: 40px; padding: 0 10px; font: 400 13px Georgia, serif"></select>
                 </label>
               </div>
+              <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">RECURS
+                <select id="ops-recur" style="border: 1px solid var(--line); background: var(--panel-solid); color: var(--paper); height: 40px; padding: 0 10px; font: 400 13px Georgia, serif">
+                  <option value="">Once</option>
+                  <option value="daily">Every day</option>
+                  <option value="weekly">Every week</option>
+                  <option value="monthly">Every month</option>
+                  <option value="yearly">Every year</option>
+                </select>
+              </label>
               <input type="text" id="ops-category-custom" placeholder="Name the new category&hellip;" hidden style="margin-top: -4px" />
               <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">IMAGES (OPTIONAL)
                 <input type="file" id="ops-images" accept="image/*" multiple style="color: var(--muted); font-size: 11px" />
@@ -1338,6 +1379,7 @@
             </div>
             <div class="mp-actions">
               <div class="pill-status"><i></i><span id="cal-pill">0 EVENTS THIS MONTH</span></div>
+              <button class="ghost-btn" id="cal-ics" type="button" style="height: 40px">&#10515; To phone calendar (.ics)</button>
               <button class="prime-btn" id="cal-new" type="button">+ New event</button>
             </div>
           </div>
@@ -1512,6 +1554,19 @@
             <p class="panel-sub">People, things, sources, schedules, and events ranked by consequence, recurrence, and evidentiary strength.</p>
             <div id="or-findings" style="margin-top: 16px"></div>
             <p class="panel-note">Scores prioritize review; they do not prove causation, intent, diagnosis, or prediction.</p>
+          </section>
+          <section class="panel">
+            <span class="kicker is-violet" style="display: flex; justify-content: space-between">
+              <span>FIELD MEMORY &middot; WHAT THE STAMPS REMEMBER</span>
+              <span id="fm-count" style="color: var(--faint)"></span>
+            </span>
+            <h2>The sky behind your entries</h2>
+            <p class="panel-sub">
+              Every stamped journal and dream carries the calculated sky of its moment. This reads
+              those stamps back and counts &mdash; nothing more. Counts are held against an
+              even-share baseline; a lean is an observed pattern, never a cause.
+            </p>
+            <div id="fm-out" style="margin-top: 14px"></div>
           </section>
           <section class="duo-wide">
             <div class="panel ring-panel">
@@ -2420,6 +2475,9 @@
                   (stamp.hour.isDay ? " \u00b7 DAY" : " \u00b7 NIGHT") +
                   " \u00b7 " + stamp.phaseName.toUpperCase();
               }
+            }
+            if (overlayChoice === "sky" && wsOffset === 0 && currentChart && !$("view-aion").hidden) {
+              refreshOverlayRing();
             }
           } catch (error) {
           } finally {
@@ -3601,9 +3659,23 @@
             (l.to_user === user.id || (l.to_email || "").toLowerCase() === myEmail()) &&
             l.from_user !== user.id);
           const offers = recordShares.filter((s) => s.status === "pending" && s.to_user === user.id);
+          const outLinks = unitLinks.filter((l) => l.from_user === user.id && l.status !== "accepted");
+          const outShares = recordShares.filter((s) => s.from_user === user.id && s.status !== "accepted");
           const total = invites.length + offers.length;
-          panel.hidden = total === 0;
+          panel.hidden = total === 0 && !outLinks.length && !outShares.length;
           $("unit-inbox-count").textContent = total ? total + " AWAITING YOUR DECISION" : "";
+          /* a quiet mark on the sidebar doorway while decisions wait */
+          const doorway = document.querySelector('.side-item[data-view="constellations"]');
+          if (doorway) {
+            const oldMark = doorway.querySelector(".nv-alert");
+            if (oldMark) oldMark.remove();
+            if (total > 0) {
+              const mark = document.createElement("i");
+              mark.className = "nv-alert";
+              mark.textContent = total;
+              doorway.append(mark);
+            }
+          }
           const respondLink = async (link, accept) => {
             const { data, error } = await GZ.client.from("unit_links")
               .update({ status: accept ? "accepted" : "declined", to_user: user.id })
@@ -3677,6 +3749,85 @@
             no.addEventListener("click", () => respondShare(share, false));
             actions.append(yes, no);
             li.append(title, stamp, p, actions);
+            list.append(li);
+          }
+
+          /* what I have sent out, and where it stands */
+          if (outLinks.length || outShares.length) {
+            const divider = document.createElement("li");
+            divider.style.cssText = "border: 0; padding: 10px 0 2px";
+            divider.innerHTML = "<small style=\"color: var(--faint); letter-spacing: 0.14em; font-size: 9px\">SENT BY ME</small>";
+            list.append(divider);
+          }
+          const withdrawLink = async (link) => {
+            const { error } = await GZ.client.from("unit_links").delete().eq("id", link.id);
+            if (error) return toast("Could not withdraw: " + error.message);
+            unitLinks = unitLinks.filter((l) => l.id !== link.id);
+            renderUnit();
+            renderUnitInbox();
+            toast("Invitation withdrawn.");
+          };
+          const reinvite = async (link) => {
+            await GZ.client.from("unit_links").delete().eq("id", link.id);
+            unitLinks = unitLinks.filter((l) => l.id !== link.id);
+            const { data, error } = await GZ.client.from("unit_links").insert({
+              from_user: user.id, from_email: user.email, to_email: link.to_email, status: "pending",
+            }).select().single();
+            if (error) return toast("Could not re-invite: " + error.message);
+            unitLinks.push(data);
+            renderUnit();
+            renderUnitInbox();
+            toast("Fresh invitation sent to " + link.to_email + ".");
+          };
+          for (const link of outLinks) {
+            const li = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = "Invitation to " + link.to_email;
+            const stamp = document.createElement("time");
+            stamp.textContent = link.status === "pending" ? "awaiting their approval" : "declined";
+            if (link.status === "declined") stamp.style.color = "#d98181";
+            const actions = document.createElement("span");
+            actions.className = "rec-actions-row";
+            if (link.status === "declined") {
+              const again = document.createElement("button");
+              again.type = "button";
+              again.textContent = "Re-invite";
+              again.addEventListener("click", () => reinvite(link));
+              actions.append(again);
+            }
+            const drop = document.createElement("button");
+            drop.type = "button";
+            drop.className = "is-destroy";
+            drop.textContent = "Withdraw";
+            drop.addEventListener("click", () => withdrawLink(link));
+            actions.append(drop);
+            li.append(title, stamp, actions);
+            list.append(li);
+          }
+          for (const share of outShares) {
+            const record = records.find((r) => r.id === share.record_id);
+            const li = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = "\u201c" + (record ? record.title : "a record") + "\u201d offered to " + share.to_email;
+            const stamp = document.createElement("time");
+            stamp.textContent = share.status === "pending" ? "awaiting their decision" : "declined";
+            if (share.status === "declined") stamp.style.color = "#d98181";
+            const actions = document.createElement("span");
+            actions.className = "rec-actions-row";
+            const drop = document.createElement("button");
+            drop.type = "button";
+            drop.className = "is-destroy";
+            drop.textContent = "Withdraw";
+            drop.addEventListener("click", async () => {
+              const { error } = await GZ.client.from("record_shares").delete().eq("id", share.id);
+              if (error) return toast("Could not withdraw: " + error.message);
+              recordShares = recordShares.filter((x) => x.id !== share.id);
+              renderUnitInbox();
+              renderVaultList();
+              toast("Offer withdrawn.");
+            });
+            actions.append(drop);
+            li.append(title, stamp, actions);
             list.append(li);
           }
         }
@@ -4240,6 +4391,11 @@
             if (senFile) {
               const safeName = senFile.name.replace(/[^\w.\-]+/g, "_");
               const path = user.id + "/sentinel/" + Date.now() + "_" + safeName;
+              /* the digest first — tamper-evidence begins at intake */
+              try {
+                meta.sha256 = await sha256Hex(await senFile.arrayBuffer());
+                meta.sha256_at = new Date().toISOString();
+              } catch (hashError) { /* older engines: file still stored, unhashed */ }
               const { error } = await GZ.client.storage.from("vault")
                 .upload(path, senFile, { contentType: senFile.type || "application/octet-stream" });
               if (error) throw new Error("upload: " + error.message);
@@ -4277,6 +4433,13 @@
           meta.module = "sentinel";
           meta.matter = matter;
           meta.status = "open";
+          if (meta.path && !meta.sha256) {
+            try {
+              const blob = await storedFileBlob(record);
+              meta.sha256 = await sha256Hex(await blob.arrayBuffer());
+              meta.sha256_at = new Date().toISOString();
+            } catch (hashError) { /* offline or unreadable: migrate unhashed */ }
+          }
           meta.dates = (extracted && extracted.dates) || [];
           if (extracted && Number.isFinite(extracted.amount)) meta.amount = extracted.amount;
           const keyDate = meta.dates.length ? meta.dates[0].date : null;
@@ -4305,6 +4468,163 @@
           /* the blob may come back typeless — restore what the record knows */
           return blob.type ? blob : blob.slice(0, blob.size, record.meta.type || "");
         }
+
+        /* ---------- the archive: everything, exportable, yours ---------- */
+
+        /* a minimal ZIP writer (STORE method, no compression) — the archive
+           must not depend on any library to exist */
+        const CRC_TABLE = (() => {
+          const table = new Uint32Array(256);
+          for (let n = 0; n < 256; n++) {
+            let c = n;
+            for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+            table[n] = c >>> 0;
+          }
+          return table;
+        })();
+        function crc32(bytes) {
+          let c = 0xffffffff;
+          for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+          return (c ^ 0xffffffff) >>> 0;
+        }
+        function buildZip(entries) {
+          const enc = new TextEncoder();
+          const now = new Date();
+          const dosTime = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xffff;
+          const dosDate = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xffff;
+          const chunks = [];
+          const central = [];
+          let offset = 0;
+          const push = (buf) => { chunks.push(buf); offset += buf.length; };
+          for (const entry of entries) {
+            const name = enc.encode(entry.name);
+            const data = entry.data;
+            const crc = crc32(data);
+            const local = new Uint8Array(30 + name.length);
+            const v = new DataView(local.buffer);
+            v.setUint32(0, 0x04034b50, true);
+            v.setUint16(4, 20, true);
+            v.setUint16(6, 0x0800, true); /* UTF-8 names */
+            v.setUint16(8, 0, true);      /* stored */
+            v.setUint16(10, dosTime, true);
+            v.setUint16(12, dosDate, true);
+            v.setUint32(14, crc, true);
+            v.setUint32(18, data.length, true);
+            v.setUint32(22, data.length, true);
+            v.setUint16(26, name.length, true);
+            v.setUint16(28, 0, true);
+            local.set(name, 30);
+            const headerOffset = offset;
+            push(local);
+            push(data);
+            const dir = new Uint8Array(46 + name.length);
+            const d = new DataView(dir.buffer);
+            d.setUint32(0, 0x02014b50, true);
+            d.setUint16(4, 20, true);
+            d.setUint16(6, 20, true);
+            d.setUint16(8, 0x0800, true);
+            d.setUint16(10, 0, true);
+            d.setUint16(12, dosTime, true);
+            d.setUint16(14, dosDate, true);
+            d.setUint32(16, crc, true);
+            d.setUint32(20, data.length, true);
+            d.setUint32(24, data.length, true);
+            d.setUint16(28, name.length, true);
+            d.setUint32(42, headerOffset, true);
+            dir.set(name, 46);
+            central.push(dir);
+          }
+          const dirStart = offset;
+          for (const dir of central) push(dir);
+          const dirSize = offset - dirStart;
+          const end = new Uint8Array(22);
+          const e = new DataView(end.buffer);
+          e.setUint32(0, 0x06054b50, true);
+          e.setUint16(8, entries.length, true);
+          e.setUint16(10, entries.length, true);
+          e.setUint32(12, dirSize, true);
+          e.setUint32(16, dirStart, true);
+          push(end);
+          return new Blob(chunks, { type: "application/zip" });
+        }
+
+        async function exportArchive() {
+          const button = $("vault-export");
+          const state = $("vault-export-state");
+          button.disabled = true;
+          state.hidden = false;
+          state.textContent = "Gathering the field\u2026";
+          try {
+            const enc = new TextEncoder();
+            const entries = [];
+            const manifest = {
+              format: "gziao-archive",
+              version: 1,
+              exported_at: new Date().toISOString(),
+              identity: user.email,
+              records,
+              people,
+              unit_links: unitLinks,
+              record_shares: recordShares,
+            };
+            entries.push({
+              name: "gziao-archive/manifest.json",
+              data: enc.encode(JSON.stringify(manifest, null, 2)),
+            });
+            entries.push({
+              name: "gziao-archive/READ-ME.txt",
+              data: enc.encode(
+                "GZIAO complete archive\n" +
+                "Exported " + new Date().toUTCString() + " for " + user.email + "\n\n" +
+                "manifest.json holds every record and profile as JSON.\n" +
+                "files/ holds every stored document and image at its vault path.\n" +
+                "This archive is a full copy of your field. Keep it somewhere only you control.\n"
+              ),
+            });
+            const paths = new Set();
+            for (const record of records) {
+              if (record.meta && record.meta.path) paths.add(record.meta.path);
+              if (record.meta && Array.isArray(record.meta.images)) {
+                for (const p of record.meta.images) paths.add(p);
+              }
+            }
+            let pulled = 0;
+            let skipped = 0;
+            for (const path of paths) {
+              state.textContent = "Pulling stored files\u2026 " + (pulled + skipped + 1) + " of " + paths.size;
+              try {
+                const { data, error } = await GZ.client.storage.from("vault").createSignedUrl(path, 300);
+                if (error || !data) throw new Error("no url");
+                const response = await fetch(data.signedUrl);
+                if (!response.ok) throw new Error("fetch failed");
+                const buf = new Uint8Array(await response.arrayBuffer());
+                entries.push({ name: "gziao-archive/files/" + path, data: buf });
+                pulled++;
+              } catch (err) {
+                skipped++;
+              }
+            }
+            state.textContent = "Sealing the archive\u2026";
+            const blob = buildZip(entries);
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "gziao-archive-" + new Date().toISOString().slice(0, 10) + ".zip";
+            document.body.append(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+            state.textContent =
+              "Archive sealed: " + records.length + " records, " + people.length + " profiles, " +
+              pulled + " stored files" + (skipped ? " (" + skipped + " unreachable — try again online)" : "") +
+              " \u00b7 " + (blob.size / 1048576).toFixed(1) + " MB.";
+            toast("Archive downloaded. Keep it somewhere only you control.");
+          } catch (err) {
+            state.textContent = "Export failed: " + err.message;
+          } finally {
+            button.disabled = false;
+          }
+        }
+        if ($("vault-export")) $("vault-export").addEventListener("click", exportArchive);
 
         function buildMigrateControls(record, actionsRow) {
           actionsRow.innerHTML = "";
@@ -4359,6 +4679,169 @@
           actionsRow.append(select, readBtn, go, cancel, status);
         }
 
+        /* ---------- carrying dates into the phone's own calendar ---------- */
+        function icsEscape(text) {
+          return String(text || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;")
+            .replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+        }
+        function icsFold(line) {
+          const out = [];
+          let rest = line;
+          while (rest.length > 73) {
+            out.push(rest.slice(0, 73));
+            rest = " " + rest.slice(73);
+          }
+          out.push(rest);
+          return out.join("\r\n");
+        }
+        function icsEvent(uid, summary, dateStr, timeStr, description, alarm) {
+          const lines = ["BEGIN:VEVENT", "UID:" + uid + "@gziao.com",
+            "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z"];
+          const day = dateStr.replace(/-/g, "");
+          if (timeStr) {
+            lines.push("DTSTART:" + day + "T" + timeStr.replace(":", "") + "00");
+            lines.push("DURATION:PT1H");
+          } else {
+            lines.push("DTSTART;VALUE=DATE:" + day);
+          }
+          lines.push("SUMMARY:" + icsEscape(summary));
+          if (description) lines.push("DESCRIPTION:" + icsEscape(description));
+          if (alarm) {
+            lines.push("BEGIN:VALARM", "ACTION:DISPLAY",
+              "DESCRIPTION:" + icsEscape(summary), "TRIGGER:-P1D", "END:VALARM");
+          }
+          lines.push("END:VEVENT");
+          return lines;
+        }
+        function icsBirthday(person) {
+          const day = person.birth_date.slice(5).replace("-", "");
+          return ["BEGIN:VEVENT", "UID:bday-" + person.id + "@gziao.com",
+            "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
+            "DTSTART;VALUE=DATE:" + person.birth_date.replace(/-/g, ""),
+            "RRULE:FREQ=YEARLY",
+            "SUMMARY:" + icsEscape("Birthday \u00b7 " + person.display_name),
+            "END:VEVENT"];
+        }
+        function downloadICS(lines, filename) {
+          const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//GZIAO//field//EN",
+            "CALSCALE:GREGORIAN", ...lines, "END:VCALENDAR"]
+            .map(icsFold).join("\r\n");
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(new Blob([body], { type: "text/calendar" }));
+          a.download = filename;
+          document.body.append(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+        }
+        function exportFieldICS() {
+          const lines = [];
+          for (const record of records) {
+            const m = record.meta || {};
+            if (m.module === "calendar" && m.event && m.event.date && !m.adopts) {
+              lines.push(...icsEvent("cal-" + record.id, record.title, m.event.date,
+                m.event.time || "", m.event.place || record.body || "", false));
+            }
+            if (record.kind === "action" && m.due && m.status !== "done") {
+              lines.push(...icsEvent("op-" + record.id, "Operation \u00b7 " + record.title,
+                m.due, "", record.body || "", true));
+            }
+          }
+          for (const eventItem of senAllEvents()) {
+            lines.push(...icsEvent("sen-" + eventItem.record.id + "-" + eventItem.date,
+              "Sentinel \u00b7 " + eventItem.label + " \u2014 " + eventItem.record.title,
+              eventItem.date, "", SEN_TYPES[eventItem.record.meta.matter] || "", true));
+          }
+          for (const person of people) {
+            if (person.birth_date) lines.push(...icsBirthday(person));
+          }
+          if (!lines.length) return toast("Nothing dated to carry yet.");
+          downloadICS(lines, "gziao-field.ics");
+          toast("Calendar file downloaded \u2014 open it and your phone offers to add the dates.");
+        }
+        function exportSentinelICS() {
+          const lines = [];
+          for (const eventItem of senAllEvents()) {
+            lines.push(...icsEvent("sen-" + eventItem.record.id + "-" + eventItem.date,
+              "Sentinel \u00b7 " + eventItem.label + " \u2014 " + eventItem.record.title,
+              eventItem.date, "", SEN_TYPES[eventItem.record.meta.matter] || "", true));
+          }
+          if (!lines.length) return toast("No dated matters yet.");
+          downloadICS(lines, "gziao-sentinel.ics");
+          toast("Sentinel dates downloaded \u2014 each carries a day-before reminder.");
+        }
+        if ($("cal-ics")) $("cal-ics").addEventListener("click", exportFieldICS);
+        if ($("sen-ics")) $("sen-ics").addEventListener("click", exportSentinelICS);
+
+        /* ---------- the printable chronology ---------- */
+        function printChronology() {
+          const all = sentinelAll();
+          if (!all.length) return toast("No matters to print.");
+          let sheet = $("print-sheet");
+          if (!sheet) {
+            sheet = document.createElement("div");
+            sheet.id = "print-sheet";
+            document.body.append(sheet);
+          }
+          const events = senAllEvents(all);
+          const esc = (t) => String(t || "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+          let html = "<h1>Authoritative Chronology</h1>" +
+            "<p class=\"ps-meta\">Prepared from the GZIAO Sentinel register \u00b7 " +
+            esc(user.email) + " \u00b7 generated " + new Date().toLocaleString() + "</p>" +
+            "<table><thead><tr><th>Date</th><th>Event</th><th>Matter</th><th>Register</th></tr></thead><tbody>";
+          for (const eventItem of events) {
+            html += "<tr><td>" + eventItem.date + "</td><td>" + esc(eventItem.label) +
+              "</td><td>" + esc(eventItem.record.title) + "</td><td>" +
+              esc(SEN_TYPES[eventItem.record.meta.matter] || "") + "</td></tr>";
+          }
+          html += "</tbody></table><h2>Matters on file</h2>";
+          for (const record of all) {
+            const m = record.meta;
+            html += "<div class=\"ps-matter\"><b>" + esc(record.title) + "</b>" +
+              "<span>" + esc(SEN_TYPES[m.matter] || "") + " \u00b7 " + esc(m.status || "open") +
+              (m.amount ? " \u00b7 $" + Number(m.amount).toFixed(2) : "") + "</span>" +
+              (record.body ? "<p>" + esc(record.body) + "</p>" : "") +
+              (m.sha256 ? "<code>SHA-256 " + esc(m.sha256) + (m.sha256_at ? " \u00b7 hashed " + m.sha256_at.slice(0, 10) : "") + "</code>" : "") +
+              "</div>";
+          }
+          html += "<p class=\"ps-foot\">Dates listed are as printed on the underlying documents or entered by the holder. " +
+            "File hashes are SHA-256 digests computed at intake; a matching digest proves the file is unchanged since that moment.</p>";
+          sheet.innerHTML = html;
+          document.body.classList.add("print-mode");
+          const done = () => {
+            document.body.classList.remove("print-mode");
+            window.removeEventListener("afterprint", done);
+          };
+          window.addEventListener("afterprint", done);
+          window.print();
+          /* some engines never fire afterprint from a PWA context */
+          setTimeout(done, 2000);
+        }
+        if ($("sen-print")) $("sen-print").addEventListener("click", printChronology);
+
+        /* ---------- tamper-evidence: a digest at the moment of intake ---------- */
+        async function sha256Hex(buffer) {
+          const digest = await crypto.subtle.digest("SHA-256", buffer);
+          return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+        }
+
+        function senAllEvents(all) {
+          const events = [];
+          for (const record of all || sentinelAll()) {
+            const seen = new Set();
+            for (const d of record.meta.dates || []) {
+              if (seen.has(d.date)) continue;
+              seen.add(d.date);
+              events.push({ date: d.date, label: d.label, record });
+            }
+            if (record.meta.key_date && !seen.has(record.meta.key_date)) {
+              events.push({ date: record.meta.key_date, label: "key date", record });
+            }
+          }
+          events.sort((a, b) => a.date.localeCompare(b.date));
+          return events;
+        }
+
         function renderSentinel() {
           const list = $("sen-list");
           if (!list) return;
@@ -4375,19 +4858,7 @@
           $("sen-reg-count").textContent = all.length + " MATTER" + (all.length === 1 ? "" : "S");
 
           /* the authoritative timeline: every date from every matter */
-          const events = [];
-          for (const record of all) {
-            const seen = new Set();
-            for (const d of record.meta.dates || []) {
-              if (seen.has(d.date)) continue;
-              seen.add(d.date);
-              events.push({ date: d.date, label: d.label, record });
-            }
-            if (record.meta.key_date && !seen.has(record.meta.key_date)) {
-              events.push({ date: record.meta.key_date, label: "key date", record });
-            }
-          }
-          events.sort((a, b) => a.date.localeCompare(b.date));
+          const events = senAllEvents(all);
           const upcoming = events.filter((e) => e.date >= new Date().toISOString().slice(0, 10));
           $("sen-next").textContent = upcoming.length ? upcoming[0].date : "Clear";
           $("sen-next-sub").textContent = upcoming.length ? upcoming[0].label + " · " + upcoming[0].record.title.slice(0, 30) : "No dated items";
@@ -4447,6 +4918,15 @@
               const body = document.createElement("p");
               body.textContent = record.body;
               item.append(body);
+            }
+            if (record.meta.sha256) {
+              const seal = document.createElement("small");
+              seal.className = "sen-hash";
+              seal.title = "SHA-256 " + record.meta.sha256 +
+                (record.meta.sha256_at ? " · computed " + record.meta.sha256_at : "");
+              seal.textContent = "\u2318 " + record.meta.sha256.slice(0, 12) + "\u2026 sealed" +
+                (record.meta.sha256_at ? " " + record.meta.sha256_at.slice(0, 10) : "");
+              item.append(seal);
             }
             const actions = document.createElement("span");
             actions.className = "rec-actions-row";
@@ -4626,7 +5106,83 @@
           renderCalendar();
           renderUnit();
           renderUnitInbox();
+          renderFieldMemory();
           renderIntakeBanner();
+        }
+
+        /* the stamps, read back and counted — evidence tiers, never causes */
+        function renderFieldMemory() {
+          const holder = $("fm-out");
+          if (!holder) return;
+          const stamped = records.filter((r) => r.meta && r.meta.celestial && r.meta.celestial.sun);
+          $("fm-count").textContent = stamped.length ? stamped.length + " STAMPED ENTRIES" : "";
+          holder.innerHTML = "";
+          if (stamped.length < 5) {
+            const note = document.createElement("p");
+            note.className = "panel-note";
+            note.textContent = "Stamps are accumulating \u2014 " + stamped.length +
+              " so far. Patterns are read only once at least five entries carry the sky: an honest n, not a vibe.";
+            holder.append(note);
+            return;
+          }
+          const findings = [];
+          const tallyBins = (keyFn, binCount, phrase) => {
+            const counts = {};
+            let total = 0;
+            for (const r of stamped) {
+              const key = keyFn(r.meta.celestial);
+              if (!key) continue;
+              counts[key] = (counts[key] || 0) + 1;
+              total++;
+            }
+            if (total < 5) return;
+            for (const [key, count] of Object.entries(counts)) {
+              const ratio = count / (total / binCount);
+              if (count >= 3 && ratio >= 2) {
+                findings.push({ tier: "OBSERVED PATTERN", ratio, text:
+                  count + " of " + total + " " + phrase(key) + " \u2014 " +
+                  ratio.toFixed(1) + "\u00d7 the even-share expectation." });
+              } else if (count >= 2 && ratio >= 1.6) {
+                findings.push({ tier: "POSSIBLE SIGNAL", ratio, text:
+                  count + " of " + total + " " + phrase(key) + " \u2014 " +
+                  ratio.toFixed(1) + "\u00d7 even share, below the pattern threshold." });
+              }
+            }
+          };
+          tallyBins((st) => st.phaseName, 8, (k) => "entries under a " + k.toLowerCase() + " moon");
+          tallyBins((st) => st.hour && st.hour.ruler, 7, (k) => "entries in an hour of " + k);
+          tallyBins((st) => st.moon && st.moon.sign, 12, (k) => "entries with the Moon in " + k);
+          const dreams = stamped.filter((r) => r.kind === "dream" &&
+            typeof r.meta.celestial.phaseAngle === "number");
+          if (dreams.length >= 4) {
+            const near = dreams.filter((r) => Math.abs(r.meta.celestial.phaseAngle - 180) <= 30).length;
+            const ratio = near / (dreams.length * (60 / 360));
+            if (near >= 3 && ratio >= 2) {
+              findings.push({ tier: "OBSERVED PATTERN", ratio, text:
+                near + " of " + dreams.length + " dreams within \u00b130\u00b0 of the full moon " +
+                "(about two and a half days either side) \u2014 " + ratio.toFixed(1) + "\u00d7 even share." });
+            }
+          }
+          findings.sort((a, b) => (a.tier === b.tier ? b.ratio - a.ratio : a.tier === "OBSERVED PATTERN" ? -1 : 1));
+          if (!findings.length) {
+            const none = document.createElement("p");
+            none.className = "panel-note";
+            none.textContent = "No lean clears the threshold yet at n=" + stamped.length +
+              " \u2014 the honest answer. The reading sharpens as entries accumulate.";
+            holder.append(none);
+            return;
+          }
+          for (const finding of findings.slice(0, 8)) {
+            const row = document.createElement("div");
+            row.className = "fm-row";
+            const tier = document.createElement("small");
+            tier.className = finding.tier === "OBSERVED PATTERN" ? "fm-tier is-pattern" : "fm-tier";
+            tier.textContent = finding.tier;
+            const text = document.createElement("span");
+            text.textContent = finding.text;
+            row.append(tier, text);
+            holder.append(row);
+          }
         }
 
         /* ---------- router ---------- */
@@ -5793,10 +6349,47 @@
           })[0];
         }
 
+        function nextOccurrence(dateStr, recur) {
+          const [y, m, d] = dateStr.split("-").map(Number);
+          if (recur === "daily") {
+            const t = new Date(Date.UTC(y, m - 1, d + 1));
+            return t.toISOString().slice(0, 10);
+          }
+          if (recur === "weekly") {
+            const t = new Date(Date.UTC(y, m - 1, d + 7));
+            return t.toISOString().slice(0, 10);
+          }
+          if (recur === "monthly") {
+            /* keep the day-of-month, clamped to the shorter month's end */
+            const lastDay = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+            const t = new Date(Date.UTC(y, m, Math.min(d, lastDay)));
+            return t.toISOString().slice(0, 10);
+          }
+          const t = new Date(Date.UTC(y + 1, m - 1, d));
+          return t.toISOString().slice(0, 10);
+        }
+
         async function toggleActionDone(record) {
           const done = record.meta && record.meta.status === "done";
-          const meta = { ...(record.meta || {}), status: done ? "open" : "done" };
-          const { data, error } = await GZ.client.from("records").update({ meta }).eq("id", record.id).select().single();
+          const recur = record.meta && record.meta.recur;
+          let meta;
+          let word;
+          if (!done && recur && record.meta.due) {
+            /* a recurring obligation never closes — it rolls to its next date */
+            const nextDue = nextOccurrence(record.meta.due, recur);
+            const log = Array.isArray(record.meta.done_log) ? record.meta.done_log.slice() : [];
+            log.push({ done_at: new Date().toISOString(), was_due: record.meta.due });
+            meta = { ...record.meta, status: "open", due: nextDue, done_log: log };
+            word = "Done \u00b7 rolled to " + nextDue + " (" + recur + ").";
+          } else {
+            meta = { ...(record.meta || {}), status: done ? "open" : "done" };
+            word = done ? "Reopened." : "Marked complete.";
+          }
+          const patch = { meta };
+          if (meta.due && meta.due !== (record.meta && record.meta.due)) {
+            patch.occurred_at = meta.due + "T12:00:00Z";
+          }
+          const { data, error } = await GZ.client.from("records").update(patch).eq("id", record.id).select().single();
           if (error) {
             toast("Could not update: " + error.message);
             return;
@@ -5804,7 +6397,7 @@
           const index = records.findIndex((held) => held.id === record.id);
           if (index > -1) records[index] = data;
           renderAll();
-          toast(done ? "Reopened." : "Marked complete.");
+          toast(word);
         }
 
         function renderOperations() {
@@ -5892,6 +6485,9 @@
             const tags = [];
             if (record.meta && record.meta.category) tags.push(record.meta.category.toUpperCase());
             if (record.meta && record.meta.priority === "high") tags.push("HIGH CONSEQUENCE");
+            if (record.meta && record.meta.recur) tags.push("\u21bb " + record.meta.recur.toUpperCase() +
+              (Array.isArray(record.meta.done_log) && record.meta.done_log.length
+                ? " \u00b7 " + record.meta.done_log.length + " DONE" : ""));
             if (tags.length) {
               const pr = document.createElement("p");
               pr.style.cssText = "color: var(--amber); font-size: 9px; letter-spacing: 0.14em";
@@ -6104,6 +6700,7 @@
             ? record.meta.due
             : (record.occurred_at ? record.occurred_at.slice(0, 10) : "");
           $("ops-priority").value = (record.meta && record.meta.priority) || "normal";
+          $("ops-recur").value = (record.meta && record.meta.recur) || "";
           $("ops-shared").checked = isShared(record);
           fillOpsCategorySelect((record.meta && record.meta.category) || "");
           renderOpsEditThumbs();
@@ -6155,6 +6752,7 @@
                 status: (existing && existing.meta && existing.meta.status) || "open",
                 priority: $("ops-priority").value,
                 category, images: imagePaths, due: due || null,
+                recur: $("ops-recur").value || null,
               };
               const patch = {
                 title: $("ops-title").value.trim(),
@@ -6175,7 +6773,7 @@
                 kind: "action",
                 shared: $("ops-shared").checked,
                 occurredAt: due ? due + "T12:00:00Z" : undefined,
-                meta: { status: "open", priority: $("ops-priority").value, category, images: imagePaths, due: due || null },
+                meta: { status: "open", priority: $("ops-priority").value, category, images: imagePaths, due: due || null, recur: $("ops-recur").value || null },
               });
               if (!ok) throw new Error("record refused");
               toast("Operation entered into the register.");
@@ -7895,14 +8493,17 @@
           return { x: 150 + radius * Math.sin(theta), y: 150 - radius * Math.cos(theta) };
         }
 
-        function buildWheelSigns() {
+        let signRingRadius = 0;
+        function buildWheelSigns(radius, size) {
           if (!window.GZ_GLYPHS) return;
           const ring = $("wheel-signs");
-          if (!ring || ring.childNodes.length) return;
+          const wanted = radius || 118;
+          if (!ring || signRingRadius === wanted) return;
+          signRingRadius = wanted;
           let html = "";
           window.GZ_ASTRO.SIGNS.forEach((sign, index) => {
-            const pos = wheelXY(index * 30 + 15, 118);
-            html += window.GZ_GLYPHS.group(sign, pos.x, pos.y, 15, "var(--violet)", 1.5);
+            const pos = wheelXY(index * 30 + 15, wanted);
+            html += window.GZ_GLYPHS.group(sign, pos.x, pos.y, size || 15, "var(--violet)", 1.5);
           });
           ring.innerHTML = html;
         }
@@ -7936,8 +8537,16 @@
           Trine: "#5ce0a1", Opposition: "#c86a8a",
         };
 
-        function renderWheel(chart) {
-          buildWheelSigns();
+        function lonOfPoint(chart, key) {
+          const place = chart.placements.find((p) => p.body === key);
+          if (place) return place.lon;
+          if (chart.angles && key === "Ascendant") return chart.angles.asc;
+          if (chart.angles && key === "Midheaven") return chart.angles.mc;
+          return null;
+        }
+
+        function renderWheel(chart, overlay) {
+          buildWheelSigns(overlay ? 108 : 118, overlay ? 12 : 15);
           buildWheelTicks();
           const planetLayer = $("wheel-planets");
           const angleLayer = $("wheel-angles");
@@ -7947,6 +8556,43 @@
           if (aspectLayer) aspectLayer.innerHTML = "";
           if (!chart) return;
           const svgns = "http://www.w3.org/2000/svg";
+
+          /* the second ring: another chart's bodies on the outer band, with
+             chords for every cross-contact within 3° */
+          if (overlay) {
+            const ringColor = overlay.__ring === "person" ? "#e08baf" : "#63dfca";
+            let overlayHtml = "";
+            for (const place of overlay.placements) {
+              const tick = wheelXY(place.lon, 134);
+              const tickOuter = wheelXY(place.lon, 140);
+              overlayHtml += '<line x1="' + tick.x + '" y1="' + tick.y + '" x2="' + tickOuter.x +
+                '" y2="' + tickOuter.y + '" stroke="' + ringColor + '" stroke-width="1.3"/>';
+              const pos = wheelXY(place.lon, 126);
+              overlayHtml += window.GZ_GLYPHS.group(place.body, pos.x, pos.y, 11, ringColor, 1.4);
+            }
+            const cross = window.GZ_ASTRO.computeSynastry(chart, overlay);
+            let contactCount = 0;
+            for (const hit of cross.aspects) {
+              if (hit.orb > 3) continue;
+              const fromLon = lonOfPoint(chart, hit.a);
+              const toLon = lonOfPoint(overlay, hit.b);
+              if (fromLon == null || toLon == null) continue;
+              contactCount++;
+              const from = wheelXY(fromLon, 88);
+              const to = wheelXY(toLon, 122);
+              overlayHtml += '<line x1="' + from.x.toFixed(2) + '" y1="' + from.y.toFixed(2) +
+                '" x2="' + to.x.toFixed(2) + '" y2="' + to.y.toFixed(2) +
+                '" stroke="' + (WHEEL_ASPECT_COLOR[hit.type] || "#91a8b6") +
+                '" stroke-opacity="' + Math.max(0.25, 0.75 - hit.orb / 5).toFixed(2) +
+                '" stroke-width="' + (hit.orb < 1 ? 1.1 : 0.7) + '" stroke-dasharray="4 3"/>';
+            }
+            if (aspectLayer) aspectLayer.innerHTML += overlayHtml;
+            const note = $("wheel-ring-note");
+            if (note) note.textContent =
+              contactCount + " cross-contact" + (contactCount === 1 ? "" : "s") + " within 3\u00b0";
+          } else if ($("wheel-ring-note")) {
+            $("wheel-ring-note").textContent = "";
+          }
 
           /* aspect chords between the exact longitudes, colour by figure,
              presence by tightness — the geometry is the interpretation */
@@ -7966,7 +8612,8 @@
                 '" stroke-opacity="' + strength.toFixed(2) + '" stroke-width="' +
                 (hit.orb < 1.5 ? 1 : 0.6) + '"/>';
             }
-            aspectLayer.innerHTML = aspectHtml;
+            /* natal chords underneath whatever the overlay ring drew */
+            aspectLayer.innerHTML = aspectHtml + aspectLayer.innerHTML;
           }
 
           const sorted = [...chart.placements].sort((a, b) => a.lon - b.lon);
@@ -8073,6 +8720,16 @@
           wsPending = true;
           requestAnimationFrame(() => {
             wsPending = false;
+            if (overlayChoice === "sky") {
+              /* the sky ring rides the scrub; the standing chart holds still */
+              refreshOverlayRing();
+              const when = new Date(Date.now() + wsOffset * 3600000);
+              $("ws-read").textContent = wsOffset === 0
+                ? "Sky ring at this moment."
+                : "Sky ring " + wsFmt(wsOffset) + " from now \u00b7 " +
+                  when.toUTCString().replace(" GMT", " UT");
+              return;
+            }
             const when = new Date(wheelCast.when.getTime() + wsOffset * 3600000);
             const chart = window.GZ_ASTRO.computeChart(when, wheelCast.opts);
             renderChartResults(chart, wheelCast.subject, true);
@@ -8083,20 +8740,81 @@
         }
 
         $("ws-slider").addEventListener("input", () => {
+          stopPlay();
           wsOffset = Number($("ws-slider").value);
           wsApply();
         });
         document.querySelectorAll("#wheel-scrub [data-ws]").forEach((button) => {
           button.addEventListener("click", () => {
+            stopPlay();
             wsOffset += Number(button.dataset.ws);
             $("ws-slider").value = String(Math.max(-720, Math.min(720, wsOffset)));
             wsApply();
           });
         });
         $("ws-reset").addEventListener("click", () => {
+          stopPlay();
           wsOffset = 0;
           $("ws-slider").value = "0";
           wsApply();
+        });
+
+        /* ---- ring two: another chart on the outer band ---- */
+        let overlayChoice = "";
+
+        function computeOverlayChart() {
+          if (!overlayChoice || !currentChart || !window.GZ_ASTRO) return null;
+          if (overlayChoice === "sky") {
+            const when = new Date(Date.now() + wsOffset * 3600000);
+            const sky = window.GZ_ASTRO.computeChart(when, {});
+            sky.__ring = "sky";
+            return sky;
+          }
+          const person = peopleWithBirth().find((p) => p.id === overlayChoice);
+          if (!person) return null;
+          const natal = chartForPerson(person);
+          natal.__ring = "person";
+          return natal;
+        }
+
+        function refreshOverlayRing() {
+          if (!currentChart) return;
+          renderWheel(currentChart, computeOverlayChart());
+        }
+
+        $("wheel-overlay").addEventListener("change", () => {
+          stopPlay();
+          overlayChoice = $("wheel-overlay").value;
+          wsOffset = 0;
+          $("ws-slider").value = "0";
+          const personMode = overlayChoice && overlayChoice !== "sky";
+          $("wheel-scrub").hidden = !currentChart || personMode;
+          if (!currentChart) return;
+          refreshOverlayRing();
+          $("ws-read").textContent = overlayChoice === "sky"
+            ? "Sky ring at this moment \u2014 scroll to move the outer ring."
+            : "At the cast instant.";
+        });
+
+        /* ---- let time flow ---- */
+        let playTimer = null;
+        function stopPlay() {
+          if (!playTimer) return;
+          clearInterval(playTimer);
+          playTimer = null;
+          const btn = $("ws-play");
+          if (btn) btn.textContent = "\u25b6";
+        }
+        $("ws-play").addEventListener("click", () => {
+          if (playTimer) return stopPlay();
+          if (!wheelCast) return;
+          $("ws-play").textContent = "\u275a\u275a";
+          playTimer = setInterval(() => {
+            if ($("view-aion").hidden || document.hidden) return stopPlay();
+            wsOffset += 2;
+            $("ws-slider").value = String(Math.max(-720, Math.min(720, wsOffset)));
+            wsApply();
+          }, 150);
         });
 
         function renderChartResults(chart, subject, fromScrub) {
@@ -8104,6 +8822,7 @@
           currentSubject = subject || "Current field";
           const when = new Date(chart.utc);
           if (!fromScrub) {
+            stopPlay();
             wheelCast = {
               when,
               opts: chart.location ? { lat: chart.location.lat, lon: chart.location.lon } : {},
@@ -8112,9 +8831,12 @@
             wsOffset = 0;
             if ($("ws-slider")) {
               $("ws-slider").value = "0";
-              $("wheel-scrub").hidden = false;
-              $("ws-read").textContent = "At the cast instant.";
+              $("wheel-scrub").hidden = Boolean(overlayChoice && overlayChoice !== "sky");
+              $("ws-read").textContent = overlayChoice === "sky"
+                ? "Sky ring at this moment \u2014 scroll to move the outer ring."
+                : "At the cast instant.";
             }
+            if ($("ring-two-row")) $("ring-two-row").hidden = false;
           }
           $("aion-wheel-title").textContent = currentSubject;
           $("aion-wheel-sub").hidden = false;
@@ -8123,7 +8845,7 @@
             (fromScrub && wsOffset ? " · scrolled " + wsFmt(wsOffset) : "");
           $("aion-wheel-ayan").innerHTML =
             "AYANAMSHA · <b style='color: var(--paper)'>Lahiri " + chart.ayanamsha.toFixed(2) + "°</b>";
-          renderWheel(chart);
+          renderWheel(chart, computeOverlayChart());
 
           $("aion-ci-title").textContent = "Placements · " + currentSubject;
           $("aion-ci-empty").hidden = true;
@@ -8134,7 +8856,7 @@
           holder.innerHTML = "";
           const table = document.createElement("table");
           table.className = "table-lite";
-          table.innerHTML = "<thead><tr><th></th><th>TROPICAL</th><th>SIDEREAL (LAHIRI)</th><th>NAKSHATRA</th><th>MOTION</th>" + (chart.houses ? "<th>HOUSE</th>" : "") + "</tr></thead>";
+          table.innerHTML = "<thead><tr><th></th><th>TROPICAL</th><th>SIDEREAL (LAHIRI)</th><th>NAKSHATRA</th><th>MOTION</th><th>DECL</th>" + (chart.houses ? "<th>HOUSE</th>" : "") + "</tr></thead>";
           const body = document.createElement("tbody");
           for (const place of chart.placements) {
             const tr = document.createElement("tr");
@@ -8157,7 +8879,17 @@
               ? window.GZ_GLYPHS.svg("Retrograde", { size: 13, cls: "glyph-cell" }) + "<span>retrograde</span>"
               : "<span>direct</span>";
             if (place.retrograde) mot.style.color = "#e08baf";
-            tr.append(name, trop, sid, nak, mot);
+            const dec = document.createElement("td");
+            dec.className = "t-dim";
+            if (place.declination != null) {
+              const dv = place.declination;
+              dec.textContent = (dv >= 0 ? "+" : "\u2212") + Math.abs(dv).toFixed(2) + "\u00b0" +
+                (place.outOfBounds ? " OOB" : "");
+              if (place.outOfBounds) dec.style.color = "var(--gold)";
+            } else {
+              dec.textContent = "\u2014";
+            }
+            tr.append(name, trop, sid, nak, mot, dec);
             if (chart.houses) {
               const house = document.createElement("td");
               house.className = "t-dim";
@@ -8183,7 +8915,10 @@
               const mot = document.createElement("td");
               mot.className = "t-dim";
               mot.textContent = "angle";
-              tr.append(name, trop, sid, nak, mot);
+              const dec = document.createElement("td");
+              dec.className = "t-dim";
+              dec.textContent = "\u2014";
+              tr.append(name, trop, sid, nak, mot, dec);
               if (chart.houses) {
                 const house = document.createElement("td");
                 house.className = "t-dim";
@@ -8195,6 +8930,23 @@
           }
           table.append(body);
           holder.append(table);
+
+          /* closed figures among the placements — geometry, orbs stated in the engine */
+          const figures = window.GZ_ASTRO.detectPatterns ? window.GZ_ASTRO.detectPatterns(chart) : [];
+          if (figures.length) {
+            const figWrap = document.createElement("div");
+            figWrap.className = "fig-row";
+            const figLabel = document.createElement("small");
+            figLabel.textContent = "FIGURES";
+            figWrap.append(figLabel);
+            for (const figure of figures) {
+              const chip = document.createElement("span");
+              chip.className = "fig-chip";
+              chip.innerHTML = "<b>" + figure.type + "</b> " + figure.bodies.join(" \u00b7 ");
+              figWrap.append(chip);
+            }
+            holder.append(figWrap);
+          }
 
           if (chart.houses) {
             const houseWrap = document.createElement("div");
@@ -8388,6 +9140,19 @@
           $("aion-anchor-state").textContent = any && anchor
             ? "ANCHOR: " + anchor.display_name.toUpperCase()
             : "ANCHOR: NOT SET";
+          const ringSelect = $("wheel-overlay");
+          if (ringSelect) {
+            const kept = ringSelect.value;
+            while (ringSelect.options.length > 2) ringSelect.remove(2);
+            for (const person of peopleWithBirth()) {
+              const opt = document.createElement("option");
+              opt.value = person.id;
+              opt.textContent = "Natal ring \u00b7 " + person.display_name;
+              ringSelect.append(opt);
+            }
+            if ([...ringSelect.options].some((o) => o.value === kept)) ringSelect.value = kept;
+            else { ringSelect.value = ""; overlayChoice = ""; }
+          }
           if ($("rungs-tabs")) renderRungs();
         }
 
@@ -8531,13 +9296,14 @@
           return null;
         }
 
-        const RUNG_PANES = ["progressions", "solar", "lunar", "dasha"];
+        const RUNG_PANES = ["progressions", "solar", "lunar", "dasha", "eclipse"];
         function showRung(which) {
           for (const key of RUNG_PANES) $("rung-" + key).hidden = key !== which;
           $("rungs-tabs").querySelectorAll("button").forEach((b) =>
             b.classList.toggle("is-on", b.dataset.rung === which));
           if (which === "lunar") renderLunarReturns();
           if (which === "dasha") renderDashas();
+          if (which === "eclipse") renderEclipses();
         }
         $("rungs-tabs").addEventListener("click", (event) => {
           const btn = event.target.closest("button[data-rung]");
@@ -8747,6 +9513,44 @@
           }
         }
 
+        function renderEclipses() {
+          const holder = $("eclipse-list");
+          holder.innerHTML = "";
+          if (!window.GZ_ASTRO || !window.GZ_ASTRO.eclipses) return;
+          const person = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
+          const natal = person ? chartForPerson(person) : null;
+          let list = window.GZ_ASTRO.eclipses(new Date(), 8);
+          if (natal) list = window.GZ_ASTRO.eclipseContacts(natal, list, 3);
+          for (const ecl of list) {
+            const when = new Date(ecl.when);
+            const li = document.createElement("li");
+            li.style.cssText = "padding: 9px 0; border-bottom: 1px solid var(--line); display: grid; gap: 4px";
+            const head = document.createElement("div");
+            head.style.cssText = "display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap";
+            const isSolar = ecl.type === "solar";
+            head.innerHTML =
+              "<b style=\"color: " + (isSolar ? "var(--gold)" : "var(--violet)") + "\">" +
+              (isSolar ? "\u2609 Solar" : "\u263d Lunar") + " \u00b7 " + ecl.kind + "</b>" +
+              "<span>" + ecl.when.slice(0, 10) + " \u00b7 " + ecl.when.slice(11, 16) + " UT</span>" +
+              "<span class=\"t-dim\">at " + ecl.degreeSplit.label + "</span>";
+            li.append(head);
+            if (ecl.contacts && ecl.contacts.length) {
+              const hitLine = document.createElement("div");
+              hitLine.style.cssText = "font-size: 12px; color: var(--gold)";
+              hitLine.textContent = "\u25c9 strikes " + ecl.contacts.map((c) =>
+                "natal " + c.point + " (" + c.type.toLowerCase() + ", orb " + c.orb.toFixed(1) + "\u00b0)"
+              ).join(" \u00b7 ");
+              li.append(hitLine);
+            } else if (natal) {
+              const quiet = document.createElement("div");
+              quiet.style.cssText = "font-size: 11px; color: var(--faint)";
+              quiet.textContent = "no contact within 3\u00b0 of the anchor chart";
+              li.append(quiet);
+            }
+            holder.append(li);
+          }
+        }
+
         /* keep the rungs current with the chosen anchor */
         function renderRungs() {
           const person = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
@@ -8755,6 +9559,7 @@
           if (!$("sr-year").value) $("sr-year").value = String(new Date().getFullYear());
           if (!$("rung-lunar").hidden) renderLunarReturns();
           if (!$("rung-dasha").hidden) renderDashas();
+          if (!$("rung-eclipse").hidden) renderEclipses();
         }
 
         function renderComposite(personA, personB, comp) {
@@ -9509,11 +10314,16 @@
           const hits = Object.entries(MODULES).filter(([, module]) =>
             (module.name + " " + module.desc).toLowerCase().includes(query)
           );
-          if (!hits.length) {
+          /* the field itself: titles and bodies of every loaded record */
+          const recordHits = query.length >= 2 ? records.filter((record) => {
+            const haystack = (record.title + " " + (record.body || "")).toLowerCase();
+            return haystack.includes(query);
+          }).slice(0, 5) : [];
+          if (!hits.length && !recordHits.length) {
             drop.hidden = true;
             return;
           }
-          hits.slice(0, 6).forEach(([id, module], index) => {
+          hits.slice(0, 4).forEach(([id, module], index) => {
             const item = document.createElement("button");
             item.type = "button";
             if (index === 0) item.classList.add("is-hot");
@@ -9527,6 +10337,34 @@
             item.addEventListener("mousedown", (event) => {
               event.preventDefault();
               setView(id);
+              search.value = "";
+              drop.hidden = true;
+              search.blur();
+            });
+            drop.append(item);
+          });
+          recordHits.forEach((record) => {
+            const home = recordHome(record);
+            const item = document.createElement("button");
+            item.type = "button";
+            const num = document.createElement("small");
+            num.textContent = "\u29be";
+            const name = document.createElement("b");
+            name.textContent = record.title;
+            const desc = document.createElement("span");
+            let snippet = home ? home.label : "record";
+            const body = (record.body || "");
+            const at = body.toLowerCase().indexOf(query);
+            if (at > -1) {
+              snippet = (at > 30 ? "\u2026" : "") +
+                body.slice(Math.max(0, at - 30), at + query.length + 40).trim() +
+                (at + query.length + 40 < body.length ? "\u2026" : "");
+            }
+            desc.textContent = snippet;
+            item.append(num, name, desc);
+            item.addEventListener("mousedown", (event) => {
+              event.preventDefault();
+              if (home) setView(home.view);
               search.value = "";
               drop.hidden = true;
               search.blur();

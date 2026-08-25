@@ -40,6 +40,7 @@
   ];
 
   const norm = (deg) => ((deg % 360) + 360) % 360;
+  const DEG = Math.PI / 180;
 
   /* signed shortest separation a→b in degrees, range (-180, 180] */
   function separation(a, b) {
@@ -90,6 +91,32 @@
     const vec = A.GeoVector(A.Body[key], time, true);
     const rot = A.Rotation_EQJ_ECT(time);
     return norm(A.SphereFromVector(A.RotateVector(rot, vec)).lon);
+  }
+
+  function bodyEcliptic(key, time) {
+    if (key === "Sun") {
+      const p = A.SunPosition(time);
+      return { lon: norm(p.elon), lat: p.elat };
+    }
+    if (key === "Moon") {
+      const p = A.EclipticGeoMoon(time);
+      return { lon: norm(p.lon), lat: p.lat };
+    }
+    const vec = A.GeoVector(A.Body[key], time, true);
+    const rot = A.Rotation_EQJ_ECT(time);
+    const sph = A.SphereFromVector(A.RotateVector(rot, vec));
+    return { lon: norm(sph.lon), lat: sph.lat };
+  }
+
+  /* geocentric declination from ecliptic coordinates and the true
+     obliquity of date: sin δ = sin β cos ε + cos β sin ε sin λ */
+  function declinationOf(key, time) {
+    const pos = bodyEcliptic(key, time);
+    const eps = A.e_tilt(time).tobl * DEG;
+    const beta = pos.lat * DEG;
+    const lam = pos.lon * DEG;
+    const sinDec = Math.sin(beta) * Math.cos(eps) + Math.cos(beta) * Math.sin(eps) * Math.sin(lam);
+    return { dec: Math.asin(sinDec) / DEG, obliquity: A.e_tilt(time).tobl };
   }
 
   /* Ascendant + Midheaven from geographic coordinates.
@@ -251,6 +278,7 @@
       const speed =
         separation(bodyLongitude(body.key, before), bodyLongitude(body.key, after)) * 24;
       const sidereal = norm(lon - ayanamsha);
+      const decl = declinationOf(body.key, time);
       return {
         body: body.key,
         glyph: body.glyph,
@@ -261,6 +289,10 @@
         siderealLon: sidereal,
         sidereal: splitSign(sidereal),
         nakshatra: splitNakshatra(sidereal),
+        declination: decl.dec,
+        /* out of bounds: past the Sun's own declination limit, the true
+           obliquity of date */
+        outOfBounds: Math.abs(decl.dec) > decl.obliquity,
       };
     });
 
@@ -815,9 +847,155 @@
     return { maha, antar };
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Eclipses and aspect figures — geometry only.                        */
+  /* ------------------------------------------------------------------ */
+
+  /* the next `count` eclipses of both kinds from `fromUtc`, in time order */
+  function eclipses(fromUtc, count) {
+    const out = [];
+    let lunar = A.SearchLunarEclipse(fromUtc);
+    let solar = A.SearchGlobalSolarEclipse(fromUtc);
+    while (out.length < (count || 8)) {
+      const lunarMs = lunar.peak.date.getTime();
+      const solarMs = solar.peak.date.getTime();
+      if (lunarMs <= solarMs) {
+        const moonLon = bodyLongitude("Moon", lunar.peak);
+        out.push({
+          type: "lunar", kind: String(lunar.kind), when: lunar.peak.date.toISOString(),
+          degree: moonLon, degreeSplit: splitSign(moonLon),
+          obscuration: lunar.obscuration != null ? lunar.obscuration : null,
+        });
+        lunar = A.NextLunarEclipse(lunar.peak);
+      } else {
+        const sunLon = bodyLongitude("Sun", solar.peak);
+        out.push({
+          type: "solar", kind: String(solar.kind), when: solar.peak.date.toISOString(),
+          degree: sunLon, degreeSplit: splitSign(sunLon),
+          obscuration: solar.obscuration != null ? solar.obscuration : null,
+          latitude: solar.latitude, longitude: solar.longitude,
+        });
+        solar = A.NextGlobalSolarEclipse(solar.peak);
+      }
+    }
+    return out;
+  }
+
+  /* eclipse degrees against a natal chart — conjunctions and oppositions
+     to planets and angles within `orb` degrees (default 3) */
+  function eclipseContacts(natalChart, list, orb) {
+    const maxOrb = orb || 3;
+    const points = natalChart.placements.map((p) => ({ key: p.body, lon: p.lon }));
+    if (natalChart.angles) {
+      points.push({ key: "Ascendant", lon: natalChart.angles.asc });
+      points.push({ key: "Midheaven", lon: natalChart.angles.mc });
+    }
+    return list.map((ecl) => {
+      const contacts = [];
+      for (const point of points) {
+        const off = Math.abs(separation(ecl.degree, point.lon));
+        if (off <= maxOrb) contacts.push({ point: point.key, type: "Conjunction", orb: off });
+        else if (Math.abs(off - 180) <= maxOrb) contacts.push({ point: point.key, type: "Opposition", orb: Math.abs(off - 180) });
+      }
+      contacts.sort((x, y) => x.orb - y.orb);
+      return { ...ecl, contacts };
+    });
+  }
+
+  /* closed aspect figures among the placements. Orbs are stated here and
+     nowhere else: trine/square/opposition 6°, sextile 4°, quincunx 2.5°,
+     stellium chain step 8°. */
+  function detectPatterns(chart) {
+    const P = chart.placements;
+    const gap = (a, b) => {
+      const d = Math.abs(norm(a.lon) - norm(b.lon)) % 360;
+      return d > 180 ? 360 - d : d;
+    };
+    const at = (a, b, angle, orb) => Math.abs(gap(a, b) - angle) <= orb;
+    const found = [];
+    const seen = new Set();
+    const add = (type, bodies) => {
+      const k = type + ":" + bodies.map((b) => b.body).sort().join("+");
+      if (seen.has(k)) return;
+      seen.add(k);
+      found.push({ type, bodies: bodies.map((b) => b.body) });
+    };
+
+    for (let i = 0; i < P.length; i++)
+      for (let j = i + 1; j < P.length; j++)
+        for (let k = j + 1; k < P.length; k++) {
+          if (at(P[i], P[j], 120, 6) && at(P[j], P[k], 120, 6) && at(P[i], P[k], 120, 6))
+            add("Grand Trine", [P[i], P[j], P[k]]);
+          const trio = [[i, j, k], [j, k, i], [k, i, j]];
+          for (const [a, b, c] of trio) {
+            if (at(P[a], P[b], 180, 6) && at(P[a], P[c], 90, 6) && at(P[b], P[c], 90, 6))
+              add("T-Square", [P[a], P[b], P[c]]);
+            if (at(P[a], P[b], 60, 4) && at(P[a], P[c], 150, 2.5) && at(P[b], P[c], 150, 2.5))
+              add("Yod", [P[a], P[b], P[c]]);
+          }
+        }
+
+    for (let i = 0; i < P.length; i++)
+      for (let j = i + 1; j < P.length; j++)
+        for (let k = j + 1; k < P.length; k++)
+          for (let l = k + 1; l < P.length; l++) {
+            const four = [P[i], P[j], P[k], P[l]];
+            const pairings = [
+              [[0, 2], [1, 3]], [[0, 1], [2, 3]], [[0, 3], [1, 2]],
+            ];
+            for (const [[a1, a2], [b1, b2]] of pairings) {
+              if (
+                at(four[a1], four[a2], 180, 6) && at(four[b1], four[b2], 180, 6) &&
+                at(four[a1], four[b1], 90, 6) && at(four[b1], four[a2], 90, 6) &&
+                at(four[a2], four[b2], 90, 6) && at(four[b2], four[a1], 90, 6)
+              ) add("Grand Cross", four);
+            }
+          }
+
+    /* kites: a grand trine with a fourth body opposite one vertex */
+    const trines = found.filter((f) => f.type === "Grand Trine");
+    for (const gt of trines) {
+      const verts = gt.bodies.map((name) => P.find((p) => p.body === name));
+      for (const tail of P) {
+        if (gt.bodies.includes(tail.body)) continue;
+        for (let v = 0; v < 3; v++) {
+          const others = verts.filter((_, idx) => idx !== v);
+          if (at(tail, verts[v], 180, 6) && at(tail, others[0], 60, 4) && at(tail, others[1], 60, 4))
+            add("Kite", [...verts, tail]);
+        }
+      }
+    }
+
+    /* stelliums: chains of bodies each within 8° of the next */
+    const sorted = [...P].sort((a, b) => a.lon - b.lon);
+    const doubled = sorted.concat(sorted.map((p) => ({ ...p, lon: p.lon + 360 })));
+    let best = [];
+    for (let start = 0; start < sorted.length; start++) {
+      const chain = [doubled[start]];
+      for (let n = start + 1; n < start + sorted.length; n++) {
+        if (doubled[n].lon - chain[chain.length - 1].lon <= 8) chain.push(doubled[n]);
+        else break;
+      }
+      if (chain.length > best.length) best = chain;
+    }
+    if (best.length >= 3) add("Stellium", best);
+
+    /* a grand cross absorbs its t-squares; a kite absorbs its grand trine */
+    const crosses = found.filter((f) => f.type === "Grand Cross");
+    const kites = found.filter((f) => f.type === "Kite");
+    return found.filter((f) => {
+      if (f.type === "T-Square" &&
+        crosses.some((c) => f.bodies.every((b) => c.bodies.includes(b)))) return false;
+      if (f.type === "Grand Trine" &&
+        kites.some((k) => f.bodies.every((b) => k.bodies.includes(b)))) return false;
+      return true;
+    });
+  }
+
   window.GZ_ASTRO = {
     computeChart, computeSynastry, computeTransits, computeComposite,
     computeProgressed, solarReturn, lunarReturns, vimshottari, dashaAt,
+    eclipses, eclipseContacts, detectPatterns,
     planetaryHour, celestialStamp, houseOf, splitSign, SIGNS, SIGN_GLYPHS,
   };
 })();
