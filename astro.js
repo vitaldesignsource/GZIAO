@@ -671,8 +671,148 @@
     return stamp;
   }
 
+  /* ------------------------------------------------------------------ */
+  /* The ladder's upper rungs: progressions, returns, and dashas.        */
+  /* ------------------------------------------------------------------ */
+
+  /* Secondary progressions — a day for a year. The progressed chart is
+     the real sky of (birth + age-in-years DAYS), cast by the same
+     ephemeris as everything else. Angles are omitted: progressed angles
+     require a rate convention (solar arc, Naibod…) that is a choice,
+     not a fact, and this system does not smuggle choices in as facts. */
+  function computeProgressed(birthUtc, targetUtc) {
+    const ageYears = (targetUtc.getTime() - birthUtc.getTime()) / (365.2425 * 86400000);
+    const progressedInstant = new Date(birthUtc.getTime() + ageYears * 86400000);
+    const chart = computeChart(progressedInstant);
+    return { ageYears, progressedInstant: progressedInstant.toISOString(), chart };
+  }
+
+  /* the instant a body returns to an exact natal longitude, found by
+     bisection on the signed separation in a window around a guess */
+  function returnInstant(bodyKey, natalLon, guessUtc, windowDays) {
+    const startTime = A.MakeTime(new Date(guessUtc.getTime() - windowDays * 86400000));
+    const total = windowDays * 2;
+    const step = bodyKey === "Moon" ? 0.2 : 0.5;
+    let prev = separation(natalLon, bodyLongitude(bodyKey, startTime));
+    let prevD = 0;
+    for (let d = step; d <= total + 1e-9; d += step) {
+      const cur = separation(natalLon, bodyLongitude(bodyKey, startTime.AddDays(d)));
+      /* a return is a crossing of 0 moving forward (prev<0 → cur>=0) */
+      if (prev < 0 && cur >= 0 && cur - prev < 180) {
+        let lo = prevD, hi = d;
+        for (let iter = 0; iter < 40; iter++) {
+          const mid = (lo + hi) / 2;
+          const v = separation(natalLon, bodyLongitude(bodyKey, startTime.AddDays(mid)));
+          if (v < 0) lo = mid; else hi = mid;
+        }
+        const dHit = (lo + hi) / 2;
+        return new Date(startTime.date.getTime() + dHit * 86400000);
+      }
+      prev = cur;
+      prevD = d;
+    }
+    return null;
+  }
+
+  /* the solar return for the birthday falling in `year` */
+  function solarReturn(natalSunLon, birthUtc, year, opts) {
+    const guess = new Date(Date.UTC(
+      year, birthUtc.getUTCMonth(), Math.min(28, birthUtc.getUTCDate()),
+      birthUtc.getUTCHours(), birthUtc.getUTCMinutes()
+    ));
+    const when = returnInstant("Sun", natalSunLon, guess, 5);
+    if (!when) return null;
+    return { when: when.toISOString(), chart: computeChart(when, opts || {}) };
+  }
+
+  /* the next `count` lunar returns from `fromUtc` */
+  function lunarReturns(natalMoonLon, fromUtc, count) {
+    const out = [];
+    let cursor = new Date(fromUtc.getTime());
+    for (let i = 0; i < count; i++) {
+      /* the next return lies within one sidereal month of the cursor */
+      const guess = new Date(cursor.getTime() + 13.66 * 86400000);
+      const when = returnInstant("Moon", natalMoonLon, guess, 14.5);
+      if (!when || when.getTime() <= cursor.getTime()) break;
+      out.push(when.toISOString());
+      cursor = new Date(when.getTime() + 86400000);
+    }
+    return out;
+  }
+
+  /* Vimshottari dasha — the 120-year cycle seeded by the natal Moon's
+     nakshatra. Years are 365.25 days by convention, stated plainly. */
+  const DASHA_SEQUENCE = [
+    ["Ketu", 7], ["Venus", 20], ["Sun", 6], ["Moon", 10], ["Mars", 7],
+    ["Rahu", 18], ["Jupiter", 16], ["Saturn", 19], ["Mercury", 17],
+  ];
+  const DASHA_YEAR_MS = 365.25 * 86400000;
+
+  function vimshottari(natalChart, birthUtc, horizonYears) {
+    const moon = natalChart.placements.find((p) => p.body === "Moon");
+    const span = 360 / 27;
+    const sidereal = norm(moon.siderealLon);
+    const nakIndex = Math.floor(sidereal / span);
+    const fraction = (sidereal - nakIndex * span) / span; // traversed
+    const startLordIndex = nakIndex % 9;
+    const balanceYears = DASHA_SEQUENCE[startLordIndex][1] * (1 - fraction);
+
+    const mahas = [];
+    let cursor = birthUtc.getTime();
+    const horizon = birthUtc.getTime() + (horizonYears || 120) * DASHA_YEAR_MS;
+    for (let i = 0; i < 9 && cursor < horizon; i++) {
+      const [lord, years] = DASHA_SEQUENCE[(startLordIndex + i) % 9];
+      const lengthYears = i === 0 ? balanceYears : years;
+      const end = cursor + lengthYears * DASHA_YEAR_MS;
+      /* antardashas subdivide the maha proportionally, beginning with the
+         maha lord; the first maha's antars are the TAIL of a full maha —
+         computed on the full-length maha, clipped to birth */
+      const fullStart = i === 0 ? end - years * DASHA_YEAR_MS : cursor;
+      const antars = [];
+      let antarCursor = fullStart;
+      for (let j = 0; j < 9; j++) {
+        const [antarLord, antarYears] = DASHA_SEQUENCE[((startLordIndex + i) % 9 + j) % 9];
+        const antarLength = (years * antarYears / 120) * DASHA_YEAR_MS;
+        const antarEnd = antarCursor + antarLength;
+        if (antarEnd > cursor + 1000) {
+          antars.push({
+            lord: antarLord,
+            start: new Date(Math.max(antarCursor, cursor)).toISOString(),
+            end: new Date(Math.min(antarEnd, end)).toISOString(),
+          });
+        }
+        antarCursor = antarEnd;
+      }
+      mahas.push({
+        lord,
+        start: new Date(cursor).toISOString(),
+        end: new Date(end).toISOString(),
+        years: lengthYears,
+        antars,
+      });
+      cursor = end;
+    }
+    return {
+      nakshatra: moon.nakshatra.name,
+      pada: moon.nakshatra.pada,
+      startLord: DASHA_SEQUENCE[startLordIndex][0],
+      balanceYears,
+      yearConvention: "365.25-day years",
+      mahas,
+    };
+  }
+
+  function dashaAt(dasha, whenUtc) {
+    const t = whenUtc.toISOString();
+    const maha = dasha.mahas.find((m) => m.start <= t && t < m.end);
+    if (!maha) return null;
+    const antar = maha.antars.find((a2) => a2.start <= t && t < a2.end) || null;
+    return { maha, antar };
+  }
+
   window.GZ_ASTRO = {
     computeChart, computeSynastry, computeTransits, computeComposite,
+    computeProgressed, solarReturn, lunarReturns, vimshottari, dashaAt,
     planetaryHour, celestialStamp, houseOf, splitSign, SIGNS, SIGN_GLYPHS,
   };
 })();

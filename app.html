@@ -45,7 +45,7 @@
     <link rel="stylesheet" href="vendor/leaflet.css" />
     <script src="vendor/astronomy.browser.min.js"></script>
     <script src="vendor/leaflet.js"></script>
-    <script src="astro.js?v=5"></script>
+    <script src="astro.js?v=6"></script>
     <script src="glyphs.js?v=2"></script>
     <script src="pyramid.js?v=2"></script>
     <script src="tree.js?v=4"></script>
@@ -655,6 +655,63 @@
               Both charts come from Constellations profiles with birth data. Birth times matter:
               without one, a chart is cast for noon and its Moon can be off by up to seven degrees.
             </p>
+          </section>
+
+          <section class="panel" style="border-color: #d0ad6d44">
+            <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+              <span>THE UPPER RUNGS &middot; PROGRESSIONS &middot; RETURNS &middot; DASHAS</span>
+              <span style="color: var(--faint)" id="rungs-anchor-note"></span>
+            </span>
+            <h2>The rest of the ladder</h2>
+            <p class="panel-sub">
+              Computed for the transit scanner&rsquo;s anchor. Every number below is ephemeris output;
+              the conventions in use are named where they apply.
+            </p>
+            <div class="chips" id="rungs-tabs" style="margin: 12px 0 0">
+              <button type="button" data-rung="progressions" class="is-on">Progressions</button>
+              <button type="button" data-rung="solar">Solar return</button>
+              <button type="button" data-rung="lunar">Lunar returns</button>
+              <button type="button" data-rung="dasha">Dashas</button>
+            </div>
+
+            <div id="rung-progressions">
+              <div class="intake" style="grid-template-columns: auto auto 1fr; margin-top: 14px">
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">PROGRESSED TO
+                  <input type="date" id="prog-date" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
+                </label>
+                <button class="prime-btn" id="prog-run" type="button" style="align-self: end">Progress &rarr;</button>
+                <span></span>
+              </div>
+              <p class="panel-note" id="prog-note" style="margin-top: 10px"></p>
+              <div id="prog-out"></div>
+            </div>
+
+            <div id="rung-solar" hidden>
+              <div class="intake" style="grid-template-columns: auto auto 1fr; margin-top: 14px">
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">RETURN YEAR
+                  <input type="number" id="sr-year" min="1900" max="2100" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; width: 110px; font: 400 13px Georgia, serif" />
+                </label>
+                <button class="prime-btn" id="sr-run" type="button" style="align-self: end">Find the return &rarr;</button>
+                <span></span>
+              </div>
+              <p class="panel-note" id="sr-note" style="margin-top: 10px">
+                The instant the Sun stands again on its natal degree. Cast for the anchor's home field
+                when one is set, else the birth coordinates — the location shapes only the angles and houses.
+              </p>
+            </div>
+
+            <div id="rung-lunar" hidden>
+              <p class="panel-note" style="margin-top: 14px">
+                The next six instants the Moon stands again on its natal degree — one each sidereal month.
+                Cast any of them onto the wheel.
+              </p>
+              <ul class="vault-list" id="lr-list" style="margin-top: 10px"></ul>
+            </div>
+
+            <div id="rung-dasha" hidden>
+              <p class="panel-note" id="dasha-head" style="margin-top: 14px"></p>
+              <div id="dasha-out" style="margin-top: 8px"></div>
+            </div>
           </section>
           <section class="duo-wide">
             <div class="panel" style="border-color: #d0ad6d44">
@@ -8068,7 +8125,7 @@
 
         /* a person row → their computed natal chart, same conversion the
            cast form uses; noon + timeUnknown when no birth time is known */
-        function chartForPerson(person) {
+        function birthInstant(person) {
           const timeKnown = Boolean(person.birth_time_known && person.birth_time);
           const timeValue = timeKnown ? person.birth_time.slice(0, 5) : "12:00";
           const [hh, mm] = timeValue.split(":").map(Number);
@@ -8079,10 +8136,15 @@
             Number(person.birth_date.slice(8, 10)),
             hh, mm
           ) - offset * 3600000;
+          return { when: new Date(utcMillis), timeKnown };
+        }
+
+        function chartForPerson(person) {
+          const birth = birthInstant(person);
           const lat = person.birth_lat != null ? Number(person.birth_lat) : undefined;
           const lonGeo = person.birth_lon != null ? Number(person.birth_lon) : undefined;
-          return window.GZ_ASTRO.computeChart(new Date(utcMillis), {
-            lat, lon: lonGeo, timeUnknown: !timeKnown,
+          return window.GZ_ASTRO.computeChart(birth.when, {
+            lat, lon: lonGeo, timeUnknown: !birth.timeKnown,
           });
         }
 
@@ -8127,6 +8189,7 @@
           $("aion-anchor-state").textContent = any && anchor
             ? "ANCHOR: " + anchor.display_name.toUpperCase()
             : "ANCHOR: NOT SET";
+          if ($("rungs-tabs")) renderRungs();
         }
 
         $("aion-anchor").addEventListener("change", () => {
@@ -8248,6 +8311,252 @@
           toast("Composite computed — " + comp.aspects.length + " internal aspects.");
         }
         $("syn-comp").addEventListener("click", runComposite);
+
+        /* ---- the upper rungs: progressions, returns, dashas ---- */
+
+        function rungAnchor() {
+          if (!window.GZ_ASTRO) { toast("Calculation engine failed to load."); return null; }
+          const person = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
+          if (!person) { toast("Choose a natal anchor above — a Constellations profile with birth data."); return null; }
+          return person;
+        }
+
+        /* where a return chart is cast: the anchor's home field when the
+           anchor is you and a home is set, else the birth coordinates */
+        function castPlaceFor(person) {
+          const home = person.meta && person.meta.self ? homeGeo() : null;
+          if (home) return { lat: home.lat, lon: home.lon, label: home.label || "the home field" };
+          if (person.birth_lat != null && person.birth_lon != null) {
+            return { lat: Number(person.birth_lat), lon: Number(person.birth_lon), label: "the birth coordinates" };
+          }
+          return null;
+        }
+
+        const RUNG_PANES = ["progressions", "solar", "lunar", "dasha"];
+        function showRung(which) {
+          for (const key of RUNG_PANES) $("rung-" + key).hidden = key !== which;
+          $("rungs-tabs").querySelectorAll("button").forEach((b) =>
+            b.classList.toggle("is-on", b.dataset.rung === which));
+          if (which === "lunar") renderLunarReturns();
+          if (which === "dasha") renderDashas();
+        }
+        $("rungs-tabs").addEventListener("click", (event) => {
+          const btn = event.target.closest("button[data-rung]");
+          if (btn) showRung(btn.dataset.rung);
+        });
+
+        function runProgressions() {
+          const person = rungAnchor();
+          if (!person) return;
+          const targetValue = $("prog-date").value;
+          if (!targetValue) return toast("Pick a date to progress to.");
+          const birth = birthInstant(person);
+          const target = new Date(targetValue + "T12:00:00Z");
+          if (target.getTime() <= birth.when.getTime()) return toast("Progressions run forward from birth.");
+          const natal = chartForPerson(person);
+          const prog = window.GZ_ASTRO.computeProgressed(birth.when, target);
+          $("prog-note").innerHTML =
+            "Day-for-a-year: at age <b style=\"color: var(--paper)\">" + prog.ageYears.toFixed(2) +
+            "</b> the progressed sky is the real sky of <b style=\"color: var(--paper)\">" +
+            new Date(prog.progressedInstant).toUTCString().replace(" GMT", " UT") +
+            "</b> — " + prog.ageYears.toFixed(2) + " days after birth, cast by the same ephemeris. " +
+            "Progressed angles are omitted: they require a rate convention (solar arc, Naibod…) " +
+            "that is a choice, not a fact.";
+          const holder = $("prog-out");
+          holder.innerHTML = "";
+          const wrap = document.createElement("div");
+          wrap.className = "table-scroll";
+          const table = document.createElement("table");
+          table.className = "table-lite";
+          table.style.marginTop = "12px";
+          table.innerHTML = "<thead><tr><th></th><th>PROGRESSED</th><th>NATAL</th><th>ARC MOVED</th></tr></thead>";
+          const body = document.createElement("tbody");
+          for (const place of prog.chart.placements) {
+            const natalPlace = natal.placements.find((p) => p.body === place.body);
+            const arc = ((place.lon - natalPlace.lon) % 360 + 360) % 360;
+            const arcShown = arc > 180 ? arc - 360 : arc;
+            const tr = document.createElement("tr");
+            const name = document.createElement("td");
+            name.className = "cell-glyph";
+            name.innerHTML = window.GZ_GLYPHS.svg(place.body, { size: 15, cls: "glyph-cell" }) +
+              "<span>" + place.body + "</span>";
+            const progressed = document.createElement("td");
+            progressed.textContent = place.tropical.label + (place.retrograde ? " R" : "");
+            const natalCell = document.createElement("td");
+            natalCell.className = "t-dim";
+            natalCell.textContent = natalPlace.tropical.label;
+            const arcCell = document.createElement("td");
+            arcCell.className = "t-dim";
+            arcCell.textContent = (arcShown >= 0 ? "+" : "\u2212") + Math.abs(arcShown).toFixed(2) + "\u00b0";
+            tr.append(name, progressed, natalCell, arcCell);
+            body.append(tr);
+          }
+          table.append(body);
+          wrap.append(table);
+          holder.append(wrap);
+
+          /* the tightest progressed-to-natal contacts, through the same
+             aspect engine used everywhere else */
+          const cross = window.GZ_ASTRO.computeSynastry(prog.chart, natal);
+          const top = cross.aspects.slice().sort((x, y) => x.orb - y.orb).slice(0, 6);
+          if (top.length) {
+            const head = document.createElement("p");
+            head.className = "panel-note";
+            head.style.marginTop = "12px";
+            head.textContent = "Tightest progressed-to-natal contacts:";
+            holder.append(head);
+            for (const hit of top) {
+              const row = document.createElement("div");
+              row.className = "syn-row";
+              row.innerHTML = "<b>progressed " + hit.a + "</b> <span>" + hit.type.toLowerCase() +
+                "</span> <b>natal " + hit.b + "</b> <span class=\"t-dim\" style=\"margin-left: auto\">orb " +
+                hit.orb.toFixed(2) + "\u00b0</span>";
+              holder.append(row);
+            }
+          }
+          if (natal.timeUnknown) {
+            const warn = document.createElement("p");
+            warn.className = "panel-note";
+            warn.textContent = "Birth time unknown — cast for noon; the progressed Moon carries the same uncertainty as the natal one.";
+            holder.append(warn);
+          }
+          toast("Progressed to " + targetValue + " — age " + prog.ageYears.toFixed(2) + ".");
+        }
+        $("prog-run").addEventListener("click", runProgressions);
+
+        function runSolarReturn() {
+          const person = rungAnchor();
+          if (!person) return;
+          const year = Number($("sr-year").value);
+          if (!Number.isFinite(year) || year < 1900 || year > 2100) return toast("Pick a return year between 1900 and 2100.");
+          const birth = birthInstant(person);
+          const natal = chartForPerson(person);
+          const natalSun = natal.placements.find((p) => p.body === "Sun");
+          const place = castPlaceFor(person);
+          const cast = window.GZ_ASTRO.solarReturn(natalSun.lon, birth.when, year,
+            place ? { lat: place.lat, lon: place.lon } : {});
+          if (!cast) return toast("No solar return found in that year's window.");
+          const when = new Date(cast.when);
+          $("sr-note").innerHTML =
+            "The Sun returns to its natal degree at <b style=\"color: var(--paper)\">" +
+            when.toUTCString().replace(" GMT", " UT") + "</b>" +
+            (place ? ", cast at " + place.label + " — the location shapes only the angles and houses."
+                   : ". No coordinates on file, so angles and houses are omitted.");
+          renderChartResults(cast.chart, "Solar return " + year + " \u00b7 " + person.display_name);
+          $("aion-wheel-title").scrollIntoView({ behavior: "smooth", block: "center" });
+          toast("Solar return cast onto the wheel.");
+        }
+        $("sr-run").addEventListener("click", runSolarReturn);
+
+        function renderLunarReturns() {
+          const holder = $("lr-list");
+          holder.innerHTML = "";
+          const person = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
+          if (!person || !window.GZ_ASTRO) {
+            holder.innerHTML = "<li class=\"t-dim\" style=\"padding: 10px 0\">Choose a natal anchor above.</li>";
+            return;
+          }
+          const natal = chartForPerson(person);
+          const natalMoon = natal.placements.find((p) => p.body === "Moon");
+          const place = castPlaceFor(person);
+          const instants = window.GZ_ASTRO.lunarReturns(natalMoon.lon, new Date(), 6);
+          if (natal.timeUnknown) {
+            const warn = document.createElement("li");
+            warn.className = "t-dim";
+            warn.style.padding = "6px 0";
+            warn.textContent = "Birth time unknown — the natal Moon is a noon estimate, so each return instant can shift by several hours.";
+            holder.append(warn);
+          }
+          for (const iso of instants) {
+            const when = new Date(iso);
+            const li = document.createElement("li");
+            li.className = "vault-row";
+            li.style.cssText = "display: flex; align-items: center; gap: 12px; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line)";
+            const label = document.createElement("span");
+            label.innerHTML = "<b>" + when.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }) +
+              "</b> <span class=\"t-dim\">" + when.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) +
+              " local \u00b7 " + iso.slice(11, 16) + " UT</span>";
+            const castBtn = document.createElement("button");
+            castBtn.type = "button";
+            castBtn.className = "ghost-btn";
+            castBtn.textContent = "Cast";
+            castBtn.addEventListener("click", () => {
+              const chart = window.GZ_ASTRO.computeChart(when, place ? { lat: place.lat, lon: place.lon } : {});
+              renderChartResults(chart, "Lunar return " + iso.slice(0, 10) + " \u00b7 " + person.display_name);
+              $("aion-wheel-title").scrollIntoView({ behavior: "smooth", block: "center" });
+              toast("Lunar return cast onto the wheel.");
+            });
+            li.append(label, castBtn);
+            holder.append(li);
+          }
+        }
+
+        function renderDashas() {
+          const head = $("dasha-head");
+          const holder = $("dasha-out");
+          holder.innerHTML = "";
+          const person = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
+          if (!person || !window.GZ_ASTRO) {
+            head.textContent = "Choose a natal anchor above.";
+            return;
+          }
+          const birth = birthInstant(person);
+          const natal = chartForPerson(person);
+          const dasha = window.GZ_ASTRO.vimshottari(natal, birth.when, 120);
+          const now = window.GZ_ASTRO.dashaAt(dasha, new Date());
+          head.innerHTML =
+            "Vimshottari, seeded by the sidereal Moon: <b style=\"color: var(--paper)\">" +
+            dasha.nakshatra + " \u00b7 pada " + dasha.pada + "</b> \u2192 birth opens in the dasha of <b style=\"color: var(--paper)\">" +
+            dasha.startLord + "</b> with <b style=\"color: var(--paper)\">" + dasha.balanceYears.toFixed(2) +
+            "</b> of its years remaining. " + dasha.yearConvention + "." +
+            (natal.timeUnknown
+              ? " <span style=\"color: #e08baf\">Birth time unknown — the Moon moves ~13\u00b0 a day, so the nakshatra itself may be wrong and this whole ladder with it.</span>"
+              : "");
+          if (now) {
+            const line = document.createElement("p");
+            line.className = "panel-note";
+            line.innerHTML = "NOW \u00b7 <b style=\"color: var(--gold)\">" + now.maha.lord + "</b>" +
+              (now.antar ? " / <b style=\"color: var(--gold)\">" + now.antar.lord + "</b> until " + now.antar.end.slice(0, 10) : "");
+            holder.append(line);
+          }
+          for (const maha of dasha.mahas) {
+            const isNow = now && now.maha === maha;
+            const details = document.createElement("details");
+            details.style.cssText = "border-bottom: 1px solid var(--line); padding: 7px 0" +
+              (isNow ? "; background: linear-gradient(90deg, #d0ad6d14, transparent)" : "");
+            if (isNow) details.open = true;
+            const summary = document.createElement("summary");
+            summary.style.cssText = "cursor: pointer; display: flex; gap: 12px; align-items: baseline; list-style: none";
+            summary.innerHTML =
+              "<b style=\"min-width: 74px" + (isNow ? "; color: var(--gold)" : "") + "\">" + maha.lord + "</b>" +
+              "<span class=\"t-dim\">" + maha.start.slice(0, 10) + " \u2192 " + maha.end.slice(0, 10) + "</span>" +
+              "<span class=\"t-dim\" style=\"margin-left: auto\">" + maha.years.toFixed(2) + "y</span>";
+            details.append(summary);
+            const inner = document.createElement("div");
+            inner.style.cssText = "padding: 6px 0 4px 20px; display: grid; gap: 3px";
+            for (const antar of maha.antars) {
+              const isAntarNow = now && now.antar && now.antar === antar && isNow;
+              const row = document.createElement("div");
+              row.style.cssText = "display: flex; gap: 10px; font-size: 12px" + (isAntarNow ? "; color: var(--gold)" : "");
+              row.innerHTML = "<span style=\"min-width: 64px\">" + antar.lord + "</span>" +
+                "<span class=\"t-dim\">" + antar.start.slice(0, 10) + " \u2192 " + antar.end.slice(0, 10) + "</span>" +
+                (isAntarNow ? "<span style=\"margin-left: auto\">\u25c9 now</span>" : "");
+              inner.append(row);
+            }
+            details.append(inner);
+            holder.append(details);
+          }
+        }
+
+        /* keep the rungs current with the chosen anchor */
+        function renderRungs() {
+          const person = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
+          $("rungs-anchor-note").textContent = person ? "FOR " + person.display_name.toUpperCase() : "";
+          if (!$("prog-date").value) $("prog-date").value = new Date().toISOString().slice(0, 10);
+          if (!$("sr-year").value) $("sr-year").value = String(new Date().getFullYear());
+          if (!$("rung-lunar").hidden) renderLunarReturns();
+          if (!$("rung-dasha").hidden) renderDashas();
+        }
 
         function renderComposite(personA, personB, comp) {
           $("syn-composite").hidden = false;
