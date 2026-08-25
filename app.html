@@ -14,13 +14,13 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="GZIAO" />
-    <script src="pwa.js?v=1" defer></script>
+    <script src="pwa.js?v=2" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=47" />
+    <link rel="stylesheet" href="command.css?v=48" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -108,9 +108,29 @@
             &#8681; Install as app
           </button>
           <div class="side-field" id="side-field" hidden><i></i><span id="side-field-copy"></span></div>
+          <div class="side-pulse" id="side-pulse" hidden>
+            <i></i><span id="side-pulse-copy"></span>
+          </div>
           <div class="side-doctrine">
             <b>STRATEGIC DOCTRINE</b>
             <span>IMPROVISE</span><span>ADAPT</span><span>OVERCOME</span>
+          </div>
+          <div class="side-settings" id="side-settings">
+            <button class="side-settings-toggle" id="settings-toggle" type="button">
+              <span>&#9881; Settings</span><i id="settings-chev">&rsaquo;</i>
+            </button>
+            <div class="side-settings-body" id="settings-body" hidden>
+              <small>BRAND MARK</small>
+              <div class="brand-choice">
+                <button type="button" class="brand-opt" data-brand="sigil" title="The Sigil">
+                  <img src="brand/gz-mark.png" alt="Sigil mark" />
+                </button>
+                <button type="button" class="brand-opt" data-brand="prism" title="The Prism">
+                  <img src="brand/gz-mark-2.png" alt="Prism mark" />
+                </button>
+              </div>
+              <small class="brand-choice-note" id="brand-choice-note"></small>
+            </div>
           </div>
           <div class="side-user">
             <div class="side-avatar" id="user-avatar"></div>
@@ -188,8 +208,8 @@
               <span id="strip-records">0 records indexed</span>
             </div>
             <div class="strip-cell">
-              <div><small>AION ENGINE</small><b>Solar online</b></div>
-              <span>Tropical &middot; Sidereal</span>
+              <div><small>THE SKY NOW</small><b id="strip-sky">&hellip;</b></div>
+              <span id="strip-hour">Ephemeris warming</span>
             </div>
           </section>
 
@@ -282,6 +302,7 @@
                 </div>
               </div>
               <div class="ring-cap"><i></i><span id="ready-cap">0 ready</span></div>
+              <div class="ready-live" id="ready-live"></div>
             </div>
           </section>
 
@@ -2078,7 +2099,8 @@
                 relation: "self", birth_date: "1990-06-15", birth_time: "08:30:00",
                 birth_time_known: true, birth_tz_offset: -7, birth_lat: 33.45, birth_lon: -111.94,
                 birth_place: "Phoenix, AZ", created_at: new Date().toISOString(),
-                meta: { geo: { lat: 33.4484, lon: -112.074, resolved: "Phoenix, AZ" } },
+                meta: { self: true, geo: { lat: 33.4484, lon: -112.074, resolved: "Phoenix, AZ" },
+                  home: { label: "Phoenix, Arizona", lat: 33.4484, lon: -112.074, zone: "America/Phoenix" } },
               },
               {
                 id: "p-demo-2", owner_id: "mock-user", display_name: "Demo Partner",
@@ -2218,6 +2240,67 @@
           location.replace("signin.html");
         });
 
+        /* ---------- the living sky: strip + sidebar pulse ---------- */
+        const BRAND_MARKS = { sigil: "brand/gz-mark.png", prism: "brand/gz-mark-2.png" };
+        const BRAND_NAMES = { sigil: "The Sigil — forged metal and starlight", prism: "The Prism — cut planes of signal colour" };
+
+        function applyBrandChoice() {
+          const choice = BRAND_MARKS[localStorage.getItem("gz-brand")] ? localStorage.getItem("gz-brand") : "sigil";
+          document.querySelectorAll(".brand-img").forEach((img) => {
+            img.src = BRAND_MARKS[choice];
+          });
+          document.querySelectorAll(".brand-opt").forEach((button) => {
+            button.classList.toggle("is-on", button.dataset.brand === choice);
+          });
+          const note = $("brand-choice-note");
+          if (note) note.textContent = BRAND_NAMES[choice];
+          return choice;
+        }
+
+        $("settings-toggle").addEventListener("click", () => {
+          const body = $("settings-body");
+          body.hidden = !body.hidden;
+          $("settings-chev").style.transform = body.hidden ? "" : "rotate(90deg)";
+        });
+        document.querySelectorAll(".brand-opt").forEach((button) => {
+          button.addEventListener("click", () => {
+            localStorage.setItem("gz-brand", button.dataset.brand);
+            applyBrandChoice();
+            toast(button.dataset.brand === "prism"
+              ? "The Prism carries the corner now."
+              : "The Sigil carries the corner now.");
+          });
+        });
+        applyBrandChoice();
+
+        let skyTickBusy = false;
+        function skyTick() {
+          if (skyTickBusy || !window.GZ_ASTRO) return;
+          skyTickBusy = true;
+          try {
+            const stamp = buildCelestialMeta(new Date());
+            if (!stamp) return;
+            const skyLine = "\u2609 " + stamp.sun.sign + " \u00b7 \u263d " + stamp.moon.sign;
+            if ($("strip-sky")) $("strip-sky").textContent = skyLine;
+            if ($("strip-hour")) $("strip-hour").textContent = stamp.hour
+              ? "Hour of " + stamp.hour.ruler + " \u00b7 " + stamp.phaseName
+              : stamp.phaseName + " \u00b7 set your location for the hour";
+            const pulse = $("side-pulse");
+            if (pulse) {
+              pulse.hidden = !stamp.hour;
+              if (stamp.hour) {
+                $("side-pulse-copy").textContent =
+                  "HOUR OF " + stamp.hour.ruler.toUpperCase() +
+                  (stamp.hour.isDay ? " \u00b7 DAY" : " \u00b7 NIGHT") +
+                  " \u00b7 " + stamp.phaseName.toUpperCase();
+              }
+            }
+          } catch (error) {
+          } finally {
+            skyTickBusy = false;
+          }
+        }
+
         /* ---------- clock ---------- */
         function tick() {
           const now = new Date();
@@ -2232,6 +2315,8 @@
         }
         tick();
         setInterval(tick, 30000);
+        setInterval(skyTick, 60000);
+        setTimeout(skyTick, 1200);
         try {
           $("strip-tz").textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
         } catch (error) {
@@ -2354,6 +2439,51 @@
           $("ready-count").textContent = records.length;
           $("ready-cap").textContent = records.length + " ready";
           $("ready-ring").style.setProperty("--ring-pct", records.length ? 100 : 12);
+          const holder = $("ready-live");
+          if (!holder) return;
+          holder.innerHTML = "";
+          const today = new Date().toISOString().slice(0, 10);
+          const lines = [];
+          /* next calendar event, own or adopted-shared */
+          const futureEvents = calendarEvents()
+            .filter((r) => r.meta.event.date >= today)
+            .sort((x, y) => x.meta.event.date.localeCompare(y.meta.event.date));
+          if (futureEvents.length) {
+            const ev = futureEvents[0];
+            lines.push(["\u25c7", "Next on the calendar", ev.meta.event.date +
+              (ev.meta.event.time ? " " + ev.meta.event.time : "") + " \u2014 " + ev.title, "calendar"]);
+          }
+          /* next authoritative date from sentinel */
+          const senDates = [];
+          for (const record of sentinelAll()) {
+            for (const d of record.meta.dates || []) if (d.date >= today) senDates.push({ ...d, title: record.title });
+            if (record.meta.key_date && record.meta.key_date >= today)
+              senDates.push({ date: record.meta.key_date, label: "key date", title: record.title });
+          }
+          senDates.sort((x, y) => x.date.localeCompare(y.date));
+          if (senDates.length) {
+            lines.push(["\u2696", "Next authoritative date", senDates[0].date + " \u2014 " +
+              senDates[0].label + " \u00b7 " + senDates[0].title, "sentinel"]);
+          }
+          /* nearest due operation */
+          const due = actionsOpen()
+            .map((r) => ({ r, d: daysUntil(actionDue(r)) }))
+            .filter((x) => x.d !== null && x.d >= 0)
+            .sort((x, y) => x.d - y.d);
+          if (due.length) {
+            lines.push(["\u2713", "Nearest obligation", (due[0].d === 0 ? "today" : "in " + due[0].d + "d") +
+              " \u2014 " + due[0].r.title, "operations"]);
+          }
+          for (const [mark, label, text, view] of lines) {
+            const row = document.createElement("button");
+            row.type = "button";
+            row.className = "ready-live-row";
+            row.innerHTML = "<i>" + mark + "</i><span><small>" + label.toUpperCase() +
+              "</small><b></b></span>";
+            row.querySelector("b").textContent = text;
+            row.addEventListener("click", () => setView(view));
+            holder.append(row);
+          }
         }
 
         function renderPulse() {

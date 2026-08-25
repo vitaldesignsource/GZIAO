@@ -109,6 +109,20 @@
     else document.addEventListener("DOMContentLoaded", mount);
   }
 
+  /* ---------------- brand mark choice (set in the app's settings) ---------------- */
+  function applyBrand() {
+    const marks = { sigil: "brand/gz-mark.png", prism: "brand/gz-mark-2.png" };
+    const choice = marks[localStorage.getItem("gz-brand")] ? localStorage.getItem("gz-brand") : "sigil";
+    document.querySelectorAll(".brand-img").forEach((img) => {
+      if (!img.src.endsWith(marks[choice])) img.src = marks[choice];
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyBrand);
+  } else {
+    applyBrand();
+  }
+
   /* ---------------- install prompt capture ---------------- */
   let deferredPrompt = null;
 
