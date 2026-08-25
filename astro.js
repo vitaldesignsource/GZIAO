@@ -299,6 +299,11 @@
       moonPhaseAngle: phaseAngle,
       timeUnknown: Boolean(opts.timeUnknown),
     };
+    /* remember where the cast stood, so a chart can be re-cast at another
+       instant for the same place (time-scrolling the wheel) */
+    if (Number.isFinite(opts.lat) && Number.isFinite(opts.lon)) {
+      chart.location = { lat: opts.lat, lon: opts.lon };
+    }
 
     /* the Ascendant is geometrically undefined at the poles themselves */
     const latValid = Number.isFinite(opts.lat) && Math.abs(opts.lat) <= 89.5;

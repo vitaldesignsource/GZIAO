@@ -5460,3 +5460,177 @@ small.ritual-note {
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* ================= living view skies ================= */
+#view-aion, #view-constellations, #view-atlas {
+  position: relative;
+}
+.view-sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.view-sky svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#view-aion > :not(.view-sky),
+#view-constellations > :not(.view-sky),
+#view-atlas > :not(.view-sky) {
+  position: relative;
+  z-index: 1;
+}
+
+/* constellations — a slowly wheeling starfield */
+.vs-drift {
+  transform-origin: 600px 400px;
+  animation: vs-wheel 360s linear infinite;
+}
+@keyframes vs-wheel {
+  to { transform: rotate(360deg); }
+}
+.vs-star {
+  fill: var(--violet);
+  opacity: 0.35;
+  animation: vs-twinkle 4s ease-in-out infinite;
+}
+@keyframes vs-twinkle {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.5; }
+}
+.vs-fig {
+  fill: none;
+  stroke: var(--violet);
+  stroke-width: 0.7;
+  stroke-opacity: 0.18;
+}
+.vs-node {
+  fill: var(--violet);
+  opacity: 0.3;
+}
+
+/* aion — slow planetary rounds */
+.vs-ring {
+  fill: none;
+  stroke: #d0ad6d;
+  stroke-opacity: 0.1;
+  stroke-width: 0.8;
+}
+.vs-spin {
+  animation: vs-orbit linear infinite;
+  transform-origin: 0 0;
+}
+.vs-s1 { animation-duration: 44s; }
+.vs-s2 { animation-duration: 90s; animation-direction: reverse; }
+.vs-s3 { animation-duration: 150s; }
+.vs-s4 { animation-duration: 230s; }
+@keyframes vs-orbit {
+  to { transform: rotate(360deg); }
+}
+.vs-body { opacity: 0.35; }
+.vs-gold { fill: #d0ad6d; }
+.vs-teal { fill: #63dfca; }
+.vs-violet { fill: #a78bfa; }
+.vs-rose { fill: #e08baf; }
+
+/* atlas — graticule and survey sweep */
+.vs-grat {
+  fill: none;
+  stroke: #63dfca;
+  stroke-opacity: 0.1;
+  stroke-width: 0.7;
+}
+.vs-merid {
+  animation: vs-meridian 26s ease-in-out infinite alternate;
+}
+@keyframes vs-meridian {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0.92); }
+}
+.vs-sweep {
+  transform-origin: 0 0;
+  animation: vs-orbit 18s linear infinite;
+}
+.vs-sweep line {
+  stroke: #63dfca;
+  stroke-opacity: 0.22;
+  stroke-width: 1;
+}
+.vs-pip {
+  fill: #63dfca;
+  opacity: 0.3;
+  animation: vs-pulse 4.2s ease-out infinite;
+}
+@keyframes vs-pulse {
+  0% { opacity: 0.45; r: 2; }
+  70% { opacity: 0.08; r: 7; }
+  100% { opacity: 0.08; r: 7; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-sky * {
+    animation: none !important;
+  }
+}
+
+/* ================= wheel time-scroll ================= */
+.wheel-scrub {
+  margin: 4px 0 14px;
+  display: grid;
+  gap: 9px;
+}
+.ws-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ws-row button {
+  border: 1px solid var(--line);
+  background: none;
+  color: var(--faint);
+  font: 400 10px Georgia, serif;
+  letter-spacing: 0.08em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 28px;
+}
+.ws-row button:hover {
+  color: var(--paper);
+  border-color: #d0ad6d66;
+}
+.ws-row .ws-home {
+  color: var(--gold);
+  border-color: #d0ad6d55;
+  letter-spacing: 0.14em;
+  font-size: 9px;
+}
+#ws-slider {
+  width: 100%;
+  accent-color: #d0ad6d;
+  height: 22px;
+}
+.ws-read {
+  text-align: center;
+  color: var(--faint);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* planetary hour beside the command clock */
+.strip-phour {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.strip-phour .glyph-cell {
+  vertical-align: middle;
+}

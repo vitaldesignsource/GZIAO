@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=50" />
+    <link rel="stylesheet" href="command.css?v=51" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -203,7 +203,7 @@
 
           <section class="strip">
             <div class="strip-cell">
-              <div><small>LOCAL COMMAND TIME</small><b id="strip-time"></b></div>
+              <div><small>LOCAL COMMAND TIME</small><b id="strip-time"></b><span class="strip-phour" id="strip-phour" hidden></span></div>
               <span id="strip-tz"></span>
             </div>
             <div class="strip-cell">
@@ -534,6 +534,21 @@
 
         <!-- ================= AION VIEW ================= -->
         <div class="content" id="view-aion" hidden>
+          <div class="view-sky" aria-hidden="true">
+            <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+              <g class="vs-orbits" transform="translate(600 400)">
+                <circle r="130" class="vs-ring" />
+                <circle r="220" class="vs-ring" />
+                <circle r="320" class="vs-ring" />
+                <circle r="430" class="vs-ring" />
+                <g class="vs-spin vs-s1"><circle cx="130" cy="0" r="3.2" class="vs-body vs-gold" /></g>
+                <g class="vs-spin vs-s2"><circle cx="-220" cy="0" r="2.4" class="vs-body vs-teal" /></g>
+                <g class="vs-spin vs-s3"><circle cx="0" cy="-320" r="2.8" class="vs-body vs-violet" /></g>
+                <g class="vs-spin vs-s4"><circle cx="304" cy="304" r="2" class="vs-body vs-rose" /></g>
+                <circle r="5" class="vs-body vs-gold" style="opacity: 0.5" />
+              </g>
+            </svg>
+          </div>
           <div class="mp-head">
             <div class="mp-head-copy">
               <span class="kicker is-amber">DETERMINISTIC TIMING LABORATORY</span>
@@ -724,6 +739,8 @@
               <svg class="zwheel" viewBox="0 0 300 300" aria-hidden="true">
                 <circle cx="150" cy="150" r="140" />
                 <circle cx="150" cy="150" r="96" />
+                <g id="wheel-ticks"></g>
+                <g id="wheel-aspects"></g>
                 <g id="wheel-planets"></g>
                 <g id="wheel-angles"></g>
                 <circle cx="150" cy="150" r="42" style="fill: var(--panel-solid); stroke: #d0ad6d88" />
@@ -731,6 +748,22 @@
                 <text x="150" y="162" class="z-core" style="font-size: 8px; fill: #91a8b6">FIELD</text>
                 <g id="wheel-signs"></g>
               </svg>
+              <div class="wheel-scrub" id="wheel-scrub" hidden>
+                <div class="ws-row">
+                  <button type="button" data-ws="-720">&minus;1mo</button>
+                  <button type="button" data-ws="-168">&minus;1w</button>
+                  <button type="button" data-ws="-24">&minus;1d</button>
+                  <button type="button" data-ws="-1">&minus;1h</button>
+                  <button type="button" id="ws-reset" class="ws-home">CAST INSTANT</button>
+                  <button type="button" data-ws="1">+1h</button>
+                  <button type="button" data-ws="24">+1d</button>
+                  <button type="button" data-ws="168">+1w</button>
+                  <button type="button" data-ws="720">+1mo</button>
+                </div>
+                <input type="range" id="ws-slider" min="-720" max="720" step="1" value="0"
+                  aria-label="Scroll the chart through time, hours from the cast instant" />
+                <div class="ws-read" id="ws-read">At the cast instant.</div>
+              </div>
               <div class="privacy-row">
                 <span>COORDINATE &middot; <b style="color: var(--paper)">Apparent geocentric</b></span>
                 <span>ZODIACS &middot; <b style="color: var(--paper)">Tropical + Sidereal</b></span>
@@ -1540,6 +1573,11 @@
 
         <!-- ================= CONSTELLATIONS ================= -->
         <div class="content" id="view-constellations" hidden>
+          <div class="view-sky" aria-hidden="true">
+            <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+              <g class="vs-drift"><circle cx="681.6" cy="500.5" r="1.34" class="vs-star" style="animation-duration: 3.68s; animation-delay: 3.91s" /><circle cx="1053.3" cy="710.7" r="0.77" class="vs-star" style="animation-duration: 5.14s; animation-delay: 3.7s" /><circle cx="603.9" cy="754.3" r="1.08" class="vs-star" style="animation-duration: 4.34s; animation-delay: 5.66s" /><circle cx="757.3" cy="249.0" r="0.88" class="vs-star" style="animation-duration: 4.53s; animation-delay: 0.32s" /><circle cx="724.8" cy="579.2" r="0.98" class="vs-star" style="animation-duration: 5.9s; animation-delay: 5.57s" /><circle cx="664.5" cy="537.8" r="0.71" class="vs-star" style="animation-duration: 2.82s; animation-delay: 5.88s" /><circle cx="350.0" cy="182.2" r="1.41" class="vs-star" style="animation-duration: 5.52s; animation-delay: 0.74s" /><circle cx="393.1" cy="204.4" r="0.85" class="vs-star" style="animation-duration: 2.62s; animation-delay: 3.15s" /><circle cx="373.0" cy="319.6" r="0.77" class="vs-star" style="animation-duration: 3.03s; animation-delay: 0.2s" /><circle cx="1032.4" cy="588.0" r="1.1" class="vs-star" style="animation-duration: 3.08s; animation-delay: 0.89s" /><circle cx="158.8" cy="260.6" r="0.65" class="vs-star" style="animation-duration: 3.67s; animation-delay: 1.22s" /><circle cx="243.7" cy="516.8" r="1.01" class="vs-star" style="animation-duration: 4.45s; animation-delay: 2.15s" /><circle cx="645.3" cy="616.7" r="0.88" class="vs-star" style="animation-duration: 2.87s; animation-delay: 2.89s" /><circle cx="459.8" cy="613.2" r="0.7" class="vs-star" style="animation-duration: 6.0s; animation-delay: 0.09s" /><circle cx="649.0" cy="357.1" r="0.88" class="vs-star" style="animation-duration: 6.07s; animation-delay: 4.21s" /><circle cx="209.3" cy="396.2" r="1.15" class="vs-star" style="animation-duration: 2.73s; animation-delay: 0.52s" /><circle cx="718.0" cy="574.4" r="1.02" class="vs-star" style="animation-duration: 4.25s; animation-delay: 3.04s" /><circle cx="322.3" cy="686.1" r="1.47" class="vs-star" style="animation-duration: 4.48s; animation-delay: 0.12s" /><circle cx="480.6" cy="630.3" r="0.89" class="vs-star" style="animation-duration: 3.01s; animation-delay: 1.11s" /><circle cx="845.5" cy="492.7" r="0.86" class="vs-star" style="animation-duration: 5.03s; animation-delay: 4.56s" /><circle cx="1140.7" cy="651.8" r="0.99" class="vs-star" style="animation-duration: 5.76s; animation-delay: 5.55s" /><circle cx="1028.0" cy="590.4" r="1.13" class="vs-star" style="animation-duration: 4.59s; animation-delay: 5.1s" /><circle cx="745.1" cy="568.1" r="0.81" class="vs-star" style="animation-duration: 2.96s; animation-delay: 1.62s" /><circle cx="696.7" cy="455.5" r="0.78" class="vs-star" style="animation-duration: 3.34s; animation-delay: 5.7s" /><circle cx="102.9" cy="724.1" r="1.29" class="vs-star" style="animation-duration: 4.84s; animation-delay: 5.97s" /><circle cx="808.5" cy="25.2" r="1.45" class="vs-star" style="animation-duration: 4.21s; animation-delay: 5.5s" /><circle cx="964.0" cy="125.0" r="0.64" class="vs-star" style="animation-duration: 2.68s; animation-delay: 4.68s" /><circle cx="938.1" cy="193.3" r="0.7" class="vs-star" style="animation-duration: 4.03s; animation-delay: 4.8s" /><circle cx="879.3" cy="679.0" r="1.47" class="vs-star" style="animation-duration: 5.54s; animation-delay: 5.01s" /><circle cx="39.0" cy="24.9" r="1.38" class="vs-star" style="animation-duration: 5.01s; animation-delay: 1.96s" /><circle cx="168.7" cy="272.7" r="0.91" class="vs-star" style="animation-duration: 4.53s; animation-delay: 2.7s" /><circle cx="254.6" cy="82.4" r="0.78" class="vs-star" style="animation-duration: 3.1s; animation-delay: 0.6s" /><circle cx="500.8" cy="118.9" r="1.32" class="vs-star" style="animation-duration: 4.72s; animation-delay: 2.76s" /><circle cx="761.4" cy="198.5" r="0.62" class="vs-star" style="animation-duration: 2.91s; animation-delay: 2.02s" /><circle cx="439.0" cy="212.0" r="0.88" class="vs-star" style="animation-duration: 5.85s; animation-delay: 0.05s" /><circle cx="540.9" cy="311.1" r="0.85" class="vs-star" style="animation-duration: 5.43s; animation-delay: 1.35s" /><circle cx="69.1" cy="141.2" r="1.48" class="vs-star" style="animation-duration: 3.95s; animation-delay: 0.7s" /><circle cx="1146.2" cy="510.2" r="1.46" class="vs-star" style="animation-duration: 3.89s; animation-delay: 4.86s" /><circle cx="68.0" cy="200.5" r="1.32" class="vs-star" style="animation-duration: 4.61s; animation-delay: 4.74s" /><circle cx="467.6" cy="686.0" r="0.67" class="vs-star" style="animation-duration: 5.03s; animation-delay: 1.13s" /><circle cx="251.3" cy="691.2" r="0.99" class="vs-star" style="animation-duration: 5.77s; animation-delay: 1.7s" /><circle cx="867.1" cy="709.7" r="1.16" class="vs-star" style="animation-duration: 3.51s; animation-delay: 4.01s" /><circle cx="1123.0" cy="628.9" r="1.0" class="vs-star" style="animation-duration: 4.16s; animation-delay: 0.59s" /><circle cx="911.5" cy="140.3" r="0.8" class="vs-star" style="animation-duration: 2.73s; animation-delay: 0.98s" /><polyline class="vs-fig" points="180,120 260,170 330,150 400,210 445,300" /><circle cx="180" cy="120" r="2" class="vs-node" /><circle cx="260" cy="170" r="2" class="vs-node" /><circle cx="330" cy="150" r="2" class="vs-node" /><circle cx="400" cy="210" r="2" class="vs-node" /><circle cx="445" cy="300" r="2" class="vs-node" /><polyline class="vs-fig" points="760,560 830,500 920,530 1000,470 1050,520 1120,480" /><circle cx="760" cy="560" r="2" class="vs-node" /><circle cx="830" cy="500" r="2" class="vs-node" /><circle cx="920" cy="530" r="2" class="vs-node" /><circle cx="1000" cy="470" r="2" class="vs-node" /><circle cx="1050" cy="520" r="2" class="vs-node" /><circle cx="1120" cy="480" r="2" class="vs-node" /><polyline class="vs-fig" points="880,120 940,180 1020,160 1060,230" /><circle cx="880" cy="120" r="2" class="vs-node" /><circle cx="940" cy="180" r="2" class="vs-node" /><circle cx="1020" cy="160" r="2" class="vs-node" /><circle cx="1060" cy="230" r="2" class="vs-node" /></g>
+            </svg>
+          </div>
           <div class="mp-head">
             <div class="mp-head-copy">
               <span class="kicker is-violet">PRIVATE PROFILES</span>
@@ -1895,6 +1933,20 @@
         </div>
 
         <div class="content" id="view-atlas" hidden>
+          <div class="view-sky" aria-hidden="true">
+            <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+              <g transform="translate(600 400)">
+                <circle r="250" class="vs-grat" style="stroke-opacity: 0.5" />
+                <line x1="-250" y1="0" x2="250" y2="0" class="vs-grat" />
+                <g class="vs-merid"><ellipse cx="0" cy="0" rx="40" ry="250" class="vs-grat" /><ellipse cx="0" cy="0" rx="105" ry="250" class="vs-grat" /><ellipse cx="0" cy="0" rx="170" ry="250" class="vs-grat" /><ellipse cx="0" cy="0" rx="235" ry="250" class="vs-grat" /></g>
+                <line x1="-244" y1="-60" x2="244" y2="-60" class="vs-grat" /><line x1="-244" y1="60" x2="244" y2="60" class="vs-grat" /><line x1="-216" y1="-125" x2="216" y2="-125" class="vs-grat" /><line x1="-216" y1="125" x2="216" y2="125" class="vs-grat" /><line x1="-168" y1="-185" x2="168" y2="-185" class="vs-grat" /><line x1="-168" y1="185" x2="168" y2="185" class="vs-grat" /><line x1="-100" y1="-228" x2="100" y2="-228" class="vs-grat" /><line x1="-100" y1="228" x2="100" y2="228" class="vs-grat" />
+                <g class="vs-sweep"><line x1="0" y1="0" x2="0" y2="-250" /></g>
+                <circle cx="-90" cy="-60" r="3" class="vs-pip" style="animation-delay: 0s" />
+                <circle cx="120" cy="40" r="3" class="vs-pip" style="animation-delay: 1.4s" />
+                <circle cx="-30" cy="150" r="3" class="vs-pip" style="animation-delay: 2.8s" />
+              </g>
+            </svg>
+          </div>
           <div class="mp-head">
             <div class="mp-head-copy">
               <span class="kicker">PLACES &middot; SOURCES &middot; SYSTEMS</span>
@@ -2350,6 +2402,15 @@
             if ($("strip-hour")) $("strip-hour").textContent = stamp.hour
               ? "Hour of " + stamp.hour.ruler + " \u00b7 " + stamp.phaseName
               : stamp.phaseName + " \u00b7 set your location for the hour";
+            const phour = $("strip-phour");
+            if (phour) {
+              phour.hidden = !stamp.hour;
+              if (stamp.hour) {
+                phour.innerHTML =
+                  window.GZ_GLYPHS.svg(stamp.hour.ruler, { size: 13, cls: "glyph-cell" }) +
+                  "<span>Hour of " + stamp.hour.ruler + "</span>";
+              }
+            }
             const pulse = $("side-pulse");
             if (pulse) {
               pulse.hidden = !stamp.hour;
@@ -7846,23 +7907,78 @@
           ring.innerHTML = html;
         }
 
+        function buildWheelTicks() {
+          const layer = $("wheel-ticks");
+          if (!layer || layer.childNodes.length) return;
+          let html = "";
+          for (let deg = 0; deg < 360; deg++) {
+            const major = deg % 10 === 0;
+            const medium = !major && deg % 5 === 0;
+            const inner = wheelXY(deg, major ? 133 : medium ? 135.5 : 137.5);
+            const outer = wheelXY(deg, 140);
+            html += '<line x1="' + inner.x.toFixed(2) + '" y1="' + inner.y.toFixed(2) +
+              '" x2="' + outer.x.toFixed(2) + '" y2="' + outer.y.toFixed(2) +
+              '" stroke="#d0ad6d" stroke-opacity="' + (major ? 0.55 : medium ? 0.38 : 0.16) +
+              '" stroke-width="' + (major ? 0.9 : 0.5) + '"/>';
+          }
+          for (let boundary = 0; boundary < 360; boundary += 30) {
+            const inner = wheelXY(boundary, 96);
+            const outer = wheelXY(boundary, 140);
+            html += '<line x1="' + inner.x.toFixed(2) + '" y1="' + inner.y.toFixed(2) +
+              '" x2="' + outer.x.toFixed(2) + '" y2="' + outer.y.toFixed(2) +
+              '" stroke="#a78bfa" stroke-opacity="0.3" stroke-width="0.6"/>';
+          }
+          layer.innerHTML = html;
+        }
+
+        const WHEEL_ASPECT_COLOR = {
+          Conjunction: "#d0ad6d", Sextile: "#63dfca", Square: "#e08baf",
+          Trine: "#5ce0a1", Opposition: "#c86a8a",
+        };
+
         function renderWheel(chart) {
           buildWheelSigns();
+          buildWheelTicks();
           const planetLayer = $("wheel-planets");
           const angleLayer = $("wheel-angles");
+          const aspectLayer = $("wheel-aspects");
           planetLayer.innerHTML = "";
           angleLayer.innerHTML = "";
+          if (aspectLayer) aspectLayer.innerHTML = "";
           if (!chart) return;
           const svgns = "http://www.w3.org/2000/svg";
+
+          /* aspect chords between the exact longitudes, colour by figure,
+             presence by tightness — the geometry is the interpretation */
+          if (aspectLayer && chart.aspects) {
+            let aspectHtml = "";
+            for (const hit of chart.aspects) {
+              if (hit.type === "Conjunction") continue; /* zero-length chord */
+              const a = chart.placements.find((p) => p.body === hit.a);
+              const b = chart.placements.find((p) => p.body === hit.b);
+              if (!a || !b) continue;
+              const from = wheelXY(a.lon, 90);
+              const to = wheelXY(b.lon, 90);
+              const strength = Math.max(0.14, 0.62 - hit.orb / 9);
+              aspectHtml += '<line x1="' + from.x.toFixed(2) + '" y1="' + from.y.toFixed(2) +
+                '" x2="' + to.x.toFixed(2) + '" y2="' + to.y.toFixed(2) +
+                '" stroke="' + (WHEEL_ASPECT_COLOR[hit.type] || "#91a8b6") +
+                '" stroke-opacity="' + strength.toFixed(2) + '" stroke-width="' +
+                (hit.orb < 1.5 ? 1 : 0.6) + '"/>';
+            }
+            aspectLayer.innerHTML = aspectHtml;
+          }
+
           const sorted = [...chart.placements].sort((a, b) => a.lon - b.lon);
           let lastLon = -999;
-          let toggle = false;
+          let stagger = 0;
           let planetHtml = "";
           for (const place of sorted) {
-            if (Math.abs(separation(lastLon, place.lon)) < 10) toggle = !toggle;
-            else toggle = false;
+            if (Math.abs(separation(lastLon, place.lon)) < 13) stagger = (stagger + 1) % 3;
+            else stagger = 0;
             lastLon = place.lon;
-            const pos = wheelXY(place.lon, toggle ? 58 : 76);
+            const radius = [76, 62, 50][stagger];
+            const pos = wheelXY(place.lon, radius);
             const tick = wheelXY(place.lon, 92);
             const tickOuter = wheelXY(place.lon, 96);
             planetHtml +=
@@ -7872,8 +7988,33 @@
               place.body, pos.x, pos.y, 15,
               place.retrograde ? "#e08baf" : "var(--paper)", 1.5
             );
+            /* the exact degree, written under the glyph */
+            const within = place.lon - Math.floor(place.lon / 30) * 30;
+            const d = Math.floor(within);
+            const m = Math.floor((within - d) * 60);
+            const labelPos = wheelXY(place.lon, radius - 12.5);
+            planetHtml += '<text x="' + labelPos.x.toFixed(1) + '" y="' + labelPos.y.toFixed(1) +
+              '" style="fill: #91a8b6; font-size: 5.6px; text-anchor: middle; letter-spacing: 0.3px">' +
+              d + "\u00b0" + String(m).padStart(2, "0") + "\u2032" +
+              (place.retrograde ? " R" : "") + "</text>";
           }
           planetLayer.innerHTML = planetHtml;
+
+          /* the houses, numbered at the middle of each */
+          if (chart.houses) {
+            let houseHtml = "";
+            const cusps = chart.houses.cusps;
+            for (let i = 0; i < cusps.length; i++) {
+              const from = cusps[i].lon;
+              const to = cusps[(i + 1) % cusps.length].lon;
+              const mid = (from + ((to - from + 360) % 360) / 2) % 360;
+              const pos = wheelXY(mid, 102);
+              houseHtml += '<text x="' + pos.x.toFixed(1) + '" y="' + (pos.y + 2).toFixed(1) +
+                '" style="fill: #63dfca; fill-opacity: 0.75; font-size: 6px; text-anchor: middle">' +
+                cusps[i].house + "</text>";
+            }
+            planetLayer.innerHTML += houseHtml;
+          }
           if (chart.houses) {
             for (const cusp of chart.houses.cusps) {
               if (cusp.house === 1 || cusp.house === 10) continue; // drawn as ASC/MC
@@ -7914,14 +8055,72 @@
           }
         }
 
-        function renderChartResults(chart, subject) {
+        /* ---- scroll the sky: re-cast the standing chart at another instant ---- */
+        let wheelCast = null;
+        let wsOffset = 0; /* hours from the cast instant */
+        let wsPending = false;
+
+        function wsFmt(hours) {
+          const sign = hours < 0 ? "\u2212" : "+";
+          const abs = Math.abs(hours);
+          const days = Math.floor(abs / 24);
+          const rem = Math.round(abs % 24);
+          return sign + (days ? days + "d " : "") + rem + "h";
+        }
+
+        function wsApply() {
+          if (!wheelCast || wsPending || !window.GZ_ASTRO) return;
+          wsPending = true;
+          requestAnimationFrame(() => {
+            wsPending = false;
+            const when = new Date(wheelCast.when.getTime() + wsOffset * 3600000);
+            const chart = window.GZ_ASTRO.computeChart(when, wheelCast.opts);
+            renderChartResults(chart, wheelCast.subject, true);
+            $("ws-read").textContent = wsOffset === 0
+              ? "At the cast instant."
+              : wsFmt(wsOffset) + " from the cast \u00b7 " + when.toUTCString().replace(" GMT", " UT");
+          });
+        }
+
+        $("ws-slider").addEventListener("input", () => {
+          wsOffset = Number($("ws-slider").value);
+          wsApply();
+        });
+        document.querySelectorAll("#wheel-scrub [data-ws]").forEach((button) => {
+          button.addEventListener("click", () => {
+            wsOffset += Number(button.dataset.ws);
+            $("ws-slider").value = String(Math.max(-720, Math.min(720, wsOffset)));
+            wsApply();
+          });
+        });
+        $("ws-reset").addEventListener("click", () => {
+          wsOffset = 0;
+          $("ws-slider").value = "0";
+          wsApply();
+        });
+
+        function renderChartResults(chart, subject, fromScrub) {
           currentChart = chart;
           currentSubject = subject || "Current field";
           const when = new Date(chart.utc);
+          if (!fromScrub) {
+            wheelCast = {
+              when,
+              opts: chart.location ? { lat: chart.location.lat, lon: chart.location.lon } : {},
+              subject: currentSubject,
+            };
+            wsOffset = 0;
+            if ($("ws-slider")) {
+              $("ws-slider").value = "0";
+              $("wheel-scrub").hidden = false;
+              $("ws-read").textContent = "At the cast instant.";
+            }
+          }
           $("aion-wheel-title").textContent = currentSubject;
           $("aion-wheel-sub").hidden = false;
           $("aion-wheel-sub").textContent =
-            when.toUTCString().replace(" GMT", " UT") + " · ayanamsha " + chart.ayanamsha.toFixed(3) + "°";
+            when.toUTCString().replace(" GMT", " UT") + " · ayanamsha " + chart.ayanamsha.toFixed(3) + "°" +
+            (fromScrub && wsOffset ? " · scrolled " + wsFmt(wsOffset) : "");
           $("aion-wheel-ayan").innerHTML =
             "AYANAMSHA · <b style='color: var(--paper)'>Lahiri " + chart.ayanamsha.toFixed(2) + "°</b>";
           renderWheel(chart);
