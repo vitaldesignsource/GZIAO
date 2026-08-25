@@ -6930,8 +6930,41 @@
           if (oa && oa.isOa && oa.pdfUrl) await loadOaFullText(oa);
         }
 
+        /* The server-side relay, when deployed: an Edge Function that fetches
+           a page for a signed-in identity. One probe per session; every path
+           degrades to the direct fetch, and failures stay honest. */
+        let edgeRelayState = "unknown"; /* unknown | up | down */
+        async function edgeFetchText(url) {
+          if (edgeRelayState === "down" || !GZ.configured) return null;
+          try {
+            const { data } = await GZ.client.auth.getSession();
+            const token = data && data.session && data.session.access_token;
+            if (!token) return null;
+            const response = await fetch(GZ_CONFIG.SUPABASE_URL + "/functions/v1/fetchpage", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token,
+                "apikey": GZ_CONFIG.SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({ url }),
+            });
+            if (response.status === 404 || response.status === 403) {
+              edgeRelayState = "down"; /* not deployed — stop asking this session */
+              return null;
+            }
+            const payload = await response.json();
+            if (!payload.ok) return null;
+            edgeRelayState = "up";
+            return payload;
+          } catch (error) {
+            return null;
+          }
+        }
+
         /* Fetch the open-access text where the host allows it. Many publishers
-           do not send CORS headers; when that happens we say so plainly rather
+           do not send CORS headers; the relay reads those server-side when it
+           is deployed, and when neither road works we say so plainly rather
            than pretending the text is unavailable. */
         async function loadOaFullText(oa) {
           const target = oa.pdfUrl || oa.landing;
@@ -6942,9 +6975,15 @@
             return;
           }
           try {
-            const response = await fetch(target);
-            if (!response.ok) throw new Error("blocked");
-            const html = await response.text();
+            let html = null;
+            const relayed = await edgeFetchText(target);
+            if (relayed && relayed.text) {
+              html = relayed.text;
+            } else {
+              const response = await fetch(target);
+              if (!response.ok) throw new Error("blocked");
+              html = await response.text();
+            }
             const doc = new DOMParser().parseFromString(html, "text/html");
             const body = doc.querySelector("article, main, .fulltext-view, #body");
             if (!body) throw new Error("no body");
