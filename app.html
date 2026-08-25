@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=3" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=43" />
+    <link rel="stylesheet" href="command.css?v=44" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -4397,6 +4397,14 @@
           calendar: "view-calendar",
         };
 
+        const TONE_BY_VIEW = {
+          command: "orient", timeline: "orient", calendar: "orient", watchtower: "orient",
+          sentinel: "protect", vault: "protect", scriptorium: "protect", scribe: "protect",
+          operations: "manage", resources: "manage",
+          constellations: "understand", thework: "understand", aion: "understand",
+          atlas: "understand", oracle: "understand",
+        };
+
         function setView(id) {
           if (restricted) id = "thework";
           const module = MODULES[id] || MODULES.command;
@@ -4408,6 +4416,8 @@
             item.classList.toggle("is-active", item.dataset.view === id);
           });
           $("crumb-name").textContent = module.name;
+          const main = document.querySelector(".main");
+          if (main) main.dataset.tone = TONE_BY_VIEW[id] || "orient";
           $("crumb-desc").textContent = module.desc;
           setDrawer(false);
           if (id === "atlas" && atlasMap) {
@@ -8244,10 +8254,16 @@
           document.querySelectorAll(".side-item[data-view]").forEach((item) => {
             const svg = NAV_ICONS[item.dataset.view];
             if (!svg) return;
+            const copy = document.createElement("span");
+            copy.className = "nv-copy";
+            const strong = item.querySelector("strong");
+            const sub = item.querySelector("span:not(.nv-copy)");
+            if (strong) copy.append(strong);
+            if (sub) copy.append(sub);
             const holder = document.createElement("span");
             holder.className = "nv-ic";
             holder.innerHTML = svg;
-            item.prepend(holder);
+            item.append(holder, copy);
           });
         })();
 

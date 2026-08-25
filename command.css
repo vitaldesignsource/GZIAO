@@ -5033,3 +5033,66 @@ small.ritual-note {
   color: var(--amber);
   font-style: normal;
 }
+
+/* ---- sidebar items: large icon inline-left of the titles ---- */
+.side-item {
+  display: flex !important;
+  align-items: center;
+  gap: 16px;
+}
+
+.side-item .nv-ic {
+  flex: none;
+  display: flex;
+}
+
+.side-item .nv-ic svg {
+  width: 51px;
+  height: 51px;
+  stroke-width: 1.05;
+}
+
+.nv-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nv-copy strong,
+.nv-copy span {
+  display: block;
+}
+
+/* ---- each work area carries its own gradient field ---- */
+.main {
+  transition: background 0.5s ease;
+}
+
+.main[data-tone="orient"] {
+  background:
+    radial-gradient(1000px circle at 85% -5%, #63dfca14, transparent 55%),
+    linear-gradient(165deg, #63dfca0a 0%, transparent 38%),
+    var(--shell-bg);
+}
+
+.main[data-tone="protect"] {
+  background:
+    radial-gradient(1000px circle at 85% -5%, #d0ad6d16, transparent 55%),
+    linear-gradient(165deg, #d0ad6d0a 0%, transparent 38%),
+    var(--shell-bg);
+}
+
+.main[data-tone="manage"] {
+  background:
+    radial-gradient(1000px circle at 85% -5%, #5ce0a114, transparent 55%),
+    linear-gradient(165deg, #5ce0a10a 0%, transparent 38%),
+    var(--shell-bg);
+}
+
+.main[data-tone="understand"] {
+  background:
+    radial-gradient(1000px circle at 85% -5%, #a78bfa16, transparent 55%),
+    linear-gradient(165deg, #a78bfa0c 0%, transparent 38%),
+    var(--shell-bg);
+}
