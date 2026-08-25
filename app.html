@@ -1150,7 +1150,7 @@
               <p>Search real account activity, manage household ledgers, and understand the assumptions behind every position.</p>
             </div>
             <div class="mp-actions">
-              <button class="prime-btn" data-soon="Resource entries arrive with the ledger build." type="button">+ Add resource</button>
+              <button class="prime-btn" id="res-add" type="button">+ Record a debt</button>
             </div>
           </div>
           <section class="panel">
@@ -1824,9 +1824,10 @@
                 <span class="kicker is-amber">TONIGHT&rsquo;S CELESTIAL LAYER</span>
                 <h2>What will be attached</h2>
                 <div class="oracle-facts" style="margin-top: 16px">
-                  <div><small>PLANETARY DAY</small><b id="dr-ruler"></b></div>
+                  <div><small>WEEKDAY RULER</small><b id="dr-ruler"></b></div>
+                  <div><small>PLANETARY HOUR</small><b id="dr-hour">&mdash;</b></div>
                   <div><small>LUNAR PHASE</small><b id="dr-phase"></b></div>
-                  <div><small>LUNAR DAY</small><b id="dr-lday"></b></div>
+                  <div><small>SUN &middot; MOON</small><b id="dr-signs">&mdash;</b></div>
                   <div><small>JULIAN DAY</small><b id="dr-jd"></b></div>
                   <div><small>SOLAR STATION</small><b id="dr-station"></b></div>
                 </div>
@@ -3358,10 +3359,21 @@
           const when = value ? new Date(value) : new Date();
           const layer = celestialLayer(when);
           $("dr-ruler").textContent = layer.ruler;
-          $("dr-phase").textContent = layer.phase;
-          $("dr-lday").textContent = layer.lunarDay;
           $("dr-jd").textContent = layer.julian;
           $("dr-station").textContent = layer.station;
+          /* the real ephemeris where it reaches; the arithmetic layer as floor */
+          const stamp = buildCelestialMeta(when);
+          if (stamp) {
+            $("dr-phase").textContent = stamp.phaseName;
+            $("dr-signs").textContent = "\u2609 " + stamp.sun.sign + " \u00b7 \u263d " + stamp.moon.sign;
+            $("dr-hour").textContent = stamp.hour
+              ? stamp.hour.ruler + (stamp.hour.isDay ? " \u00b7 day" : " \u00b7 night")
+              : "set your location";
+          } else {
+            $("dr-phase").textContent = layer.phase;
+            $("dr-signs").textContent = "\u2014";
+            $("dr-hour").textContent = "\u2014";
+          }
         }
 
         /* ---------- units: linked members and per-member share requests ---------- */
@@ -4358,6 +4370,11 @@
         function debtsAll() {
           return records.filter((record) => record.meta && record.meta.module === "resources" && record.meta.debt);
         }
+
+        if ($("res-add")) $("res-add").addEventListener("click", () => {
+          $("debt-party").focus();
+          $("debt-party").scrollIntoView({ behavior: "smooth", block: "center" });
+        });
 
         $("debt-form").addEventListener("submit", async (event) => {
           event.preventDefault();
@@ -8953,6 +8970,22 @@
         $("scribe-commit").addEventListener("click", scribeCommit);
 
         refreshScribeState();
+
+        /* ---------- the advertised keys actually work ---------- */
+        document.addEventListener("keydown", (event) => {
+          const inField = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) ||
+            document.activeElement.isContentEditable;
+          if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+            event.preventDefault();
+            $("cmd-search").focus();
+            return;
+          }
+          if (!event.altKey || inField) return;
+          const code = event.code;
+          if (code === "KeyC") { event.preventDefault(); openCapture(); }
+          else if (code === "KeyP") { event.preventDefault(); setView("constellations"); }
+          else if (code === "KeyA") { event.preventDefault(); setView("aion"); }
+        });
 
         /* ---------- search palette ---------- */
         const search = $("cmd-search");
