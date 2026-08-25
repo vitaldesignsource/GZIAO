@@ -885,3 +885,15 @@ html[data-theme="light"] .install-later {
     width: 100%;
   }
 }
+
+/* ---- the brand mark ---- */
+.brand-img {
+  height: 52px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 0 7px #63dfca38) drop-shadow(0 0 14px #a78bfa22) drop-shadow(0 2px 12px #00000080);
+}
+
+.install-guide-head .brand-img {
+  height: 40px;
+}

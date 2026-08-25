@@ -18,9 +18,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=44" />
+    <link rel="stylesheet" href="command.css?v=47" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -57,11 +57,7 @@
         <button class="side-close" id="side-close" type="button" aria-label="Close menu">&times;</button>
         <div class="side-head">
           <button class="side-home" id="side-home" type="button" aria-label="Go to Command">
-            <div class="brand-mark" aria-hidden="true">
-              <span>G</span>
-              <i></i>
-              <span>Z</span>
-            </div>
+            <img class="brand-img" src="brand/gz-mark.png" alt="GZ IAO" />
             <div class="side-home-copy">
               <strong style="letter-spacing: 0.16em; font: 600 12px Georgia, serif">GIMEL ZAYIN</strong>
               <small style="color: var(--amber); letter-spacing: 0.45em; font-size: 8px; display: block">I&middot;A&middot;O</small>
@@ -8233,21 +8229,99 @@
 
         /* ---------- sidebar iconography: one motion icon per module ---------- */
         const NAV_ICONS = {
-          command: '<svg viewBox="0 0 24 24"><circle class="nv-spin" cx="12" cy="12" r="7.6" stroke-dasharray="3.5 3.5"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3"/></svg>',
-          timeline: '<svg viewBox="0 0 24 24"><path d="M3 12h18"/><circle cx="6.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="17.5" cy="12" r="1.6"/><circle class="nv-travel" cx="6.5" cy="12" r="2.6" fill="none"/></svg>',
-          calendar: '<svg viewBox="0 0 24 24"><rect x="3.6" y="5" width="16.8" height="15" rx="2.4"/><path d="M3.6 9.6h16.8M8 2.8v4M16 2.8v4"/><circle class="nv-pulse" cx="12" cy="14.6" r="1.7" fill="currentColor" stroke="none"/></svg>',
-          watchtower: '<svg viewBox="0 0 24 24"><path d="M12 3 3.6 8v0c2.5 1.7 5.3 2.6 8.4 2.6S17.9 9.7 20.4 8Z" fill="none"/><path d="M12 10.6v10M8.2 20.6h7.6"/><circle class="nv-beacon" cx="12" cy="6.6" r="1.5" fill="currentColor" stroke="none"/></svg>',
-          sentinel: '<svg viewBox="0 0 24 24"><path d="M12 3 5 5.8v5.4c0 4.6 2.9 8 7 9.8 4.1-1.8 7-5.2 7-9.8V5.8Z"/><path class="nv-draw" d="M8.6 11.8l2.4 2.6 4.6-5"/></svg>',
-          vault: '<svg viewBox="0 0 24 24"><rect x="3.6" y="4" width="16.8" height="16" rx="2.6"/><g class="nv-spin-slow"><circle cx="12" cy="12" r="4"/><path d="M12 8v1.6M12 14.4V16M8 12h1.6M14.4 12H16"/></g></svg>',
-          scriptorium: '<svg viewBox="0 0 24 24"><path class="nv-tilt" d="M18.6 4.2c-6 1.4-9.8 4.8-11.6 10L5.6 19l4.8-1.4c5.2-1.8 8.6-5.6 10-11.6Z" fill="none"/><path d="M5.6 19c2-2.6 4-4.6 6.4-6.4"/></svg>',
-          scribe: '<svg viewBox="0 0 24 24"><path d="M12 4.4l1.5 3.9 3.9 1.5-3.9 1.5L12 15.2l-1.5-3.9-3.9-1.5 3.9-1.5Z" class="nv-twinkle"/><path d="M18.4 14.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z" class="nv-twinkle nv-late"/><path d="M4.6 16.4l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6Z" class="nv-twinkle nv-later"/></svg>',
-          operations: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3.2"/><path class="nv-draw" d="M8.2 12.4l2.6 2.8 5-6"/></svg>',
-          resources: '<svg viewBox="0 0 24 24"><path d="M4 19.6h16"/><rect class="nv-rise" x="6" y="12" width="3.2" height="7.6" rx="1"/><rect class="nv-rise nv-late" x="10.7" y="8.6" width="3.2" height="11" rx="1"/><rect class="nv-rise nv-later" x="15.4" y="5.6" width="3.2" height="14" rx="1"/></svg>',
-          constellations: '<svg viewBox="0 0 24 24"><path d="M5.6 17.2 11 12l6.4-4.4" fill="none"/><circle class="nv-twinkle" cx="5.6" cy="17.2" r="1.7"/><circle class="nv-twinkle nv-late" cx="11" cy="12" r="1.7"/><circle class="nv-twinkle nv-later" cx="17.4" cy="7.6" r="1.7"/></svg>',
-          thework: '<svg viewBox="0 0 24 24"><path d="M4.6 8.4 12 4.2l7.4 4.2M6 8.8V18M10 8.8V18M14 8.8V18M18 8.8V18M4.2 18h15.6"/><circle class="nv-pulse" cx="12" cy="6.4" r="1.2" fill="currentColor" stroke="none"/></svg>',
-          aion: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><g class="nv-orbit"><ellipse cx="12" cy="12" rx="8.6" ry="4" transform="rotate(-24 12 12)"/><circle cx="19.2" cy="8.4" r="1.3" fill="currentColor" stroke="none"/></g></svg>',
-          atlas: '<svg viewBox="0 0 24 24"><path class="nv-bob" d="M12 3.6c3.2 0 5.6 2.4 5.6 5.4 0 4-5.6 11-5.6 11S6.4 13 6.4 9c0-3 2.4-5.4 5.6-5.4Z"/><circle cx="12" cy="8.8" r="2"/></svg>',
-          oracle: '<svg viewBox="0 0 24 24"><path d="M2.8 12C5.4 7.4 8.6 5.2 12 5.2S18.6 7.4 21.2 12c-2.6 4.6-5.8 6.8-9.2 6.8S5.4 16.6 2.8 12Z"/><circle class="nv-dilate" cx="12" cy="12" r="2.6"/></svg>',
+          command:
+            '<svg viewBox="0 0 24 24">' +
+            '<g class="a-slow"><circle cx="12" cy="12" r="8.7" stroke-dasharray="2.1 3.2"/></g>' +
+            '<g class="a-counter"><circle cx="12" cy="12" r="5.7" stroke-dasharray="8.9 9"/></g>' +
+            '<circle class="a-breathe" cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>' +
+            '<path class="th" d="M12 1.4v2.6M12 20v2.6M1.4 12H4M20 12h2.6"/></svg>',
+          timeline:
+            '<svg viewBox="0 0 24 24">' +
+            '<path class="th" d="M2.4 12h19.2"/>' +
+            '<circle class="a-node n1" cx="6.4" cy="12" r="1.5"/>' +
+            '<circle class="a-node n2" cx="12" cy="12" r="1.5"/>' +
+            '<circle class="a-node n3" cx="17.6" cy="12" r="1.5"/>' +
+            '<g class="a-comet"><path class="th" d="M1.2 12h2.6"/><circle cx="4.6" cy="12" r="1.05" fill="currentColor" stroke="none"/></g></svg>',
+          calendar:
+            '<svg viewBox="0 0 24 24">' +
+            '<rect x="3.3" y="4.9" width="17.4" height="15.3" rx="2.6"/>' +
+            '<path class="th" d="M3.3 9.5h17.4M7.8 2.5v4.4M16.2 2.5v4.4"/>' +
+            '<rect class="a-sweep" x="5.7" y="11.1" width="12.6" height="2.7" rx="1.35" fill="currentColor" opacity="0.14" stroke="none"/>' +
+            '<circle class="a-breathe" cx="16.1" cy="16.7" r="1.35" fill="currentColor" stroke="none"/></svg>',
+          watchtower:
+            '<svg viewBox="0 0 24 24">' +
+            '<path d="M12 3.1 4 7.9c2.4 1.6 5.1 2.4 8 2.4s5.6-.8 8-2.4Z"/>' +
+            '<path class="th" d="M12 10.3v9.9M8.3 20.2h7.4"/>' +
+            '<path class="a-ray r1 th" d="M6.1 4.4 3.8 2.8"/>' +
+            '<path class="a-ray r2 th" d="M17.9 4.4l2.3-1.6"/>' +
+            '<circle class="a-halo" cx="12" cy="6" r="2.7" fill="currentColor" stroke="none" opacity="0.16"/>' +
+            '<circle class="a-breathe" cx="12" cy="6" r="1.15" fill="currentColor" stroke="none"/></svg>',
+          sentinel:
+            '<svg viewBox="0 0 24 24">' +
+            '<path d="M12 2.7 4.8 5.5v5.7c0 4.8 3 8.3 7.2 10.1 4.2-1.8 7.2-5.3 7.2-10.1V5.5Z"/>' +
+            '<path class="a-scan th" d="M7.4 7.8h9.2"/>' +
+            '<path class="a-check" d="M8.5 12l2.5 2.7 4.7-5.2" stroke-dasharray="11"/></svg>',
+          vault:
+            '<svg viewBox="0 0 24 24">' +
+            '<rect x="3.1" y="3.8" width="17.8" height="16.4" rx="2.8"/>' +
+            '<g class="a-dial"><circle cx="12" cy="12" r="4.4"/>' +
+            '<path class="th" d="M12 7.6v2.1M12 14.3v2.1M7.6 12h2.1M14.3 12h2.1"/></g>' +
+            '<circle class="th" cx="5.7" cy="6.3" r="0.45" fill="currentColor" stroke="none"/>' +
+            '<circle class="th" cx="18.3" cy="6.3" r="0.45" fill="currentColor" stroke="none"/>' +
+            '<circle class="th" cx="5.7" cy="17.7" r="0.45" fill="currentColor" stroke="none"/>' +
+            '<circle class="th" cx="18.3" cy="17.7" r="0.45" fill="currentColor" stroke="none"/></svg>',
+          scriptorium:
+            '<svg viewBox="0 0 24 24">' +
+            '<g class="a-quill"><path d="M19.2 3.6c-5.6 1.3-9.3 4.5-11.1 9.6l-1.3 4 4.1-1.1c5-1.7 8.3-5.4 9.6-11.1Z"/>' +
+            '<path class="th" d="M17.6 5.8c-3.6 2.6-6.1 5.1-7.9 8.5"/></g>' +
+            '<path class="a-ink th" d="M3.6 20.6c3.3-1.1 6.7-1.3 10.2-.7" stroke-dasharray="11"/></svg>',
+          scribe:
+            '<svg viewBox="0 0 24 24">' +
+            '<g class="a-spark s1"><path d="M12 3.4 13.2 8.8 18.6 10 13.2 11.2 12 16.6 10.8 11.2 5.4 10 10.8 8.8Z"/></g>' +
+            '<g class="a-spark s2"><path d="M18.9 14.6l.75 2.35 2.35.75-2.35.75-.75 2.35-.75-2.35-2.35-.75 2.35-.75Z" class="th"/></g>' +
+            '<g class="a-spark s3"><path d="M5 16.4l.6 1.9 1.9.6-1.9.6-.6 1.9-.6-1.9-1.9-.6 1.9-.6Z" class="th"/></g></svg>',
+          operations:
+            '<svg viewBox="0 0 24 24">' +
+            '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="3.4"/>' +
+            '<path class="a-check" d="M8.1 12.3l2.7 2.9 5.1-6.1" stroke-dasharray="12"/>' +
+            '<path class="a-tick th" d="M17.4 17.2h.01"/></svg>',
+          resources:
+            '<svg viewBox="0 0 24 24">' +
+            '<path class="th" d="M3.3 20.7h17.4"/>' +
+            '<rect class="a-bar b1" x="4.9" y="12.5" width="3.4" height="8.2" rx="1"/>' +
+            '<rect class="a-bar b2" x="10.3" y="9" width="3.4" height="11.7" rx="1"/>' +
+            '<rect class="a-bar b3" x="15.7" y="5.5" width="3.4" height="15.2" rx="1"/>' +
+            '<path class="a-trend th" d="M5.4 11.3 11 7.8l5.6-3.4" stroke-dasharray="14"/></svg>',
+          constellations:
+            '<svg viewBox="0 0 24 24">' +
+            '<path class="a-link l1 th" d="M6.2 17.2 10.9 12.6" stroke-dasharray="7.5"/>' +
+            '<path class="a-link l2 th" d="M12.7 10.9 17 6.8" stroke-dasharray="6.5"/>' +
+            '<g class="a-spark s1"><path d="M5.4 15.4l.55 1.85 1.85.55-1.85.55-.55 1.85-.55-1.85-1.85-.55 1.85-.55Z"/></g>' +
+            '<g class="a-spark s2"><path d="M11.8 9.8l.5 1.7 1.7.5-1.7.5-.5 1.7-.5-1.7-1.7-.5 1.7-.5Z" class="th"/></g>' +
+            '<g class="a-spark s3"><path d="M17.8 3.9l.65 2.05 2.05.65-2.05.65-.65 2.05-.65-2.05-2.05-.65 2.05-.65Z"/></g></svg>',
+          thework:
+            '<svg viewBox="0 0 24 24">' +
+            '<path d="M4.6 9 12 4.8 19.4 9"/>' +
+            '<path class="th" d="M6 9.4v8.2M10 9.4v8.2M14 9.4v8.2M18 9.4v8.2M4.4 17.8h15.2M3.4 20.4h17.2"/>' +
+            '<g class="a-flame f1"><path d="M12 .7c.95 1.05.95 2.15-.05 3.05C11.1 2.9 11.05 1.75 12 .7Z" fill="currentColor" stroke="none"/></g>' +
+            '<g class="a-flame f2"><path d="M12 1.1c.7.85.7 1.7 0 2.4-.7-.7-.7-1.55 0-2.4Z" fill="currentColor" stroke="none" opacity="0.55"/></g></svg>',
+          aion:
+            '<svg viewBox="0 0 24 24">' +
+            '<circle class="a-breathe" cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>' +
+            '<g class="a-orbitA"><ellipse class="th" cx="12" cy="12" rx="9" ry="3.6" transform="rotate(-22 12 12)"/>' +
+            '<circle cx="20.3" cy="8.7" r="1.15" fill="currentColor" stroke="none"/></g>' +
+            '<g class="a-orbitB"><ellipse class="th" cx="12" cy="12" rx="6" ry="2.4" transform="rotate(28 12 12)"/>' +
+            '<circle cx="6.8" cy="9.6" r="0.9" fill="currentColor" stroke="none"/></g></svg>',
+          atlas:
+            '<svg viewBox="0 0 24 24">' +
+            '<ellipse class="a-shadow th" cx="12" cy="20.8" rx="3.2" ry="0.9" opacity="0.5"/>' +
+            '<g class="a-pin"><path d="M12 2.9c3.3 0 5.8 2.5 5.8 5.6 0 4.2-5.8 10.8-5.8 10.8S6.2 12.7 6.2 8.5C6.2 5.4 8.7 2.9 12 2.9Z"/>' +
+            '<circle class="th" cx="12" cy="8.5" r="2"/></g></svg>',
+          oracle:
+            '<svg viewBox="0 0 24 24">' +
+            '<g class="a-lid"><path d="M2.5 12C5.2 7.2 8.5 4.9 12 4.9s6.8 2.3 9.5 7.1c-2.7 4.8-6 7.1-9.5 7.1S5.2 16.8 2.5 12Z"/></g>' +
+            '<circle class="a-iris" cx="12" cy="12" r="3.05"/>' +
+            '<circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg>',
         };
 
         (function decorateSidebar() {
