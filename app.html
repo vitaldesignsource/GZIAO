@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=3" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=37" />
+    <link rel="stylesheet" href="command.css?v=40" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -466,6 +466,9 @@
               </form>
 
               <span class="kicker" style="display: block; margin-top: 26px">PRESERVE A DOCUMENT</span>
+              <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px; margin-top: 10px">INTO FOLDER
+                <select id="doc-folder" style="border: 1px solid var(--line); background: var(--panel-solid); color: var(--paper); height: 38px; padding: 0 10px; font: 400 12px Georgia, serif"></select>
+              </label>
               <div class="doc-drop" id="doc-drop">
                 <input type="file" id="doc-file" hidden />
                 <b>Drop a file here or click to choose</b>
@@ -485,6 +488,7 @@
             </section>
             <section class="panel">
               <span class="kicker">HELD IN THE VAULT</span>
+              <div class="chips" id="vault-folders" style="margin: 12px 0 0"></div>
               <ul class="vault-list" id="vault-list" style="margin-top: 16px; max-height: 460px"></ul>
               <div class="deck-empty" id="vault-status"></div>
             </section>
@@ -827,8 +831,7 @@
             </div>
             <div class="mp-actions">
               <div class="pill-status" style="--pill-color: var(--amber)"><i></i>PRIVATE REGISTER CONNECTED</div>
-              <button class="ghost-btn" data-soon="Tickets arrive with the civic ledger build." type="button">+ Add ticket</button>
-              <button class="prime-btn" data-soon="Matters arrive with the register build." type="button">New matter</button>
+              <button class="prime-btn" id="sen-new" type="button">+ New matter</button>
             </div>
           </div>
           <section class="principles" style="--pr-color: var(--amber)">
@@ -837,29 +840,80 @@
             <div><i class="pr-mark"></i><div><b>Timing stays separate</b><span>Symbolic planning is labeled and never presented as legal authority.</span></div></div>
           </section>
           <section class="strip">
-            <div class="strip-cell"><div><small>ACTIVE MATTERS</small><b>0</b></div><span>0 closed</span></div>
-            <div class="strip-cell"><div><small>OPEN CITATIONS</small><b>0</b></div><span>0 resolved</span></div>
-            <div class="strip-cell"><div><small>OUTSTANDING BALANCE</small><b>$0</b></div><span>Open and contested entries</span></div>
-            <div class="strip-cell"><div><small>NEXT AUTHORITATIVE DATE</small><b style="color: var(--amber)">Clear</b></div><span>No dated court items</span></div>
+            <div class="strip-cell"><div><small>ACTIVE MATTERS</small><b id="sen-active">0</b></div><span id="sen-closed-sub">0 closed</span></div>
+            <div class="strip-cell"><div><small>OPEN CITATIONS</small><b id="sen-tickets">0</b></div><span id="sen-tickets-sub">0 resolved</span></div>
+            <div class="strip-cell"><div><small>OUTSTANDING BALANCE</small><b id="sen-balance">$0</b></div><span>Open ticket amounts</span></div>
+            <div class="strip-cell"><div><small>NEXT AUTHORITATIVE DATE</small><b id="sen-next" style="color: var(--amber)">Clear</b></div><span id="sen-next-sub">No dated items</span></div>
+          </section>
+
+          <section class="panel" id="sen-form-panel" hidden>
+            <span class="kicker is-amber">NEW MATTER &middot; GOES TO ITS DESIGNATED REGISTER</span>
+            <form class="vault-form" id="sen-form" style="margin-top: 14px">
+              <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 12px">
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">REGISTER
+                  <select id="sen-type" style="border: 1px solid var(--line); background: var(--panel-solid); color: var(--paper); height: 40px; padding: 0 10px; font: 400 13px Georgia, serif">
+                    <option value="ticket">Ticket / citation</option>
+                    <option value="court">Court document</option>
+                    <option value="case">Case note</option>
+                    <option value="correspondence">Correspondence</option>
+                  </select>
+                </label>
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">TITLE
+                  <input type="text" id="sen-title" placeholder="Neutral, exact" required style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
+                </label>
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">AMOUNT $ (TICKETS)
+                  <input type="number" id="sen-amount" min="0" step="0.01" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; width: 120px; font: 400 13px Georgia, serif" />
+                </label>
+              </div>
+              <textarea id="sen-body" placeholder="Details — facts, parties, docket numbers (optional)" style="min-height: 52px"></textarea>
+              <div style="display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: end">
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">KEY DATE (OPTIONAL)
+                  <input type="date" id="sen-date" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
+                </label>
+                <div class="scribe-attach-row" style="margin: 0">
+                  <label class="ghost-btn scribe-attach-btn">Attach the document
+                    <input type="file" id="sen-file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md" hidden />
+                  </label>
+                  <span id="sen-file-name" class="scribe-file-name"></span>
+                  <button class="ghost-btn" id="sen-ai-read" type="button" hidden style="height:36px">&#10022; Read dates with the Scribe</button>
+                </div>
+              </div>
+              <div id="sen-dates-out" hidden>
+                <div class="tier-note"><b>EXTRACTED DATES</b> &mdash; read from the document by the Scribe; each becomes a timeline entry. Verify against the original before relying on any of them.</div>
+                <div class="chips" id="sen-dates-chips" style="margin: 10px 0 0"></div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center">
+                <label class="share-toggle" style="margin: 0">
+                  <input type="checkbox" id="sen-shared" />
+                  <span></span>
+                  Share to the relationship field
+                </label>
+                <button type="submit" id="sen-submit">Enter into the register</button>
+              </div>
+              <p class="panel-note" id="sen-status" style="margin: 6px 0 0"></p>
+            </form>
           </section>
           <section class="duo-wide">
             <div class="panel">
-              <span class="kicker is-amber">MATTER REGISTER</span>
+              <span class="kicker is-amber" style="display: flex; justify-content: space-between">
+                <span>MATTER REGISTERS</span>
+                <span id="sen-reg-count" style="color: var(--faint)">0 MATTERS</span>
+              </span>
               <h2>Cases and proceedings</h2>
-              <div class="empty-center">
+              <div class="chips" id="sen-chips" style="margin: 12px 0 0"></div>
+              <ul class="vault-list" id="sen-list" style="margin-top: 12px; max-height: 460px"></ul>
+              <div class="empty-center" id="sen-empty">
                 <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
                 <b>No legal matters recorded.</b>
-                <span>Create a matter to organize deadlines, sources, documents, and citations.</span>
+                <span>Enter a ticket, court document, case note, or correspondence — it files itself under its register.</span>
               </div>
             </div>
             <div class="panel">
-              <span class="kicker is-amber">CIVIC LEDGER</span>
-              <h2>Tickets and court balances</h2>
-              <div class="empty-center">
-                <div class="glyph" style="background: #d0ad6d10; border-color: #d0ad6d44"></div>
-                <b>No citations recorded.</b>
-                <span>Add each ticket, court, amount, and due date.</span>
-              </div>
+              <span class="kicker is-amber">AUTHORITATIVE TIMELINE</span>
+              <h2>Every date, in order</h2>
+              <p class="panel-sub">Key dates and Scribe-extracted dates from all matters. Court dates control.</p>
+              <ul class="chrono-list" id="sen-timeline" style="margin-top: 8px; max-height: 430px; overflow-y: auto"></ul>
+              <p class="panel-sub" id="sen-timeline-empty" style="text-align: center; padding: 18px 0">No dated items yet.</p>
             </div>
             <div class="panel">
               <span class="kicker is-amber">DEFENSIVE WORKFLOW</span>
@@ -977,11 +1031,11 @@
           </section>
 
           <section class="panel" id="ops-form-panel" hidden>
-            <span class="kicker">NEW OPERATION</span>
+            <span class="kicker" id="ops-form-kicker">NEW OPERATION</span>
             <form class="vault-form" id="ops-form" style="margin-top: 14px">
               <input type="text" id="ops-title" placeholder="The action, obligation, or decision" required />
               <textarea id="ops-body" placeholder="Context (optional)" style="min-height: 52px"></textarea>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px">
                 <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">DUE DATE (OPTIONAL)
                   <input type="date" id="ops-due" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
                 </label>
@@ -992,13 +1046,22 @@
                     <option value="low">Background</option>
                   </select>
                 </label>
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">CATEGORY
+                  <select id="ops-category" style="border: 1px solid var(--line); background: var(--panel-solid); color: var(--paper); height: 40px; padding: 0 10px; font: 400 13px Georgia, serif"></select>
+                </label>
               </div>
+              <input type="text" id="ops-category-custom" placeholder="Name the new category&hellip;" hidden style="margin-top: -4px" />
+              <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">IMAGES (OPTIONAL)
+                <input type="file" id="ops-images" accept="image/*" multiple style="color: var(--muted); font-size: 11px" />
+              </label>
+              <div class="ops-thumbs" id="ops-edit-thumbs"></div>
               <label class="share-toggle">
                 <input type="checkbox" id="ops-shared" />
                 <span></span>
                 Share to the relationship field
               </label>
-              <button type="submit">Enter into the register</button>
+              <button type="submit" id="ops-form-submit">Enter into the register</button>
+              <button type="button" class="modal-cancel" id="ops-form-cancel">Cancel</button>
             </form>
           </section>
 
@@ -1009,6 +1072,7 @@
                 <span id="ops-reg-count" style="color: var(--faint)">0 OPEN</span>
               </span>
               <h2>Open operations</h2>
+              <div class="chips" id="ops-cat-chips" style="margin: 12px 0 0"></div>
               <ul class="vault-list" id="ops-list" style="margin-top: 14px; max-height: 480px"></ul>
               <div class="empty-center" id="ops-empty">
                 <div class="glyph"></div>
@@ -1072,7 +1136,7 @@
               <div class="strip-cell"><div><small>NET MOVEMENT</small><b>$0.00</b></div></div>
               <div class="strip-cell"><div><small>TRANSACTIONS</small><b>0</b></div></div>
             </div>
-            <p class="panel-note">Live institution authorization requires a configured banking provider. Statement imports contain real user-provided account data and remain owner-isolated.</p>
+            <p class="panel-note">Live bank connections need a server-side provider (e.g. Plaid) and are on the roadmap — nothing here pretends otherwise. Statement imports contain real user-provided account data and remain owner-isolated.</p>
           </section>
           <section class="ledger-tabs">
             <button class="ledger-tab is-on" type="button"><span class="ledger-ava">PE</span><span><small>PRIVATE LEDGER</small><b>Personal</b></span></button>
@@ -1087,14 +1151,36 @@
           </section>
           <section class="chrono-row">
             <div class="panel">
-              <span class="kicker" style="display: flex; justify-content: space-between"><span>PRIVATE REGISTER &middot; PERSONAL</span><span style="color: var(--faint)">0 ENTRIES</span></span>
-              <h2>Financial ledger</h2>
-              <div class="empty-center">
-                <div class="glyph"></div>
-                <b>Personal has no recorded entries.</b>
-                <span>Add income, expenses, obligations, or assets to this private ledger.</span>
-                <div style="margin-top: 18px"><button class="ghost-btn" data-soon="Ledger entries arrive with the Resources build." type="button">+ Add first entry</button></div>
-              </div>
+              <span class="kicker" style="display: flex; justify-content: space-between"><span>DEBT REGISTER &middot; OWED AND OWING</span><span style="color: var(--faint)" id="debt-count">0 ENTRIES</span></span>
+              <h2>Debts</h2>
+              <p class="panel-sub">What is owed to you and what you owe &mdash; each entry shareable to the relationship field so both sides see the same figure.</p>
+              <form class="vault-form" id="debt-form" style="margin-top: 6px">
+                <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 12px">
+                  <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">DIRECTION
+                    <select id="debt-direction" style="border: 1px solid var(--line); background: var(--panel-solid); color: var(--paper); height: 40px; padding: 0 10px; font: 400 13px Georgia, serif">
+                      <option value="owed_to_me">Owed to me</option>
+                      <option value="i_owe">I owe</option>
+                    </select>
+                  </label>
+                  <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">PARTY
+                    <input type="text" id="debt-party" placeholder="Who" required style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
+                  </label>
+                  <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">AMOUNT $
+                    <input type="number" id="debt-amount" min="0" step="0.01" required style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; width: 110px; font: 400 13px Georgia, serif" />
+                  </label>
+                </div>
+                <input type="text" id="debt-note" placeholder="What for (optional)" />
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center">
+                  <label class="share-toggle" style="margin: 0">
+                    <input type="checkbox" id="debt-shared" />
+                    <span></span>
+                    Share to the relationship field
+                  </label>
+                  <button type="submit">Record debt</button>
+                </div>
+              </form>
+              <div class="debt-totals" id="debt-totals"></div>
+              <ul class="vault-list" id="debt-list" style="margin-top: 10px; max-height: 380px"></ul>
             </div>
             <div style="display: flex; flex-direction: column; gap: 18px">
               <div class="panel">
@@ -1113,6 +1199,19 @@
             </div>
           </section>
           <div class="mp-footer"><span><i></i>PRIVATE FINANCIAL LEDGER CONNECTED &middot; TAP AN ENTRY TO ADVANCE ITS STATUS</span></div>
+        </div>
+
+        <!-- ================= DOCUMENT VIEWER ================= -->
+        <div class="doc-viewer" id="doc-viewer" hidden>
+          <div class="doc-viewer-panel">
+            <div class="doc-viewer-bar">
+              <b id="doc-viewer-title"></b>
+              <span style="flex:1"></span>
+              <button class="ghost-btn" id="doc-viewer-download" type="button" style="height:30px;padding:0 14px;font-size:8px">Download</button>
+              <button class="doc-viewer-close" id="doc-viewer-close" type="button" aria-label="Close">&times;</button>
+            </div>
+            <div class="doc-viewer-body" id="doc-viewer-body"></div>
+          </div>
         </div>
 
         <!-- ================= THE SCRIBE ================= -->
@@ -1737,6 +1836,10 @@
         </div>
         <small style="color: var(--faint); font-size: 9.5px; margin-top: -6px">Optional — used only for chart calculation. Latitude/longitude enable the Ascendant, and Locate fills all three from the birth place.</small>
         <label>
+          System member email (optional)
+          <input type="text" id="person-member-email" placeholder="Their GZIAO sign-in email — marks them as a member of the system" />
+        </label>
+        <label>
           Notes
           <textarea id="person-notes" placeholder="Context, history, trust and boundary notes&hellip;" style="border: 1px solid var(--line); background: transparent; color: var(--paper); padding: 11px 14px; min-height: 90px; resize: vertical; font: 400 13px Georgia, serif"></textarea>
         </label>
@@ -2092,6 +2195,18 @@
           $("pulse-review").textContent = 0;
         }
 
+        /* which module a record belongs to — used to route intake clicks */
+        function recordHome(record) {
+          if (record.meta && record.meta.module === "sentinel") return { view: "sentinel", label: "Sentinel" };
+          if (record.meta && record.meta.module === "resources") return { view: "resources", label: "Resources" };
+          if (record.kind === "document") return { view: "vault", label: "Vault document" };
+          if (record.kind === "action") return { view: "operations", label: "Operation" };
+          if (record.kind === "journal" || record.kind === "dream") return { view: "thework", label: "Temple journal" };
+          if (record.kind === "chart") return { view: "aion", label: "AION cast" };
+          if (record.kind === "draft") return { view: "scriptorium", label: "Draft" };
+          return { view: "timeline", label: "Vault record" };
+        }
+
         function renderIntake() {
           const row = $("evi-row");
           row.innerHTML = "";
@@ -2104,9 +2219,10 @@
           }
           for (const record of records.slice(0, 5)) {
             const card = document.createElement("article");
-            card.className = "evi-card";
+            card.className = "evi-card evi-click";
+            const home = recordHome(record);
             const kicker = document.createElement("small");
-            kicker.textContent = "VAULT RECORD · SEALED";
+            kicker.textContent = home.label.toUpperCase() + " · SEALED";
             const title = document.createElement("strong");
             title.textContent = record.title;
             const body = document.createElement("p");
@@ -2114,6 +2230,7 @@
             const stamp = document.createElement("time");
             stamp.textContent = new Date(record.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
             card.append(kicker, title, body, stamp);
+            card.addEventListener("click", () => setView(home.view));
             row.append(card);
           }
         }
@@ -2179,6 +2296,95 @@
           if (deadlineSub) deadlineSub.textContent = next ? next.title.slice(0, 34) : "No dated obligations";
         }
 
+        /* ---- vault folders: derived from documents, plus session-created empties ---- */
+        let vaultFolderFilter = "All";
+
+        function vaultFolders() {
+          const seen = new Set();
+          for (const record of records) {
+            if (record.kind === "document" && record.meta && record.meta.folder) seen.add(record.meta.folder);
+          }
+          try {
+            for (const name of JSON.parse(localStorage.getItem("gz-vault-folders") || "[]")) seen.add(name);
+          } catch (error) {}
+          return [...seen].sort();
+        }
+
+        function rememberFolder(name) {
+          try {
+            const held = new Set(JSON.parse(localStorage.getItem("gz-vault-folders") || "[]"));
+            held.add(name);
+            localStorage.setItem("gz-vault-folders", JSON.stringify([...held]));
+          } catch (error) {}
+        }
+
+        function fillDocFolderSelect() {
+          const select = $("doc-folder");
+          if (!select) return;
+          select.innerHTML = "";
+          const root = document.createElement("option");
+          root.value = "";
+          root.textContent = "— vault root —";
+          select.append(root);
+          for (const name of vaultFolders()) {
+            const opt = document.createElement("option");
+            opt.value = name;
+            opt.textContent = name;
+            select.append(opt);
+          }
+          if (vaultFolderFilter !== "All" && [...select.options].some((o) => o.value === vaultFolderFilter)) {
+            select.value = vaultFolderFilter;
+          }
+        }
+
+        /* ---- in-app document viewer ---- */
+        async function openDocViewer(record) {
+          const path = record.meta && record.meta.path;
+          if (!path) return toast("This record has no stored file.");
+          $("doc-viewer").hidden = false;
+          $("doc-viewer-title").textContent = record.title;
+          const body = $("doc-viewer-body");
+          body.innerHTML = '<p class="panel-sub" style="padding:30px;text-align:center">Opening&hellip;</p>';
+          $("doc-viewer-download").onclick = () => downloadDocument(record);
+          const { data, error } = await GZ.client.storage.from("vault").createSignedUrl(path, 600);
+          if (error || !data) {
+            body.innerHTML = '<p class="panel-sub" style="padding:30px;text-align:center">Could not open the file' +
+              (error ? ": " + escText(error.message) : "") + "</p>";
+            return;
+          }
+          const url = data.signedUrl;
+          const type = (record.meta.type || "").toLowerCase();
+          const name = (record.title || "").toLowerCase();
+          if (type.startsWith("image/") || /\.(png|jpe?g|webp|gif|svg)$/.test(name)) {
+            body.innerHTML = "";
+            const img = document.createElement("img");
+            img.className = "doc-viewer-img";
+            img.src = url;
+            img.alt = record.title;
+            body.append(img);
+          } else if (type === "application/pdf" || /\.pdf$/.test(name)) {
+            body.innerHTML = '<iframe class="doc-viewer-frame" src="' + url + '" title="document"></iframe>';
+          } else if (type.startsWith("text/") || /\.(txt|md|csv|json|log)$/.test(name)) {
+            try {
+              const text = await (await fetch(url)).text();
+              body.innerHTML = "";
+              const pre = document.createElement("pre");
+              pre.className = "doc-viewer-text";
+              pre.textContent = text.slice(0, 200000);
+              body.append(pre);
+            } catch (err) {
+              body.innerHTML = '<p class="panel-sub" style="padding:30px;text-align:center">The file could not be read in place — use Download.</p>';
+            }
+          } else {
+            body.innerHTML = '<p class="panel-sub" style="padding:30px;text-align:center">No in-app view for this file type (' +
+              escText(type || "unknown") + ") — use Download.</p>";
+          }
+        }
+        $("doc-viewer-close").addEventListener("click", () => { $("doc-viewer").hidden = true; $("doc-viewer-body").innerHTML = ""; });
+        $("doc-viewer").addEventListener("click", (event) => {
+          if (event.target === $("doc-viewer")) { $("doc-viewer").hidden = true; $("doc-viewer-body").innerHTML = ""; }
+        });
+
         function renderVaultList() {
           const list = $("vault-list");
           const status = $("vault-status");
@@ -2188,11 +2394,55 @@
               ? ""
               : "The vault is empty."
             : "Vault offline: the record lattice is unreachable.";
-          for (const record of records) {
+
+          /* folder chips */
+          const folderRow = $("vault-folders");
+          folderRow.innerHTML = "";
+          const folderNames = ["All", ...vaultFolders()];
+          for (const name of folderNames) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = name === vaultFolderFilter ? "is-on" : "";
+            const count = name === "All"
+              ? records.filter((r) => r.kind === "document").length
+              : records.filter((r) => r.kind === "document" && r.meta && r.meta.folder === name).length;
+            chip.textContent = (name === "All" ? "All" : "📁 " + name) + (count ? " " + count : "");
+            chip.addEventListener("click", () => {
+              vaultFolderFilter = name;
+              renderVaultList();
+              fillDocFolderSelect();
+            });
+            folderRow.append(chip);
+          }
+          const newFolder = document.createElement("button");
+          newFolder.type = "button";
+          newFolder.textContent = "+ New folder";
+          newFolder.addEventListener("click", () => {
+            const name = window.prompt("Name the folder:");
+            if (!name || !name.trim()) return;
+            rememberFolder(name.trim());
+            vaultFolderFilter = name.trim();
+            renderVaultList();
+            fillDocFolderSelect();
+          });
+          folderRow.append(newFolder);
+          fillDocFolderSelect();
+
+          const shown = vaultFolderFilter === "All"
+            ? records
+            : records.filter((r) => r.kind === "document" && r.meta && r.meta.folder === vaultFolderFilter);
+          if (vaultFolderFilter !== "All" && !shown.length) {
+            status.textContent = "This folder is empty — preserve a document into it from the left.";
+          }
+          for (const record of shown) {
             const item = document.createElement("li");
             const title = document.createElement("b");
             const isDoc = record.kind === "document";
             title.textContent = (isDoc ? "📄 " : "") + record.title;
+            if (isDoc) {
+              title.classList.add("vault-doc-title");
+              title.addEventListener("click", () => openDocViewer(record));
+            }
             if (isShared(record)) {
               const badge = document.createElement("i");
               badge.className = "share-badge";
@@ -2205,7 +2455,9 @@
             if (isDoc && record.meta && record.meta.size) {
               const info = document.createElement("p");
               info.style.cssText = "color: var(--faint); font-size: 10px";
-              info.textContent = formatBytes(record.meta.size) + (record.meta.type && record.meta.type !== "file" ? " · " + record.meta.type : "");
+              info.textContent = formatBytes(record.meta.size) +
+                (record.meta.type && record.meta.type !== "file" ? " · " + record.meta.type : "") +
+                (record.meta.folder ? " · 📁 " + record.meta.folder : "");
               item.append(info);
             } else if (record.body) {
               const body = document.createElement("p");
@@ -2217,12 +2469,49 @@
             actions.className = "rec-actions-row";
 
             if (isDoc) {
+              const view = document.createElement("button");
+              view.type = "button";
+              view.textContent = "View";
+              view.style.color = "var(--gold)";
+              view.addEventListener("click", () => openDocViewer(record));
+              actions.append(view);
               const download = document.createElement("button");
               download.type = "button";
               download.textContent = "Download";
-              download.style.color = "var(--gold)";
               download.addEventListener("click", () => downloadDocument(record));
               actions.append(download);
+              if (isMine(record)) {
+                const move = document.createElement("select");
+                move.className = "vault-move";
+                const label = document.createElement("option");
+                label.value = "";
+                label.textContent = "Move to…";
+                move.append(label);
+                const rootOpt = document.createElement("option");
+                rootOpt.value = "__root__";
+                rootOpt.textContent = "vault root";
+                move.append(rootOpt);
+                for (const name of vaultFolders()) {
+                  if (name === (record.meta && record.meta.folder)) continue;
+                  const opt = document.createElement("option");
+                  opt.value = name;
+                  opt.textContent = "📁 " + name;
+                  move.append(opt);
+                }
+                move.addEventListener("change", async () => {
+                  const target = move.value;
+                  if (!target) return;
+                  const meta = { ...(record.meta || {}), folder: target === "__root__" ? null : target };
+                  const { data, error } = await GZ.client.from("records")
+                    .update({ meta }).eq("id", record.id).select().single();
+                  if (error) return toast("Could not move: " + error.message);
+                  const index = records.findIndex((held) => held.id === record.id);
+                  if (index > -1) records[index] = data;
+                  renderVaultList();
+                  toast(target === "__root__" ? "Moved to the vault root." : "Moved to 📁 " + target + ".");
+                });
+                actions.append(move);
+              }
             }
 
             if (isMine(record)) {
@@ -2707,6 +2996,463 @@
           $("dr-station").textContent = layer.station;
         }
 
+        /* ---------- sentinel: matter registers + AI-read dates ---------- */
+        const SEN_TYPES = {
+          ticket: "Tickets", court: "Court documents", case: "Case notes", correspondence: "Correspondence",
+        };
+        let senFilter = "All";
+        let senFile = null;
+        let senExtractedDates = [];
+
+        function sentinelAll() {
+          return records.filter((record) => record.meta && record.meta.module === "sentinel");
+        }
+
+        $("sen-new").addEventListener("click", () => {
+          const opening = $("sen-form-panel").hidden;
+          $("sen-form-panel").hidden = !opening;
+          if (opening) $("sen-title").focus();
+        });
+
+        $("sen-file").addEventListener("change", () => {
+          senFile = $("sen-file").files[0] || null;
+          senExtractedDates = [];
+          $("sen-dates-out").hidden = true;
+          $("sen-file-name").textContent = senFile ? senFile.name : "";
+          $("sen-ai-read").hidden = !senFile;
+        });
+
+        /* the Scribe reads the uploaded matter: dates, parties, amount, title */
+        const SEN_READ_SCHEMA_CLAUDE = {
+          name: "read_matter",
+          description: "Extract the legally significant facts from this document.",
+          input_schema: {
+            type: "object",
+            properties: {
+              matter_type: { type: "string", enum: ["ticket", "court", "case", "correspondence"] },
+              title: { type: "string" },
+              summary: { type: "string" },
+              amount: { type: "number" },
+              dates: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    date: { type: "string", description: "YYYY-MM-DD" },
+                    label: { type: "string", description: "what this date is: hearing, due, issued, served…" },
+                  },
+                  required: ["date", "label"],
+                },
+              },
+            },
+            required: ["title", "dates"],
+          },
+        };
+        const SEN_READ_SCHEMA_GEMINI = {
+          type: "OBJECT",
+          properties: {
+            matter_type: { type: "STRING", enum: ["ticket", "court", "case", "correspondence"] },
+            title: { type: "STRING" },
+            summary: { type: "STRING" },
+            amount: { type: "NUMBER" },
+            dates: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: { date: { type: "STRING" }, label: { type: "STRING" } },
+                required: ["date", "label"],
+              },
+            },
+          },
+          required: ["title", "dates"],
+        };
+        const SEN_READ_SYSTEM =
+          "You extract facts from legal and civic documents for a private register. Report only what the " +
+          "document states: every date it carries (issued, served, due, hearing, appearance, deadline) as " +
+          "YYYY-MM-DD with a plain label, the amount if it is a citation with a fine, the matter type, a " +
+          "short neutral title, and a two-sentence factual summary. Never infer a date that is not printed.";
+
+        async function senReadWithScribe() {
+          if (!senFile) return;
+          if (!scribeKey()) return toast("Connect a key in The Scribe first — free Gemini works.");
+          $("sen-ai-read").disabled = true;
+          $("sen-status").textContent = "The Scribe is reading the document…";
+          try {
+            const media = senFile.type || "";
+            let fileBlock = null, fileText = null;
+            if (media === "application/pdf" || /^image\//.test(media)) {
+              fileBlock = { media: media || "application/pdf", data: await fileToBase64(senFile) };
+            } else {
+              fileText = "Document “" + senFile.name + "”:\n\n" + (await senFile.text()).slice(0, 60000);
+            }
+            let result;
+            if (scribeProviderId() === "anthropic") {
+              const content = [];
+              if (fileBlock) content.push(fileBlock.media === "application/pdf"
+                ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: fileBlock.data } }
+                : { type: "image", source: { type: "base64", media_type: fileBlock.media, data: fileBlock.data } });
+              if (fileText) content.push({ type: "text", text: fileText });
+              content.push({ type: "text", text: "Extract this matter's facts." });
+              const response = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: {
+                  "content-type": "application/json",
+                  "x-api-key": scribeKey(),
+                  "anthropic-version": "2023-06-01",
+                  "anthropic-dangerous-direct-browser-access": "true",
+                },
+                body: JSON.stringify({
+                  model: SCRIBE_PROVIDERS.anthropic.model, max_tokens: 1500,
+                  system: SEN_READ_SYSTEM,
+                  tools: [SEN_READ_SCHEMA_CLAUDE],
+                  tool_choice: { type: "tool", name: "read_matter" },
+                  messages: [{ role: "user", content }],
+                }),
+              });
+              if (!response.ok) throw new Error("API " + response.status);
+              const message = await response.json();
+              const toolUse = (message.content || []).find((block) => block.type === "tool_use");
+              result = toolUse && toolUse.input;
+            } else {
+              const parts = [];
+              if (fileBlock) parts.push({ inline_data: { mime_type: fileBlock.media, data: fileBlock.data } });
+              if (fileText) parts.push({ text: fileText });
+              parts.push({ text: "Extract this matter's facts." });
+              const response = await fetch(
+                "https://generativelanguage.googleapis.com/v1beta/models/" +
+                SCRIBE_PROVIDERS.gemini.model + ":generateContent",
+                {
+                  method: "POST",
+                  headers: { "content-type": "application/json", "x-goog-api-key": scribeKey() },
+                  body: JSON.stringify({
+                    system_instruction: { parts: [{ text: SEN_READ_SYSTEM }] },
+                    contents: [{ role: "user", parts }],
+                    generationConfig: {
+                      responseMimeType: "application/json",
+                      responseSchema: SEN_READ_SCHEMA_GEMINI,
+                      maxOutputTokens: 1500,
+                    },
+                  }),
+                }
+              );
+              if (!response.ok) throw new Error("API " + response.status);
+              const message = await response.json();
+              const text = message.candidates && message.candidates[0] &&
+                message.candidates[0].content.parts[0].text;
+              result = text ? JSON.parse(text) : null;
+            }
+            if (!result || !Array.isArray(result.dates)) throw new Error("nothing extracted");
+            senExtractedDates = result.dates.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d.date));
+            if (result.title && !$("sen-title").value.trim()) $("sen-title").value = result.title;
+            if (result.summary && !$("sen-body").value.trim()) $("sen-body").value = result.summary;
+            if (result.matter_type && SEN_TYPES[result.matter_type]) $("sen-type").value = result.matter_type;
+            if (Number.isFinite(result.amount) && !$("sen-amount").value) $("sen-amount").value = result.amount;
+            if (senExtractedDates.length && !$("sen-date").value) $("sen-date").value = senExtractedDates[0].date;
+            const chips = $("sen-dates-chips");
+            chips.innerHTML = "";
+            for (const d of senExtractedDates) {
+              const chip = document.createElement("button");
+              chip.type = "button";
+              chip.className = "is-on";
+              chip.style.cursor = "default";
+              chip.textContent = d.date + " · " + d.label;
+              chips.append(chip);
+            }
+            $("sen-dates-out").hidden = !senExtractedDates.length;
+            $("sen-status").textContent = senExtractedDates.length
+              ? senExtractedDates.length + " date" + (senExtractedDates.length === 1 ? "" : "s") + " extracted — verify against the original."
+              : "The document yielded no machine-readable dates.";
+          } catch (error) {
+            $("sen-status").textContent = "Read failed: " + error.message;
+          } finally {
+            $("sen-ai-read").disabled = false;
+          }
+        }
+        $("sen-ai-read").addEventListener("click", senReadWithScribe);
+
+        $("sen-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          $("sen-submit").disabled = true;
+          try {
+            const meta = {
+              module: "sentinel",
+              matter: $("sen-type").value,
+              status: "open",
+              dates: senExtractedDates,
+            };
+            const amount = parseFloat($("sen-amount").value);
+            if (Number.isFinite(amount) && amount > 0) meta.amount = amount;
+            const keyDate = $("sen-date").value || (senExtractedDates[0] && senExtractedDates[0].date) || null;
+            if (keyDate) meta.key_date = keyDate;
+            if (senFile) {
+              const safeName = senFile.name.replace(/[^\w.\-]+/g, "_");
+              const path = user.id + "/sentinel/" + Date.now() + "_" + safeName;
+              const { error } = await GZ.client.storage.from("vault")
+                .upload(path, senFile, { contentType: senFile.type || "application/octet-stream" });
+              if (error) throw new Error("upload: " + error.message);
+              meta.path = path;
+              meta.size = senFile.size;
+              meta.type = senFile.type || "file";
+            }
+            const ok = await seal($("sen-title").value.trim(), $("sen-body").value.trim() || null, {
+              kind: "record",
+              shared: $("sen-shared").checked,
+              occurredAt: keyDate ? keyDate + "T12:00:00Z" : undefined,
+              meta,
+            });
+            if (!ok) throw new Error("record refused");
+            $("sen-form").reset();
+            senFile = null;
+            senExtractedDates = [];
+            $("sen-file-name").textContent = "";
+            $("sen-ai-read").hidden = true;
+            $("sen-dates-out").hidden = true;
+            $("sen-status").textContent = "";
+            $("sen-form-panel").hidden = true;
+            toast("Filed under " + SEN_TYPES[meta.matter] + ".");
+          } catch (error) {
+            $("sen-status").textContent = "Could not file: " + error.message;
+          } finally {
+            $("sen-submit").disabled = false;
+          }
+        });
+
+        function renderSentinel() {
+          const list = $("sen-list");
+          if (!list) return;
+          const all = sentinelAll();
+          const open = all.filter((r) => r.meta.status !== "closed");
+          const tickets = all.filter((r) => r.meta.matter === "ticket");
+          const openTickets = tickets.filter((r) => r.meta.status !== "closed");
+          $("sen-active").textContent = open.length;
+          $("sen-closed-sub").textContent = (all.length - open.length) + " closed";
+          $("sen-tickets").textContent = openTickets.length;
+          $("sen-tickets-sub").textContent = (tickets.length - openTickets.length) + " resolved";
+          const balance = openTickets.reduce((sum, r) => sum + (r.meta.amount || 0), 0);
+          $("sen-balance").textContent = "$" + balance.toFixed(2);
+          $("sen-reg-count").textContent = all.length + " MATTER" + (all.length === 1 ? "" : "S");
+
+          /* the authoritative timeline: every date from every matter */
+          const events = [];
+          for (const record of all) {
+            const seen = new Set();
+            for (const d of record.meta.dates || []) {
+              if (seen.has(d.date)) continue;
+              seen.add(d.date);
+              events.push({ date: d.date, label: d.label, record });
+            }
+            if (record.meta.key_date && !seen.has(record.meta.key_date)) {
+              events.push({ date: record.meta.key_date, label: "key date", record });
+            }
+          }
+          events.sort((a, b) => a.date.localeCompare(b.date));
+          const upcoming = events.filter((e) => e.date >= new Date().toISOString().slice(0, 10));
+          $("sen-next").textContent = upcoming.length ? upcoming[0].date : "Clear";
+          $("sen-next-sub").textContent = upcoming.length ? upcoming[0].label + " · " + upcoming[0].record.title.slice(0, 30) : "No dated items";
+          const tl = $("sen-timeline");
+          tl.innerHTML = "";
+          $("sen-timeline-empty").hidden = events.length > 0;
+          const today = new Date().toISOString().slice(0, 10);
+          for (const eventItem of events) {
+            const li = document.createElement("li");
+            const time = document.createElement("time");
+            time.textContent = eventItem.date;
+            if (eventItem.date < today) time.style.opacity = "0.5";
+            else if (eventItem.date <= upcoming[0].date) time.style.color = "var(--amber)";
+            const b = document.createElement("b");
+            b.textContent = eventItem.label;
+            const span = document.createElement("span");
+            span.textContent = eventItem.record.title;
+            li.append(time, b, span);
+            tl.append(li);
+          }
+
+          /* register chips + list */
+          const chips = $("sen-chips");
+          chips.innerHTML = "";
+          for (const name of ["All", ...Object.values(SEN_TYPES)]) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = name === senFilter ? "is-on" : "";
+            const count = name === "All" ? all.length
+              : all.filter((r) => SEN_TYPES[r.meta.matter] === name).length;
+            chip.textContent = name + (count ? " " + count : "");
+            chip.addEventListener("click", () => { senFilter = name; renderSentinel(); });
+            chips.append(chip);
+          }
+          const shown = senFilter === "All" ? all
+            : all.filter((r) => SEN_TYPES[r.meta.matter] === senFilter);
+          $("sen-empty").hidden = shown.length > 0;
+          list.innerHTML = "";
+          for (const record of shown) {
+            const closed = record.meta.status === "closed";
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = record.title;
+            if (closed) title.style.cssText = "text-decoration: line-through; opacity: 0.5";
+            if (isShared(record)) {
+              const badge = document.createElement("i");
+              badge.className = "share-badge";
+              badge.textContent = "SHARED";
+              title.append(badge);
+            }
+            const stamp = document.createElement("time");
+            stamp.textContent = SEN_TYPES[record.meta.matter] +
+              (record.meta.key_date ? " · " + record.meta.key_date : "") +
+              (record.meta.amount ? " · $" + record.meta.amount.toFixed(2) : "");
+            item.append(title, stamp);
+            if (record.body) {
+              const body = document.createElement("p");
+              body.textContent = record.body;
+              item.append(body);
+            }
+            const actions = document.createElement("span");
+            actions.className = "rec-actions-row";
+            if (record.meta.path) {
+              const view = document.createElement("button");
+              view.type = "button";
+              view.style.color = "var(--gold)";
+              view.textContent = "View document";
+              view.addEventListener("click", () => openDocViewer(record));
+              actions.append(view);
+            }
+            if (isMine(record)) {
+              const close = document.createElement("button");
+              close.type = "button";
+              close.style.color = closed ? "var(--muted)" : "var(--green)";
+              close.textContent = closed ? "Reopen" : "Close matter";
+              close.addEventListener("click", async () => {
+                const meta = { ...record.meta, status: closed ? "open" : "closed" };
+                const { data, error } = await GZ.client.from("records")
+                  .update({ meta }).eq("id", record.id).select().single();
+                if (error) return toast("Could not update: " + error.message);
+                const index = records.findIndex((held) => held.id === record.id);
+                if (index > -1) records[index] = data;
+                renderAll();
+              });
+              actions.append(close);
+              const share = document.createElement("button");
+              share.type = "button";
+              share.textContent = isShared(record) ? "Make private" : "Share";
+              share.addEventListener("click", () => setVisibility(record, !isShared(record)));
+              actions.append(share);
+            }
+            item.append(actions);
+            list.append(item);
+          }
+        }
+
+        /* ---------- resources: the debt register ---------- */
+        function debtsAll() {
+          return records.filter((record) => record.meta && record.meta.module === "resources" && record.meta.debt);
+        }
+
+        $("debt-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const amount = parseFloat($("debt-amount").value);
+          if (!Number.isFinite(amount) || amount <= 0) return toast("Enter a positive amount.");
+          const direction = $("debt-direction").value;
+          const party = $("debt-party").value.trim();
+          const note = $("debt-note").value.trim();
+          const title = (direction === "owed_to_me" ? party + " owes me" : "I owe " + party) +
+            " $" + amount.toFixed(2);
+          const ok = await seal(title, note || null, {
+            kind: "record",
+            shared: $("debt-shared").checked,
+            meta: { module: "resources", debt: { direction, party, amount, status: "open" } },
+          });
+          if (ok) {
+            $("debt-party").value = "";
+            $("debt-amount").value = "";
+            $("debt-note").value = "";
+            $("debt-shared").checked = false;
+            toast("Debt recorded.");
+          }
+        });
+
+        function renderDebts() {
+          const list = $("debt-list");
+          if (!list) return;
+          const all = debtsAll();
+          $("debt-count").textContent = all.length + " ENTR" + (all.length === 1 ? "Y" : "IES");
+          const open = all.filter((r) => r.meta.debt.status !== "settled");
+          let owedToMe = 0, iOwe = 0;
+          for (const r of open) {
+            if (r.meta.debt.direction === "owed_to_me") owedToMe += r.meta.debt.amount;
+            else iOwe += r.meta.debt.amount;
+          }
+          const net = owedToMe - iOwe;
+          $("debt-totals").innerHTML = all.length
+            ? '<span>OWED TO ME <b style="color: var(--green)">$' + owedToMe.toFixed(2) + "</b></span>" +
+              '<span>I OWE <b style="color: #d98181">$' + iOwe.toFixed(2) + "</b></span>" +
+              '<span>NET <b style="color: ' + (net >= 0 ? "var(--green)" : "#d98181") + '">' +
+              (net < 0 ? "-" : "") + "$" + Math.abs(net).toFixed(2) + "</b></span>"
+            : "";
+          list.innerHTML = "";
+          const sorted = all.slice().sort((a, b) =>
+            (a.meta.debt.status === "settled") - (b.meta.debt.status === "settled"));
+          for (const record of sorted) {
+            const debt = record.meta.debt;
+            const settled = debt.status === "settled";
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = record.title;
+            if (settled) title.style.cssText = "text-decoration: line-through; opacity: 0.5";
+            if (isShared(record)) {
+              const badge = document.createElement("i");
+              badge.className = "share-badge";
+              badge.textContent = "SHARED";
+              title.append(badge);
+            }
+            const stamp = document.createElement("time");
+            stamp.textContent = settled ? "settled" : (debt.direction === "owed_to_me" ? "incoming" : "outgoing");
+            item.append(title, stamp);
+            if (record.body) {
+              const body = document.createElement("p");
+              body.textContent = record.body;
+              item.append(body);
+            }
+            const actions = document.createElement("span");
+            actions.className = "rec-actions-row";
+            if (isMine(record)) {
+              const settle = document.createElement("button");
+              settle.type = "button";
+              settle.style.color = settled ? "var(--muted)" : "var(--green)";
+              settle.textContent = settled ? "Reopen" : "Settle";
+              settle.addEventListener("click", async () => {
+                const meta = { ...record.meta, debt: { ...debt, status: settled ? "open" : "settled" } };
+                const { data, error } = await GZ.client.from("records")
+                  .update({ meta }).eq("id", record.id).select().single();
+                if (error) return toast("Could not update: " + error.message);
+                const index = records.findIndex((held) => held.id === record.id);
+                if (index > -1) records[index] = data;
+                renderAll();
+                toast(settled ? "Reopened." : "Marked settled.");
+              });
+              actions.append(settle);
+              const share = document.createElement("button");
+              share.type = "button";
+              share.textContent = isShared(record) ? "Make private" : "Share";
+              share.addEventListener("click", () => setVisibility(record, !isShared(record)));
+              actions.append(share);
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.className = "is-destroy";
+              remove.textContent = "Destroy";
+              remove.addEventListener("click", async () => {
+                const { error } = await GZ.client.from("records").delete().eq("id", record.id);
+                if (!error) {
+                  records = records.filter((held) => held.id !== record.id);
+                  renderAll();
+                }
+              });
+              actions.append(remove);
+            }
+            item.append(actions);
+            list.append(item);
+          }
+        }
+
         function renderAll() {
           renderStrip();
           renderRecommendation();
@@ -2728,6 +3474,8 @@
           renderOperations();
           renderAtlas();
           renderDrafts();
+          renderDebts();
+          renderSentinel();
         }
 
         /* ---------- router ---------- */
@@ -2971,10 +3719,11 @@
             docStatus("Upload failed: " + uploadError.message, true);
             return;
           }
+          const folder = $("doc-folder").value || null;
           const ok = await seal(pendingFile.name, null, {
             kind: "document",
             shared,
-            meta: { path, size: pendingFile.size, type: pendingFile.type || "file" },
+            meta: { path, size: pendingFile.size, type: pendingFile.type || "file", folder },
           });
           $("doc-upload").disabled = false;
           if (!ok) {
@@ -3117,6 +3866,7 @@
           $("person-birth-date").value = existing ? existing.birth_date || "" : "";
           $("person-birth-time").value = existing && existing.birth_time_known ? existing.birth_time || "" : "";
           $("person-birth-place").value = existing ? existing.birth_place || "" : "";
+          $("person-member-email").value = existing && existing.meta && existing.meta.member_email ? existing.meta.member_email : "";
           $("person-tz").value = existing && existing.birth_tz_offset != null ? String(existing.birth_tz_offset) : "";
           $("person-lat").value = existing && existing.birth_lat != null ? String(existing.birth_lat) : "";
           $("person-lon").value = existing && existing.birth_lon != null ? String(existing.birth_lon) : "";
@@ -3255,6 +4005,11 @@
             visibility: shared ? "shared" : "private",
             household_id: shared ? profile.household_id : null,
           };
+          const memberEmail = $("person-member-email").value.trim();
+          const priorMeta = editingPersonId
+            ? ((people.find((held) => held.id === editingPersonId) || {}).meta || {})
+            : {};
+          row.meta = { ...priorMeta, member_email: memberEmail || null };
           $("person-submit").disabled = true;
           const result = editingPersonId
             ? await GZ.client.from("people").update(row).eq("id", editingPersonId).select().single()
@@ -3293,6 +4048,9 @@
             small.textContent = label;
             div.append(b, small);
             facts.append(div);
+          }
+          if (person.meta && person.meta.member_email) {
+            addFact("SYSTEM MEMBER", person.meta.member_email);
           }
           if (person.birth_date) {
             addFact(
@@ -3653,7 +4411,30 @@
           $("ops-done-label").textContent = doneCount + " completed";
           $("ops-toggle-done").textContent = opsShowDone ? "HIDE COMPLETED" : "SHOW COMPLETED";
 
-          const sorted = visible.slice().sort((a, b) => {
+          /* category chips reflect everything ever used */
+          const chipRow = $("ops-cat-chips");
+          chipRow.innerHTML = "";
+          const catNames = ["All", ...opsCategories()];
+          for (const name of catNames) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = name === opsCategoryFilter ? "is-on" : "";
+            const count = name === "All"
+              ? visible.length
+              : visible.filter((r) => r.meta && r.meta.category === name).length;
+            chip.textContent = name + (count ? " " + count : "");
+            chip.addEventListener("click", () => {
+              opsCategoryFilter = name;
+              renderOperations();
+            });
+            chipRow.append(chip);
+          }
+          const filtered = opsCategoryFilter === "All"
+            ? visible
+            : visible.filter((r) => r.meta && r.meta.category === opsCategoryFilter);
+          $("ops-empty").hidden = filtered.length > 0;
+
+          const sorted = filtered.slice().sort((a, b) => {
             const da = daysUntil(actionDue(a)) ?? 9999;
             const db = daysUntil(actionDue(b)) ?? 9999;
             return da - db;
@@ -3686,15 +4467,45 @@
               body.textContent = record.body;
               item.append(body);
             }
-            if (record.meta && record.meta.priority === "high") {
+            const tags = [];
+            if (record.meta && record.meta.category) tags.push(record.meta.category.toUpperCase());
+            if (record.meta && record.meta.priority === "high") tags.push("HIGH CONSEQUENCE");
+            if (tags.length) {
               const pr = document.createElement("p");
               pr.style.cssText = "color: var(--amber); font-size: 9px; letter-spacing: 0.14em";
-              pr.textContent = "HIGH CONSEQUENCE";
+              pr.textContent = tags.join(" · ");
               item.append(pr);
+            }
+            if (record.meta && record.meta.images && record.meta.images.length) {
+              const strip = document.createElement("div");
+              strip.className = "ops-thumbs";
+              for (const path of record.meta.images) {
+                const img = document.createElement("img");
+                img.alt = "operation image";
+                img.loading = "lazy";
+                GZ.client.storage.from("vault").createSignedUrl(path, 300)
+                  .then(({ data }) => { if (data) img.src = data.signedUrl; });
+                img.addEventListener("click", () =>
+                  openDocViewer({ title: record.title, meta: { path, type: "image/*" } })
+                );
+                strip.append(img);
+              }
+              item.append(strip);
             }
             const actions = document.createElement("span");
             actions.className = "rec-actions-row";
+            const complete = document.createElement("button");
+            complete.type = "button";
+            complete.style.color = done ? "var(--muted)" : "var(--green)";
+            complete.textContent = done ? "Reopen" : "Complete";
+            complete.addEventListener("click", () => toggleActionDone(record));
+            actions.append(complete);
             if (isMine(record)) {
+              const edit = document.createElement("button");
+              edit.type = "button";
+              edit.textContent = "Edit";
+              edit.addEventListener("click", () => opsBeginEdit(record));
+              actions.append(edit);
               const share = document.createElement("button");
               share.type = "button";
               share.textContent = isShared(record) ? "Make private" : "Share";
@@ -3766,8 +4577,10 @@
         }
 
         $("ops-new").addEventListener("click", () => {
-          $("ops-form-panel").hidden = !$("ops-form-panel").hidden;
-          if (!$("ops-form-panel").hidden) $("ops-title").focus();
+          const opening = $("ops-form-panel").hidden;
+          if (opening) opsResetForm();
+          $("ops-form-panel").hidden = !opening ? true : false;
+          if (opening) $("ops-title").focus();
         });
         $("ops-toggle-done").addEventListener("click", () => {
           opsShowDone = !opsShowDone;
@@ -3781,23 +4594,177 @@
           await Notification.requestPermission();
           renderOperations();
         });
+        /* ---- operation categories: defaults plus everything ever used ---- */
+        const OPS_DEFAULT_CATEGORIES = ["Needs", "Wants", "Legal", "Household", "Practice"];
+        let opsCategoryFilter = "All";
+        let editingOpsId = null;
+        let opsEditImages = [];
+
+        function opsCategories() {
+          const seen = new Set(OPS_DEFAULT_CATEGORIES);
+          for (const record of actionsAll()) {
+            if (record.meta && record.meta.category) seen.add(record.meta.category);
+          }
+          return [...seen];
+        }
+
+        function fillOpsCategorySelect(selected) {
+          const select = $("ops-category");
+          select.innerHTML = "";
+          const none = document.createElement("option");
+          none.value = "";
+          none.textContent = "— none —";
+          select.append(none);
+          for (const name of opsCategories()) {
+            const opt = document.createElement("option");
+            opt.value = name;
+            opt.textContent = name;
+            select.append(opt);
+          }
+          const custom = document.createElement("option");
+          custom.value = "__custom__";
+          custom.textContent = "New category…";
+          select.append(custom);
+          select.value = selected && [...select.options].some((o) => o.value === selected) ? selected : "";
+          $("ops-category-custom").hidden = select.value !== "__custom__";
+        }
+
+        $("ops-category").addEventListener("change", () => {
+          $("ops-category-custom").hidden = $("ops-category").value !== "__custom__";
+          if ($("ops-category").value === "__custom__") $("ops-category-custom").focus();
+        });
+
+        function opsChosenCategory() {
+          const raw = $("ops-category").value;
+          if (raw === "__custom__") return $("ops-category-custom").value.trim() || null;
+          return raw || null;
+        }
+
+        async function opsUploadImages(files) {
+          const paths = [];
+          for (const file of files) {
+            const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+            const path = user.id + "/ops/" + Date.now() + "_" + safeName;
+            const { error } = await GZ.client.storage
+              .from("vault")
+              .upload(path, file, { contentType: file.type || "image/jpeg" });
+            if (error) throw new Error(error.message);
+            paths.push(path);
+          }
+          return paths;
+        }
+
+        function opsResetForm() {
+          editingOpsId = null;
+          opsEditImages = [];
+          $("ops-form-kicker").textContent = "NEW OPERATION";
+          $("ops-form-submit").textContent = "Enter into the register";
+          $("ops-title").value = "";
+          $("ops-body").value = "";
+          $("ops-due").value = "";
+          $("ops-priority").value = "normal";
+          $("ops-shared").checked = false;
+          $("ops-images").value = "";
+          $("ops-category-custom").value = "";
+          $("ops-edit-thumbs").innerHTML = "";
+          fillOpsCategorySelect("");
+        }
+
+        function opsBeginEdit(record) {
+          editingOpsId = record.id;
+          opsEditImages = (record.meta && record.meta.images ? record.meta.images.slice() : []);
+          $("ops-form-panel").hidden = false;
+          $("ops-form-kicker").textContent = "EDIT OPERATION";
+          $("ops-form-submit").textContent = "Save changes";
+          $("ops-title").value = record.title || "";
+          $("ops-body").value = record.body || "";
+          $("ops-due").value = record.meta && record.meta.due
+            ? record.meta.due
+            : (record.occurred_at ? record.occurred_at.slice(0, 10) : "");
+          $("ops-priority").value = (record.meta && record.meta.priority) || "normal";
+          $("ops-shared").checked = isShared(record);
+          fillOpsCategorySelect((record.meta && record.meta.category) || "");
+          renderOpsEditThumbs();
+          $("ops-title").focus();
+          window.scrollTo(0, 0);
+        }
+
+        function renderOpsEditThumbs() {
+          const holder = $("ops-edit-thumbs");
+          holder.innerHTML = "";
+          opsEditImages.forEach((path, index) => {
+            const cell = document.createElement("span");
+            cell.className = "ops-thumb-cell";
+            const img = document.createElement("img");
+            img.alt = "attached image";
+            GZ.client.storage.from("vault").createSignedUrl(path, 300)
+              .then(({ data }) => { if (data) img.src = data.signedUrl; });
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.textContent = "×";
+            kill.addEventListener("click", () => {
+              opsEditImages.splice(index, 1);
+              renderOpsEditThumbs();
+            });
+            cell.append(img, kill);
+            holder.append(cell);
+          });
+        }
+
+        $("ops-form-cancel").addEventListener("click", () => {
+          opsResetForm();
+          $("ops-form-panel").hidden = true;
+        });
+
         $("ops-form").addEventListener("submit", async (event) => {
           event.preventDefault();
           const due = $("ops-due").value;
-          const ok = await seal($("ops-title").value.trim(), $("ops-body").value.trim(), {
-            kind: "action",
-            shared: $("ops-shared").checked,
-            occurredAt: due ? due + "T12:00:00Z" : undefined,
-            meta: { status: "open", priority: $("ops-priority").value },
-          });
-          if (ok) {
-            $("ops-title").value = "";
-            $("ops-body").value = "";
-            $("ops-due").value = "";
-            $("ops-priority").value = "normal";
-            $("ops-shared").checked = false;
+          const category = opsChosenCategory();
+          const files = [...($("ops-images").files || [])];
+          $("ops-form-submit").disabled = true;
+          try {
+            let imagePaths = opsEditImages.slice();
+            if (files.length) imagePaths = imagePaths.concat(await opsUploadImages(files));
+            if (editingOpsId) {
+              const existing = records.find((held) => held.id === editingOpsId);
+              const shared = $("ops-shared").checked;
+              const meta = {
+                ...(existing && existing.meta || {}),
+                status: (existing && existing.meta && existing.meta.status) || "open",
+                priority: $("ops-priority").value,
+                category, images: imagePaths, due: due || null,
+              };
+              const patch = {
+                title: $("ops-title").value.trim(),
+                body: $("ops-body").value.trim() || null,
+                occurred_at: due ? due + "T12:00:00Z" : null,
+                visibility: shared ? "shared" : "private",
+                household_id: shared ? profile.household_id : null,
+                meta,
+              };
+              const { data, error } = await GZ.client.from("records")
+                .update(patch).eq("id", editingOpsId).select().single();
+              if (error) throw new Error(error.message);
+              const index = records.findIndex((held) => held.id === editingOpsId);
+              if (index > -1) records[index] = data;
+              toast("Operation updated.");
+            } else {
+              const ok = await seal($("ops-title").value.trim(), $("ops-body").value.trim(), {
+                kind: "action",
+                shared: $("ops-shared").checked,
+                occurredAt: due ? due + "T12:00:00Z" : undefined,
+                meta: { status: "open", priority: $("ops-priority").value, category, images: imagePaths, due: due || null },
+              });
+              if (!ok) throw new Error("record refused");
+              toast("Operation entered into the register.");
+            }
+            opsResetForm();
             $("ops-form-panel").hidden = true;
-            toast("Operation entered into the register.");
+            renderAll();
+          } catch (error) {
+            toast("Could not save: " + error.message);
+          } finally {
+            $("ops-form-submit").disabled = false;
           }
         });
 
