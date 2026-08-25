@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=3" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=41" />
+    <link rel="stylesheet" href="command.css?v=42" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -200,27 +200,27 @@
           <section class="ql">
             <div class="ql-badge">QUICK<br />LAUNCH</div>
             <button class="ql-item" style="--item-color: var(--gold)" data-capture type="button">
-              <i class="ql-dot"></i>
+              <svg class="ql-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><path d="M12 8.4v7.2M8.4 12h7.2"/></svg>
               <span class="ql-copy"><strong>+ Capture</strong><span>Anything entering the field</span></span>
               <kbd>&#8997;C</kbd>
             </button>
-            <button class="ql-item" style="--item-color: var(--violet)" data-soon="Profiles and relationships arrive with the Constellations build." type="button">
-              <i class="ql-dot"></i>
+            <button class="ql-item" style="--item-color: var(--violet)" data-goto="constellations" type="button">
+              <svg class="ql-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8.6" r="3.4"/><path d="M5.6 19.4c1.2-3.6 3.4-5.2 6.4-5.2s5.2 1.6 6.4 5.2"/><path d="M18.6 5.2l.65 1.35L20.6 7.2l-1.35.65L18.6 9.2l-.65-1.35L16.6 7.2l1.35-.65Z"/></svg>
               <span class="ql-copy"><strong>Add a person</strong><span>Profiles and relationships</span></span>
               <kbd>&#8997;P</kbd>
             </button>
             <button class="ql-item" style="--item-color: var(--amber)" data-goto="aion" type="button">
-              <i class="ql-dot"></i>
+              <svg class="ql-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="9" ry="4.4" transform="rotate(-24 12 12)"/><circle cx="19.4" cy="8.6" r="1.2" fill="currentColor" stroke="none"/></svg>
               <span class="ql-copy"><strong>Cast AION</strong><span>Timing calculations</span></span>
               <kbd>&#8997;A</kbd>
             </button>
-            <button class="ql-item" style="--item-color: var(--m3)" data-soon="Financial intelligence arrives with the Resources build." type="button">
-              <i class="ql-dot"></i>
+            <button class="ql-item" style="--item-color: var(--m3)" data-goto="resources" type="button">
+              <svg class="ql-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 4.6v2M12 17.4v2"/><path d="M15.8 8.2c-.5-1.3-1.9-2-3.8-2-2.2 0-3.6 1-3.6 2.6 0 3.6 7.6 1.6 7.6 5.2 0 1.6-1.6 2.6-3.9 2.6-2 0-3.5-.8-4-2.2"/></svg>
               <span class="ql-copy"><strong>Record amount</strong><span>Financial intelligence</span></span>
               <kbd>&#8997;R</kbd>
             </button>
             <button class="ql-item" style="--item-color: var(--gold-soft)" data-goto="vault" type="button">
-              <i class="ql-dot"></i>
+              <svg class="ql-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="4" y="4.6" width="16" height="14.8" rx="2.4"/><circle cx="12" cy="12" r="3.6"/><path d="M12 8.4v1.4M12 14.2v1.4M8.4 12h1.4M14.2 12h1.4"/></svg>
               <span class="ql-copy"><strong>Open Vault</strong><span>Private documents</span></span>
               <kbd>&#8997;V</kbd>
             </button>
@@ -306,6 +306,13 @@
                 <div class="pulse-stat"><b id="pulse-files">0</b><span>preserved records</span></div>
                 <div class="pulse-stat"><b id="pulse-review">0</b><span>awaiting review</span></div>
               </div>
+            </div>
+            <div class="panel" id="unit-inbox-panel" hidden style="border-color: #a78bfa44">
+              <span class="kicker" style="color: var(--violet); display: flex; justify-content: space-between">
+                <span>SHARE REQUESTS &middot; APPROVE OR DENY</span>
+                <span id="unit-inbox-count" style="color: var(--faint)"></span>
+              </span>
+              <ul class="vault-list" id="unit-inbox" style="margin-top: 12px"></ul>
             </div>
             <div class="panel">
               <span class="kicker" style="display: flex; justify-content: space-between">
@@ -1461,6 +1468,17 @@
             <div class="strip-cell"><div><small>UPCOMING BIRTHDAYS</small><b id="con-upcoming">0</b></div><span>Within 30 days</span></div>
             <div class="strip-cell"><div><small>NEXT DATE</small><b id="con-next">Clear</b></div><span id="con-next-sub">No dated profiles yet</span></div>
           </section>
+          <section class="panel" style="margin-top: 18px; border-color: #a78bfa44">
+            <span class="kicker" style="color: var(--violet); display: flex; justify-content: space-between">
+              <span>LINKED UNIT &middot; MEMBER-TO-MEMBER SHARING</span>
+              <button class="ghost-btn" id="unit-invite" type="button" style="height: 32px">+ Link a member</button>
+            </span>
+            <p class="panel-sub" id="unit-note" style="margin: 10px 0 0">
+              Send a link request to another member's sign-in email. Once they accept, you can offer
+              individual records to each other — every offer is approved or denied by its recipient.
+            </p>
+            <div class="chips" id="unit-members" style="margin: 12px 0 0"></div>
+          </section>
           <section class="profile-grid" id="con-grid" style="margin-top: 18px">
             <div class="profile-card is-ghost" id="con-add-ghost">
               <div>
@@ -1979,6 +1997,21 @@
                   date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
                   time: "19:00", place: null,
                 } },
+              },
+            ],
+            unit_links: [
+              {
+                id: "ul-demo-in", from_user: "mock-partner", from_email: "partner@gziao.test",
+                to_email: "operator@gziao.test", to_user: null, status: "pending",
+                created_at: new Date().toISOString(),
+              },
+            ],
+            record_shares: [
+              {
+                id: "rs-demo-in", record_id: "cal-shared-demo",
+                from_user: "mock-partner", from_email: "partner@gziao.test",
+                to_user: "mock-user", to_email: "operator@gziao.test", status: "pending",
+                created_at: new Date().toISOString(),
               },
             ],
             people: [
@@ -2553,6 +2586,19 @@
             const actions = document.createElement("span");
             actions.className = "rec-actions-row";
 
+            /* outgoing unit offers on my records */
+            if (isMine(record)) {
+              const mine = recordShares.filter((sh) => sh.record_id === record.id && sh.from_user === user.id);
+              if (mine.length) {
+                const line = document.createElement("p");
+                line.style.cssText = "color: var(--violet); font-size: 9.5px; letter-spacing: 0.06em";
+                line.textContent = mine.map((sh) =>
+                  (sh.status === "accepted" ? "✓ with " : sh.status === "declined" ? "✕ declined by " : "⇥ offered to ") + sh.to_email
+                ).join(" · ");
+                item.append(line);
+              }
+            }
+
             if (isDoc) {
               const view = document.createElement("button");
               view.type = "button";
@@ -2602,6 +2648,31 @@
                 toSentinel.textContent = "→ Sentinel";
                 toSentinel.addEventListener("click", () => buildMigrateControls(record, actions));
                 actions.append(toSentinel);
+              }
+            }
+            /* offer any owned record to a linked member */
+            if (isMine(record) && unitsAvailable) {
+              const members = unitMembers();
+              if (members.length) {
+                const offer = document.createElement("select");
+                offer.className = "vault-move";
+                offer.style.color = "var(--violet)";
+                const label = document.createElement("option");
+                label.value = "";
+                label.textContent = "Share to unit…";
+                offer.append(label);
+                for (const member of members) {
+                  const opt = document.createElement("option");
+                  opt.value = member.userId;
+                  opt.textContent = member.email;
+                  offer.append(opt);
+                }
+                offer.addEventListener("change", () => {
+                  const member = members.find((m) => m.userId === offer.value);
+                  offer.value = "";
+                  if (member) offerRecordToMember(record, member);
+                });
+                actions.append(offer);
               }
             }
 
@@ -3086,6 +3157,209 @@
           $("dr-jd").textContent = layer.julian;
           $("dr-station").textContent = layer.station;
         }
+
+        /* ---------- units: linked members and per-member share requests ---------- */
+        let unitLinks = [];
+        let recordShares = [];
+        let unitsAvailable = true;
+
+        async function loadUnits() {
+          try {
+            const links = await GZ.client.from("unit_links").select().order();
+            const shares = await GZ.client.from("record_shares").select().order();
+            if (links.error || shares.error) throw new Error((links.error || shares.error).message);
+            unitLinks = links.data || [];
+            recordShares = shares.data || [];
+            unitsAvailable = true;
+          } catch (error) {
+            unitsAvailable = false;
+            unitLinks = [];
+            recordShares = [];
+          }
+        }
+
+        /* everyone linked to me by an accepted invitation, either direction */
+        function unitMembers() {
+          const members = [];
+          for (const link of unitLinks) {
+            if (link.status !== "accepted") continue;
+            if (link.from_user === user.id && link.to_user) {
+              members.push({ userId: link.to_user, email: link.to_email });
+            } else if (link.to_user === user.id) {
+              members.push({ userId: link.from_user, email: link.from_email });
+            }
+          }
+          const seen = new Set();
+          return members.filter((m) => !seen.has(m.userId) && seen.add(m.userId));
+        }
+
+        function myEmail() {
+          return (user.email || "").toLowerCase();
+        }
+
+        async function sendUnitInvite() {
+          if (!unitsAvailable) return toast("Units need migration 003 applied to the database first.");
+          const email = window.prompt("Link request — their GZIAO sign-in email:");
+          if (!email || !email.trim()) return;
+          const target = email.trim().toLowerCase();
+          if (target === myEmail()) return toast("That is your own email.");
+          if (unitLinks.some((l) =>
+            l.status !== "declined" &&
+            ((l.from_user === user.id && l.to_email.toLowerCase() === target) ||
+             (l.from_email.toLowerCase() === target && l.to_user === user.id)))) {
+            return toast("A link with " + target + " already exists or is pending.");
+          }
+          const { data, error } = await GZ.client.from("unit_links").insert({
+            from_user: user.id, from_email: user.email, to_email: target, status: "pending",
+          }).select().single();
+          if (error) return toast("Could not send: " + error.message);
+          unitLinks.push(data);
+          renderUnit();
+          toast("Link request sent — they approve it from their dashboard.");
+        }
+
+        function renderUnit() {
+          const holder = $("unit-members");
+          if (!holder) return;
+          holder.innerHTML = "";
+          if (!unitsAvailable) {
+            $("unit-note").textContent =
+              "Units are not enabled on the database yet — apply schema/003_units.sql in Supabase and reload.";
+            return;
+          }
+          const members = unitMembers();
+          for (const member of members) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "is-on";
+            chip.style.cursor = "default";
+            chip.textContent = "✓ " + member.email;
+            holder.append(chip);
+          }
+          for (const link of unitLinks) {
+            if (link.status !== "pending") continue;
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.style.cursor = "default";
+            chip.textContent = link.from_user === user.id
+              ? "⇥ " + link.to_email + " · awaiting their approval"
+              : "⇤ " + link.from_email + " · in your inbox";
+            holder.append(chip);
+          }
+          if (!members.length && !unitLinks.some((l) => l.status === "pending")) {
+            const none = document.createElement("button");
+            none.type = "button";
+            none.style.cursor = "default";
+            none.textContent = "No linked members yet";
+            holder.append(none);
+          }
+        }
+
+        function renderUnitInbox() {
+          const panel = $("unit-inbox-panel");
+          if (!panel) return;
+          const list = $("unit-inbox");
+          list.innerHTML = "";
+          const invites = unitLinks.filter((l) =>
+            l.status === "pending" &&
+            (l.to_user === user.id || (l.to_email || "").toLowerCase() === myEmail()) &&
+            l.from_user !== user.id);
+          const offers = recordShares.filter((s) => s.status === "pending" && s.to_user === user.id);
+          const total = invites.length + offers.length;
+          panel.hidden = total === 0;
+          $("unit-inbox-count").textContent = total ? total + " AWAITING YOUR DECISION" : "";
+          const respondLink = async (link, accept) => {
+            const { data, error } = await GZ.client.from("unit_links")
+              .update({ status: accept ? "accepted" : "declined", to_user: user.id })
+              .eq("id", link.id).select().single();
+            if (error) return toast("Could not respond: " + error.message);
+            const index = unitLinks.findIndex((l) => l.id === link.id);
+            if (index > -1) unitLinks[index] = data;
+            renderUnit();
+            renderUnitInbox();
+            renderVaultList();
+            toast(accept ? "Linked — you can now share with " + link.from_email + "." : "Declined.");
+          };
+          const respondShare = async (share, accept) => {
+            const { data, error } = await GZ.client.from("record_shares")
+              .update({ status: accept ? "accepted" : "declined" })
+              .eq("id", share.id).select().single();
+            if (error) return toast("Could not respond: " + error.message);
+            const index = recordShares.findIndex((x) => x.id === share.id);
+            if (index > -1) recordShares[index] = data;
+            if (accept) await loadRecords();
+            renderAll();
+            toast(accept ? "Approved — the record is now in your field." : "Denied.");
+          };
+          for (const link of invites) {
+            const li = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = "Link request from " + link.from_email;
+            const stamp = document.createElement("time");
+            stamp.textContent = new Date(link.created_at).toLocaleDateString();
+            const p = document.createElement("p");
+            p.textContent = "Accepting joins you into a unit — either of you can then offer records to the other.";
+            const actions = document.createElement("span");
+            actions.className = "rec-actions-row";
+            const yes = document.createElement("button");
+            yes.type = "button";
+            yes.style.color = "var(--green)";
+            yes.textContent = "Accept";
+            yes.addEventListener("click", () => respondLink(link, true));
+            const no = document.createElement("button");
+            no.type = "button";
+            no.className = "is-destroy";
+            no.textContent = "Decline";
+            no.addEventListener("click", () => respondLink(link, false));
+            actions.append(yes, no);
+            li.append(title, stamp, p, actions);
+            list.append(li);
+          }
+          for (const share of offers) {
+            const record = records.find((r) => r.id === share.record_id);
+            const li = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = share.from_email + " offers you a record" +
+              (record ? ": “" + record.title + "”" : "");
+            const stamp = document.createElement("time");
+            stamp.textContent = new Date(share.created_at).toLocaleDateString();
+            const p = document.createElement("p");
+            p.textContent = record
+              ? "Approve to hold it in your field; deny to refuse it."
+              : "Its contents stay sealed until you approve.";
+            const actions = document.createElement("span");
+            actions.className = "rec-actions-row";
+            const yes = document.createElement("button");
+            yes.type = "button";
+            yes.style.color = "var(--green)";
+            yes.textContent = "Approve";
+            yes.addEventListener("click", () => respondShare(share, true));
+            const no = document.createElement("button");
+            no.type = "button";
+            no.className = "is-destroy";
+            no.textContent = "Deny";
+            no.addEventListener("click", () => respondShare(share, false));
+            actions.append(yes, no);
+            li.append(title, stamp, p, actions);
+            list.append(li);
+          }
+        }
+
+        async function offerRecordToMember(record, member) {
+          if (recordShares.some((s) => s.record_id === record.id && s.to_user === member.userId && s.status !== "declined")) {
+            return toast("Already offered to " + member.email + ".");
+          }
+          const { data, error } = await GZ.client.from("record_shares").insert({
+            record_id: record.id, from_user: user.id, from_email: user.email,
+            to_user: member.userId, to_email: member.email, status: "pending",
+          }).select().single();
+          if (error) return toast("Could not offer: " + error.message);
+          recordShares.push(data);
+          renderVaultList();
+          toast("Offered to " + member.email + " — it waits in their inbox.");
+        }
+
+        if ($("unit-invite")) $("unit-invite").addEventListener("click", sendUnitInvite);
 
         /* ---------- calendar: shared time ---------- */
         let calMonth = null;   // Date at the first of the shown month
@@ -4009,6 +4283,8 @@
           renderDebts();
           renderSentinel();
           renderCalendar();
+          renderUnit();
+          renderUnitInbox();
         }
 
         /* ---------- router ---------- */
@@ -5868,7 +6144,7 @@
           });
         });
         $("or-rescan").addEventListener("click", async () => {
-          await Promise.all([loadRecords(), loadPeople()]);
+          await Promise.all([loadRecords(), loadPeople(), loadUnits()]);
           renderAll();
           toast("Field re-scanned.");
         });
@@ -7611,6 +7887,36 @@
             : "";
         }
 
+        /* ---------- sidebar iconography: one motion icon per module ---------- */
+        const NAV_ICONS = {
+          command: '<svg viewBox="0 0 24 24"><circle class="nv-spin" cx="12" cy="12" r="7.6" stroke-dasharray="3.5 3.5"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3"/></svg>',
+          timeline: '<svg viewBox="0 0 24 24"><path d="M3 12h18"/><circle cx="6.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="17.5" cy="12" r="1.6"/><circle class="nv-travel" cx="6.5" cy="12" r="2.6" fill="none"/></svg>',
+          calendar: '<svg viewBox="0 0 24 24"><rect x="3.6" y="5" width="16.8" height="15" rx="2.4"/><path d="M3.6 9.6h16.8M8 2.8v4M16 2.8v4"/><circle class="nv-pulse" cx="12" cy="14.6" r="1.7" fill="currentColor" stroke="none"/></svg>',
+          watchtower: '<svg viewBox="0 0 24 24"><path d="M12 3 3.6 8v0c2.5 1.7 5.3 2.6 8.4 2.6S17.9 9.7 20.4 8Z" fill="none"/><path d="M12 10.6v10M8.2 20.6h7.6"/><circle class="nv-beacon" cx="12" cy="6.6" r="1.5" fill="currentColor" stroke="none"/></svg>',
+          sentinel: '<svg viewBox="0 0 24 24"><path d="M12 3 5 5.8v5.4c0 4.6 2.9 8 7 9.8 4.1-1.8 7-5.2 7-9.8V5.8Z"/><path class="nv-draw" d="M8.6 11.8l2.4 2.6 4.6-5"/></svg>',
+          vault: '<svg viewBox="0 0 24 24"><rect x="3.6" y="4" width="16.8" height="16" rx="2.6"/><g class="nv-spin-slow"><circle cx="12" cy="12" r="4"/><path d="M12 8v1.6M12 14.4V16M8 12h1.6M14.4 12H16"/></g></svg>',
+          scriptorium: '<svg viewBox="0 0 24 24"><path class="nv-tilt" d="M18.6 4.2c-6 1.4-9.8 4.8-11.6 10L5.6 19l4.8-1.4c5.2-1.8 8.6-5.6 10-11.6Z" fill="none"/><path d="M5.6 19c2-2.6 4-4.6 6.4-6.4"/></svg>',
+          scribe: '<svg viewBox="0 0 24 24"><path d="M12 4.4l1.5 3.9 3.9 1.5-3.9 1.5L12 15.2l-1.5-3.9-3.9-1.5 3.9-1.5Z" class="nv-twinkle"/><path d="M18.4 14.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z" class="nv-twinkle nv-late"/><path d="M4.6 16.4l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6Z" class="nv-twinkle nv-later"/></svg>',
+          operations: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3.2"/><path class="nv-draw" d="M8.2 12.4l2.6 2.8 5-6"/></svg>',
+          resources: '<svg viewBox="0 0 24 24"><path d="M4 19.6h16"/><rect class="nv-rise" x="6" y="12" width="3.2" height="7.6" rx="1"/><rect class="nv-rise nv-late" x="10.7" y="8.6" width="3.2" height="11" rx="1"/><rect class="nv-rise nv-later" x="15.4" y="5.6" width="3.2" height="14" rx="1"/></svg>',
+          constellations: '<svg viewBox="0 0 24 24"><path d="M5.6 17.2 11 12l6.4-4.4" fill="none"/><circle class="nv-twinkle" cx="5.6" cy="17.2" r="1.7"/><circle class="nv-twinkle nv-late" cx="11" cy="12" r="1.7"/><circle class="nv-twinkle nv-later" cx="17.4" cy="7.6" r="1.7"/></svg>',
+          thework: '<svg viewBox="0 0 24 24"><path d="M4.6 8.4 12 4.2l7.4 4.2M6 8.8V18M10 8.8V18M14 8.8V18M18 8.8V18M4.2 18h15.6"/><circle class="nv-pulse" cx="12" cy="6.4" r="1.2" fill="currentColor" stroke="none"/></svg>',
+          aion: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><g class="nv-orbit"><ellipse cx="12" cy="12" rx="8.6" ry="4" transform="rotate(-24 12 12)"/><circle cx="19.2" cy="8.4" r="1.3" fill="currentColor" stroke="none"/></g></svg>',
+          atlas: '<svg viewBox="0 0 24 24"><path class="nv-bob" d="M12 3.6c3.2 0 5.6 2.4 5.6 5.4 0 4-5.6 11-5.6 11S6.4 13 6.4 9c0-3 2.4-5.4 5.6-5.4Z"/><circle cx="12" cy="8.8" r="2"/></svg>',
+          oracle: '<svg viewBox="0 0 24 24"><path d="M2.8 12C5.4 7.4 8.6 5.2 12 5.2S18.6 7.4 21.2 12c-2.6 4.6-5.8 6.8-9.2 6.8S5.4 16.6 2.8 12Z"/><circle class="nv-dilate" cx="12" cy="12" r="2.6"/></svg>',
+        };
+
+        (function decorateSidebar() {
+          document.querySelectorAll(".side-item[data-view]").forEach((item) => {
+            const svg = NAV_ICONS[item.dataset.view];
+            if (!svg) return;
+            const holder = document.createElement("span");
+            holder.className = "nv-ic";
+            holder.innerHTML = svg;
+            item.prepend(holder);
+          });
+        })();
+
         /* ---------- the Scribe: AI-assisted data entry ---------- */
         const SCRIBE_PROVIDERS = {
           gemini: {
@@ -8136,7 +8442,7 @@
         });
 
         /* ---------- boot ---------- */
-        await Promise.all([loadRecords(), loadPeople()]);
+        await Promise.all([loadRecords(), loadPeople(), loadUnits()]);
         renderAll();
         if (restricted) activeGrade = 3;
         const initial = location.hash.replace("#/", "");
