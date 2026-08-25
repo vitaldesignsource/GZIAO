@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=3" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=40" />
+    <link rel="stylesheet" href="command.css?v=41" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -78,25 +78,26 @@
         </div>
 
         <nav id="side-nav">
-          <div class="side-section">
+          <div class="side-section" data-tone="orient">
             <header><b>ORIENT</b><span>See what is happening</span></header>
             <button class="side-item" data-view="command"><small>01</small><strong>Command</strong><span>Daily intelligence</span></button>
             <button class="side-item" data-view="timeline"><small>02</small><strong>Timeline</strong><span>Chronology</span></button>
+            <button class="side-item" data-view="calendar"><small>15</small><strong>Calendar</strong><span>Shared time</span></button>
             <button class="side-item" data-view="watchtower"><small>03</small><strong>Watchtower</strong><span>Brief &amp; academy</span></button>
           </div>
-          <div class="side-section">
+          <div class="side-section" data-tone="protect">
             <header><b>PROTECT</b><span>Cases, evidence, and drafts</span></header>
             <button class="side-item" data-view="sentinel"><small>04</small><strong>Sentinel</strong><span>Cases &amp; citations</span></button>
             <button class="side-item" data-view="vault"><small>10</small><strong>The Vault</strong><span>Documents</span></button>
             <button class="side-item" data-view="scriptorium"><small>11</small><strong>Scriptorium</strong><span>Document studio</span></button>
             <button class="side-item" data-view="scribe"><small>14</small><strong>The Scribe</strong><span>AI intake</span></button>
           </div>
-          <div class="side-section">
+          <div class="side-section" data-tone="manage">
             <header><b>MANAGE</b><span>Tasks, finances, and plans</span></header>
             <button class="side-item" data-view="operations"><small>08</small><strong>Operations</strong><span>Tasks &amp; decisions</span></button>
             <button class="side-item" data-view="resources"><small>09</small><strong>Resources</strong><span>Financial field</span></button>
           </div>
-          <div class="side-section">
+          <div class="side-section" data-tone="understand">
             <header><b>UNDERSTAND</b><span>People, practice, and analysis</span></header>
             <button class="side-item" data-view="constellations"><small>05</small><strong>Constellations</strong><span>People &amp; relations</span></button>
             <button class="side-item" data-view="thework"><small>06</small><strong>The Work</strong><span>Grade journals</span></button>
@@ -1201,6 +1202,78 @@
           <div class="mp-footer"><span><i></i>PRIVATE FINANCIAL LEDGER CONNECTED &middot; TAP AN ENTRY TO ADVANCE ITS STATUS</span></div>
         </div>
 
+        <!-- ================= CALENDAR ================= -->
+        <div class="content" id="view-calendar" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker">SHARED TIME &middot; EVENTS, BIRTHDAYS, AUTHORITATIVE DATES</span>
+              <h1>Calendar</h1>
+              <p>Your events beside the household's — shared entries carry their mark, and what another member shares can be added to your own calendar.</p>
+            </div>
+            <div class="mp-actions">
+              <div class="pill-status"><i></i><span id="cal-pill">0 EVENTS THIS MONTH</span></div>
+              <button class="prime-btn" id="cal-new" type="button">+ New event</button>
+            </div>
+          </div>
+
+          <section class="panel" id="cal-form-panel" hidden>
+            <span class="kicker" id="cal-form-kicker">NEW EVENT</span>
+            <form class="vault-form" id="cal-form" style="margin-top: 14px">
+              <input type="text" id="cal-title" placeholder="What happens" required />
+              <div style="display: grid; grid-template-columns: auto auto 1fr; gap: 12px">
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">DATE
+                  <input type="date" id="cal-date" required style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
+                </label>
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">TIME (OPTIONAL)
+                  <input type="time" id="cal-time" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
+                </label>
+                <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">PLACE (OPTIONAL)
+                  <input type="text" id="cal-place" placeholder="Where" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
+                </label>
+              </div>
+              <textarea id="cal-notes" placeholder="Notes (optional)" style="min-height: 46px"></textarea>
+              <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center">
+                <label class="share-toggle" style="margin: 0">
+                  <input type="checkbox" id="cal-shared" />
+                  <span></span>
+                  Share to the relationship field
+                </label>
+                <span>
+                  <button type="submit" id="cal-submit">Place on the calendar</button>
+                  <button type="button" class="modal-cancel" id="cal-cancel">Cancel</button>
+                </span>
+              </div>
+            </form>
+          </section>
+
+          <section class="chrono-row" style="grid-template-columns: 1.6fr 1fr">
+            <div class="panel">
+              <div class="cal-nav">
+                <button class="ghost-btn" id="cal-prev" type="button" aria-label="Previous month">&larr;</button>
+                <h2 id="cal-month-title" style="margin: 0"></h2>
+                <button class="ghost-btn" id="cal-next" type="button" aria-label="Next month">&rarr;</button>
+                <span style="flex: 1"></span>
+                <button class="chrono-open" id="cal-today" type="button">TODAY</button>
+              </div>
+              <div class="cal-weekdays" id="cal-weekdays"></div>
+              <div class="cal-grid" id="cal-grid"></div>
+              <div class="cal-legend">
+                <span><i class="cl-mine"></i>yours</span>
+                <span><i class="cl-shared"></i>shared</span>
+                <span><i class="cl-birthday"></i>birthday</span>
+                <span><i class="cl-court"></i>authoritative date</span>
+              </div>
+            </div>
+            <div class="panel">
+              <span class="kicker" id="cal-day-kicker">SELECTED DAY</span>
+              <h2 id="cal-day-title"></h2>
+              <ul class="vault-list" id="cal-day-list" style="margin-top: 12px; max-height: 380px"></ul>
+              <p class="panel-sub" id="cal-day-empty" style="text-align: center; padding: 16px 0">Nothing placed on this day.</p>
+              <button class="ghost-btn" id="cal-day-add" type="button" style="width: 100%">+ Event on this day</button>
+            </div>
+          </section>
+        </div>
+
         <!-- ================= DOCUMENT VIEWER ================= -->
         <div class="doc-viewer" id="doc-viewer" hidden>
           <div class="doc-viewer-panel">
@@ -1896,6 +1969,17 @@
                 title: "First sealed record", body: "A demonstration entry held privately in the vault.",
                 created_at: new Date().toISOString(),
               },
+              {
+                id: "cal-shared-demo", owner_id: "mock-partner", kind: "record", visibility: "shared",
+                household_id: "mock-household", grade: null,
+                title: "Equinox dinner", body: "Brought in by the other member of the household.",
+                occurred_at: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10) + "T19:00:00Z",
+                created_at: new Date().toISOString(),
+                meta: { module: "calendar", event: {
+                  date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
+                  time: "19:00", place: null,
+                } },
+              },
             ],
             people: [
               {
@@ -2199,6 +2283,7 @@
         function recordHome(record) {
           if (record.meta && record.meta.module === "sentinel") return { view: "sentinel", label: "Sentinel" };
           if (record.meta && record.meta.module === "resources") return { view: "resources", label: "Resources" };
+          if (record.meta && record.meta.module === "calendar") return { view: "calendar", label: "Calendar" };
           if (record.kind === "document") return { view: "vault", label: "Vault document" };
           if (record.kind === "action") return { view: "operations", label: "Operation" };
           if (record.kind === "journal" || record.kind === "dream") return { view: "thework", label: "Temple journal" };
@@ -3002,6 +3087,348 @@
           $("dr-station").textContent = layer.station;
         }
 
+        /* ---------- calendar: shared time ---------- */
+        let calMonth = null;   // Date at the first of the shown month
+        let calSelected = new Date().toISOString().slice(0, 10);
+        let calEditingId = null;
+
+        function calendarEvents() {
+          return records.filter((r) => r.meta && r.meta.module === "calendar" && r.meta.event);
+        }
+        function calendarAdoptions() {
+          return records.filter((r) => r.meta && r.meta.module === "calendar" && r.meta.adopts);
+        }
+        function adoptionsFor(id) {
+          return calendarAdoptions().filter((r) => r.meta.adopts === id);
+        }
+
+        /* everything that lands on one date: events, birthdays, matter dates */
+        function calendarItemsOn(dateStr) {
+          const items = [];
+          for (const record of calendarEvents()) {
+            if (record.meta.event.date === dateStr) items.push({ kind: "event", record });
+          }
+          const md = dateStr.slice(5);
+          for (const person of people) {
+            if (person.birth_date && person.birth_date.slice(5) === md) {
+              items.push({ kind: "birthday", title: person.display_name + "\u2019s birthday", person });
+            }
+          }
+          for (const record of sentinelAll()) {
+            const dates = (record.meta.dates || []).slice();
+            if (record.meta.key_date) dates.push({ date: record.meta.key_date, label: "key date" });
+            for (const d of dates) {
+              if (d.date === dateStr && !items.some((it) => it.kind === "court" && it.record === record && it.label === d.label)) {
+                items.push({ kind: "court", title: record.title, label: d.label, record });
+              }
+            }
+          }
+          items.sort((x, y) => {
+            const tx = x.kind === "event" && x.record.meta.event.time ? x.record.meta.event.time : "99";
+            const ty = y.kind === "event" && y.record.meta.event.time ? y.record.meta.event.time : "99";
+            return tx.localeCompare(ty);
+          });
+          return items;
+        }
+
+        function calDateStr(date) {
+          return date.getFullYear() + "-" +
+            String(date.getMonth() + 1).padStart(2, "0") + "-" +
+            String(date.getDate()).padStart(2, "0");
+        }
+
+        function renderCalendar() {
+          const grid = $("cal-grid");
+          if (!grid) return;
+          if (!calMonth) {
+            const now = new Date();
+            calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          }
+          $("cal-month-title").textContent = calMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+          const weekdays = $("cal-weekdays");
+          weekdays.innerHTML = "";
+          for (const name of ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]) {
+            const cell = document.createElement("span");
+            cell.textContent = name.toUpperCase();
+            weekdays.append(cell);
+          }
+          grid.innerHTML = "";
+          const firstDay = calMonth.getDay();
+          const start = new Date(calMonth);
+          start.setDate(1 - firstDay);
+          const todayStr = calDateStr(new Date());
+          let monthCount = 0;
+          for (let i = 0; i < 42; i++) {
+            const day = new Date(start);
+            day.setDate(start.getDate() + i);
+            const dateStr = calDateStr(day);
+            const inMonth = day.getMonth() === calMonth.getMonth();
+            const cell = document.createElement("button");
+            cell.type = "button";
+            cell.className = "cal-cell" +
+              (inMonth ? "" : " is-out") +
+              (dateStr === todayStr ? " is-today" : "") +
+              (dateStr === calSelected ? " is-selected" : "");
+            const num = document.createElement("b");
+            num.textContent = day.getDate();
+            cell.append(num);
+            const items = calendarItemsOn(dateStr);
+            if (inMonth) monthCount += items.filter((it) => it.kind === "event").length;
+            const chipWrap = document.createElement("span");
+            chipWrap.className = "cal-chips";
+            for (const item of items.slice(0, 3)) {
+              const chip = document.createElement("i");
+              chip.className = "cal-chip " + (
+                item.kind === "birthday" ? "is-birthday" :
+                item.kind === "court" ? "is-court" :
+                isMine(item.record) ? "is-mine" : "is-shared"
+              );
+              chip.textContent = item.kind === "event" ? item.record.title : item.title;
+              chipWrap.append(chip);
+            }
+            if (items.length > 3) {
+              const more = document.createElement("i");
+              more.className = "cal-chip is-more";
+              more.textContent = "+" + (items.length - 3);
+              chipWrap.append(more);
+            }
+            cell.append(chipWrap);
+            cell.addEventListener("click", () => {
+              calSelected = dateStr;
+              renderCalendar();
+            });
+            grid.append(cell);
+          }
+          $("cal-pill").textContent = monthCount + " EVENT" + (monthCount === 1 ? "" : "S") + " THIS MONTH";
+          renderCalDay();
+        }
+
+        function calSignificators(record) {
+          const marks = [];
+          if (isShared(record)) marks.push({ cls: "is-shared", text: "\u29c9 SHARED" });
+          const adoptions = adoptionsFor(record.id);
+          if (adoptions.some((r) => r.owner_id === user.id) && !isMine(record)) {
+            marks.push({ cls: "is-adopted", text: "\u2713 ON MY CALENDAR" });
+          } else if (adoptions.some((r) => r.owner_id !== user.id)) {
+            marks.push({ cls: "is-adopted", text: "\u2713 ADDED BY HOUSEHOLD" });
+          }
+          return marks;
+        }
+
+        function renderCalDay() {
+          const list = $("cal-day-list");
+          list.innerHTML = "";
+          const day = new Date(calSelected + "T12:00:00");
+          $("cal-day-title").textContent = day.toLocaleDateString(undefined, {
+            weekday: "long", month: "long", day: "numeric",
+          });
+          const items = calendarItemsOn(calSelected);
+          $("cal-day-empty").hidden = items.length > 0;
+          for (const item of items) {
+            const li = document.createElement("li");
+            const title = document.createElement("b");
+            if (item.kind === "event") {
+              const record = item.record;
+              const eventMeta = record.meta.event;
+              title.textContent = (eventMeta.time ? eventMeta.time + " · " : "") + record.title;
+              for (const mark of calSignificators(record)) {
+                const badge = document.createElement("i");
+                badge.className = "cal-flag " + mark.cls;
+                badge.textContent = mark.text;
+                title.append(badge);
+              }
+              li.append(title);
+              const detail = [];
+              if (eventMeta.place) detail.push(eventMeta.place);
+              if (record.body) detail.push(record.body);
+              if (detail.length) {
+                const p = document.createElement("p");
+                p.textContent = detail.join(" — ");
+                li.append(p);
+              }
+              const actions = document.createElement("span");
+              actions.className = "rec-actions-row";
+              if (isMine(record)) {
+                const edit = document.createElement("button");
+                edit.type = "button";
+                edit.textContent = "Edit";
+                edit.addEventListener("click", () => calBeginEdit(record));
+                actions.append(edit);
+                const share = document.createElement("button");
+                share.type = "button";
+                share.textContent = isShared(record) ? "Make private" : "Share";
+                share.addEventListener("click", () => setVisibility(record, !isShared(record)));
+                actions.append(share);
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "is-destroy";
+                remove.textContent = "Destroy";
+                remove.addEventListener("click", async () => {
+                  const { error } = await GZ.client.from("records").delete().eq("id", record.id);
+                  if (!error) {
+                    records = records.filter((held) => held.id !== record.id);
+                    renderAll();
+                  }
+                });
+                actions.append(remove);
+              } else {
+                const mineAdoption = adoptionsFor(record.id).find((r) => r.owner_id === user.id);
+                if (!mineAdoption) {
+                  const adopt = document.createElement("button");
+                  adopt.type = "button";
+                  adopt.style.color = "var(--green)";
+                  adopt.textContent = "Add to my calendar";
+                  adopt.addEventListener("click", async () => {
+                    const ok = await seal("Adopted · " + record.title, null, {
+                      kind: "record",
+                      shared: true,
+                      meta: { module: "calendar", adopts: record.id },
+                    });
+                    if (ok) toast("Added — it now carries your mark on both calendars.");
+                  });
+                  actions.append(adopt);
+                } else {
+                  const undo = document.createElement("button");
+                  undo.type = "button";
+                  undo.textContent = "Remove from mine";
+                  undo.addEventListener("click", async () => {
+                    const { error } = await GZ.client.from("records").delete().eq("id", mineAdoption.id);
+                    if (!error) {
+                      records = records.filter((held) => held.id !== mineAdoption.id);
+                      renderAll();
+                    }
+                  });
+                  actions.append(undo);
+                }
+              }
+              li.append(actions);
+            } else if (item.kind === "birthday") {
+              title.textContent = "\u2600 " + item.title;
+              const badge = document.createElement("i");
+              badge.className = "cal-flag is-birthday";
+              badge.textContent = "CONSTELLATIONS";
+              title.append(badge);
+              li.append(title);
+            } else {
+              title.textContent = "\u2696 " + item.label + " — " + item.title;
+              const badge = document.createElement("i");
+              badge.className = "cal-flag is-court";
+              badge.textContent = "SENTINEL";
+              title.append(badge);
+              li.append(title);
+              const go = document.createElement("span");
+              go.className = "rec-actions-row";
+              const open = document.createElement("button");
+              open.type = "button";
+              open.textContent = "Open in Sentinel";
+              open.addEventListener("click", () => setView("sentinel"));
+              go.append(open);
+              li.append(go);
+            }
+            list.append(li);
+          }
+        }
+
+        function calResetForm() {
+          calEditingId = null;
+          $("cal-form-kicker").textContent = "NEW EVENT";
+          $("cal-submit").textContent = "Place on the calendar";
+          $("cal-form").reset();
+          $("cal-date").value = calSelected;
+        }
+
+        function calBeginEdit(record) {
+          calEditingId = record.id;
+          $("cal-form-panel").hidden = false;
+          $("cal-form-kicker").textContent = "EDIT EVENT";
+          $("cal-submit").textContent = "Save changes";
+          $("cal-title").value = record.title;
+          $("cal-date").value = record.meta.event.date;
+          $("cal-time").value = record.meta.event.time || "";
+          $("cal-place").value = record.meta.event.place || "";
+          $("cal-notes").value = record.body || "";
+          $("cal-shared").checked = isShared(record);
+          window.scrollTo(0, 0);
+        }
+
+        $("cal-new").addEventListener("click", () => {
+          const opening = $("cal-form-panel").hidden;
+          if (opening) calResetForm();
+          $("cal-form-panel").hidden = !opening;
+          if (opening) $("cal-title").focus();
+        });
+        $("cal-day-add").addEventListener("click", () => {
+          calResetForm();
+          $("cal-form-panel").hidden = false;
+          $("cal-title").focus();
+          window.scrollTo(0, 0);
+        });
+        $("cal-cancel").addEventListener("click", () => {
+          calResetForm();
+          $("cal-form-panel").hidden = true;
+        });
+        $("cal-prev").addEventListener("click", () => {
+          calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1);
+          renderCalendar();
+        });
+        $("cal-next").addEventListener("click", () => {
+          calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1);
+          renderCalendar();
+        });
+        $("cal-today").addEventListener("click", () => {
+          const now = new Date();
+          calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          calSelected = calDateStr(now);
+          renderCalendar();
+        });
+
+        $("cal-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const date = $("cal-date").value;
+          if (!date) return;
+          const time = $("cal-time").value || null;
+          const eventMeta = { date, time, place: $("cal-place").value.trim() || null };
+          const occurred = date + "T" + (time || "12:00") + ":00Z";
+          $("cal-submit").disabled = true;
+          try {
+            if (calEditingId) {
+              const existing = records.find((held) => held.id === calEditingId);
+              const shared = $("cal-shared").checked;
+              const patch = {
+                title: $("cal-title").value.trim(),
+                body: $("cal-notes").value.trim() || null,
+                occurred_at: occurred,
+                visibility: shared ? "shared" : "private",
+                household_id: shared ? profile.household_id : null,
+                meta: { ...(existing && existing.meta || {}), module: "calendar", event: eventMeta },
+              };
+              const { data, error } = await GZ.client.from("records")
+                .update(patch).eq("id", calEditingId).select().single();
+              if (error) throw new Error(error.message);
+              const index = records.findIndex((held) => held.id === calEditingId);
+              if (index > -1) records[index] = data;
+              toast("Event updated.");
+            } else {
+              const ok = await seal($("cal-title").value.trim(), $("cal-notes").value.trim() || null, {
+                kind: "record",
+                shared: $("cal-shared").checked,
+                occurredAt: occurred,
+                meta: { module: "calendar", event: eventMeta },
+              });
+              if (!ok) throw new Error("record refused");
+              toast("Placed on the calendar.");
+            }
+            calSelected = date;
+            calResetForm();
+            $("cal-form-panel").hidden = true;
+            renderAll();
+          } catch (error) {
+            toast("Could not save: " + error.message);
+          } finally {
+            $("cal-submit").disabled = false;
+          }
+        });
+
         /* ---------- sentinel: matter registers + AI-read dates ---------- */
         const SEN_TYPES = {
           ticket: "Tickets", court: "Court documents", case: "Case notes", correspondence: "Correspondence",
@@ -3581,6 +4008,7 @@
           renderDrafts();
           renderDebts();
           renderSentinel();
+          renderCalendar();
         }
 
         /* ---------- router ---------- */
@@ -3599,6 +4027,7 @@
           atlas: { num: "12", name: "The Atlas", desc: "Correspondences" },
           oracle: { num: "13", name: "Oracle", desc: "Analysis" },
           scribe: { num: "14", name: "The Scribe", desc: "AI intake" },
+          calendar: { num: "15", name: "Calendar", desc: "Shared time" },
         };
         const BUILT = {
           command: "view-command",
@@ -3615,6 +4044,7 @@
           atlas: "view-atlas",
           oracle: "view-oracle",
           scribe: "view-scribe",
+          calendar: "view-calendar",
         };
 
         function setView(id) {
