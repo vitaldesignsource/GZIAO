@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Command — Gimel Zayin IAO</title>
     <meta name="theme-color" content="#151719" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#eceeef" media="(prefers-color-scheme: light)" />
@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=48" />
+    <link rel="stylesheet" href="command.css?v=50" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -143,6 +143,13 @@
         </div>
       </aside>
       <div class="side-backdrop" id="side-backdrop" hidden></div>
+      <nav class="gz-tabbar" id="tabbar" aria-label="Primary">
+        <button type="button" data-tab="command"></button>
+        <button type="button" data-tab="calendar"></button>
+        <button type="button" data-tab="operations"></button>
+        <button type="button" data-tab="thework"></button>
+        <button type="button" id="tab-more" aria-label="All modules"><span class="tab-ic">&#9776;</span><small>More</small></button>
+      </nav>
 
       <div class="main">
         <header class="top">
@@ -4544,6 +4551,9 @@
           $("crumb-name").textContent = module.name;
           const main = document.querySelector(".main");
           if (main) main.dataset.tone = TONE_BY_VIEW[id] || "orient";
+          document.querySelectorAll("#tabbar button[data-tab]").forEach((button) => {
+            button.classList.toggle("is-on", button.dataset.tab === id);
+          });
           $("crumb-desc").textContent = module.desc;
           setDrawer(false);
           if (id === "atlas" && atlasMap) {
@@ -8454,6 +8464,19 @@
             '<circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg>',
         };
 
+        (function buildTabbar() {
+          const bar = $("tabbar");
+          if (!bar) return;
+          bar.querySelectorAll("button[data-tab]").forEach((button) => {
+            const view = button.dataset.tab;
+            button.innerHTML =
+              '<span class="tab-ic">' + (NAV_ICONS[view] || "") + "</span>" +
+              "<small>" + (MODULES[view] ? MODULES[view].name.replace("The ", "") : view) + "</small>";
+            button.addEventListener("click", () => setView(view));
+          });
+          $("tab-more").addEventListener("click", () => setDrawer(true));
+        })();
+
         (function decorateSidebar() {
           document.querySelectorAll(".side-item[data-view]").forEach((item) => {
             const svg = NAV_ICONS[item.dataset.view];
@@ -9002,6 +9025,7 @@
           setTimeout(openIntake, 700);
         }
         if (restricted) activeGrade = 3;
+        if (restricted && $("tabbar")) $("tabbar").hidden = true;
         const initial = location.hash.replace("#/", "");
         setView(restricted ? "thework" : MODULES[initial] ? initial : "command");
         /* the watchtower keeps itself current: today's brief loads in the

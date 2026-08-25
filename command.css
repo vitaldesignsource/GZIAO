@@ -5301,3 +5301,162 @@ small.ritual-note {
 @media (prefers-reduced-motion: reduce) {
   .side-pulse i { animation: none; }
 }
+
+/* ---- the bottom tab bar: thumb-reach navigation on phones ---- */
+.gz-tabbar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .gz-tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 22;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: #0b0f17e8;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--panel-line);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-theme="light"] .gz-tabbar {
+    background: #eef0f2e8;
+  }
+
+  .gz-tabbar button {
+    background: none;
+    border: 0;
+    color: var(--faint);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 2px;
+    cursor: pointer;
+    font: inherit;
+    min-height: 48px;
+    border-radius: 10px;
+  }
+
+  .gz-tabbar .tab-ic {
+    display: flex;
+    font-size: 17px;
+    line-height: 1;
+  }
+
+  .gz-tabbar .tab-ic svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .gz-tabbar .tab-ic svg .th {
+    stroke-width: 0.9;
+  }
+
+  .gz-tabbar small {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .gz-tabbar button.is-on {
+    color: var(--gold);
+  }
+
+  .gz-tabbar button.is-on .tab-ic svg {
+    filter: drop-shadow(0 0 6px #63dfca55);
+  }
+
+  /* content and drawer clear the bar */
+  .content {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .side {
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.drawer-open .gz-tabbar {
+    display: none;
+  }
+}
+
+/* ---- coarse-pointer ergonomics ---- */
+@media (pointer: coarse) {
+  /* iOS zooms any focused control under 16px — deny it the excuse */
+  input[type="text"],
+  input[type="search"],
+  input[type="password"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="number"],
+  input[type="email"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .chips button {
+    min-height: 40px;
+    padding: 9px 18px;
+    font-size: 12px;
+  }
+
+  .rec-actions-row button,
+  .rec-actions-row select {
+    min-height: 38px;
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+
+  .chrono-open {
+    min-height: 38px;
+  }
+
+  .ops-check {
+    width: 30px;
+    height: 30px;
+  }
+
+  .doc-viewer-close,
+  .install-guide-close,
+  .side-close {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+  }
+
+  .lesson-read-btn,
+  .ritual-reveal {
+    min-height: 38px;
+    padding: 8px 18px;
+  }
+}
+
+/* ---- modals stay reachable on small screens ---- */
+.modal .gate-panel {
+  max-height: min(92dvh, 92vh);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 700px) {
+  .modal {
+    align-items: flex-end !important;
+  }
+
+  .modal .gate-panel {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+}
