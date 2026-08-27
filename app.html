@@ -1286,26 +1286,47 @@
             </div>
           </div>
           <section class="panel">
-            <span class="kicker" style="display: flex; justify-content: space-between">
+            <span class="kicker" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px">
               <span>REAL FINANCIAL DATA LAYER</span>
-              <span style="display: flex; gap: 10px">
-                <button class="chrono-open" data-soon="Statement import arrives with the ledger build." type="button">IMPORT STATEMENT</button>
-                <button class="chrono-open" data-soon="Bank connections require a configured provider." type="button">+ CONNECT BANK</button>
-              </span>
+              <span style="color: var(--faint)" id="ledger-count">0 TRANSACTIONS</span>
             </span>
-            <h2>Connected Accounts</h2>
-            <p class="panel-sub">Searchable transactions, balances, categories, and household scopes &mdash; with a secure provider boundary.</p>
-            <div class="empty-center" style="padding: 30px">
-              <b>No real accounts imported yet.</b>
-              <span>Import a bank CSV to activate balances and transaction intelligence.</span>
+            <h2>Accounts and statements</h2>
+            <p class="panel-sub">
+              Download a statement from your bank &mdash; Bank of America exports CSV, QFX, and OFX from
+              Online Banking under <b>Statements &amp; Documents</b> &rarr; <b>Download</b> &mdash; and drop
+              the file here. Every transaction is read, dated, and held under your identity alone. No
+              credentials are ever asked for, entered, or stored: the file already in your hands is
+              the whole mechanism.
+            </p>
+            <div class="doc-drop" id="stmt-drop" style="margin-top: 14px">
+              <input type="file" id="stmt-file" accept=".csv,.qfx,.ofx,.qbo,.txt" multiple hidden />
+              <b>Drop statements here or click to choose</b>
+              <span>CSV, QFX, OFX &mdash; checking, savings, or credit card. Re-importing an overlapping period is safe: transactions already held are recognised and skipped.</span>
             </div>
+            <div class="doc-pending" id="stmt-pending" hidden>
+              <div class="up-queue" id="stmt-queue"></div>
+              <button class="prime-btn" id="stmt-run" type="button" style="width: 100%">Read <span id="stmt-run-count"></span></button>
+              <button class="modal-cancel" id="stmt-clear" type="button">Clear the queue</button>
+            </div>
+            <p class="panel-note" id="stmt-status" style="margin-top: 10px" hidden></p>
             <div class="strip">
-              <div class="strip-cell"><div><small>VISIBLE INFLOW</small><b>$0.00</b></div></div>
-              <div class="strip-cell"><div><small>VISIBLE OUTFLOW</small><b>$0.00</b></div></div>
-              <div class="strip-cell"><div><small>NET MOVEMENT</small><b>$0.00</b></div></div>
-              <div class="strip-cell"><div><small>TRANSACTIONS</small><b>0</b></div></div>
+              <div class="strip-cell"><div><small>RECORDED INFLOW</small><b id="ledger-in">$0.00</b></div><span id="ledger-span">no statements imported</span></div>
+              <div class="strip-cell"><div><small>RECORDED OUTFLOW</small><b id="ledger-out">$0.00</b></div><span>as posted</span></div>
+              <div class="strip-cell"><div><small>NET MOVEMENT</small><b id="ledger-net">$0.00</b></div><span>inflow less outflow</span></div>
+              <div class="strip-cell"><div><small>RECEIPTS MATCHED</small><b id="ledger-matched">0</b></div><span>to a posted transaction</span></div>
             </div>
-            <p class="panel-note">Live bank connections need a server-side provider (e.g. Plaid) and are on the roadmap — nothing here pretends otherwise. Statement imports contain real user-provided account data and remain owner-isolated.</p>
+            <div class="chips" id="ledger-accounts" style="margin: 14px 0 0"></div>
+            <ul class="vault-list" id="ledger-list" style="margin-top: 12px; max-height: 460px"></ul>
+            <div class="empty-center" id="ledger-empty" style="padding: 30px">
+              <b>No statements imported yet.</b>
+              <span>Drop a CSV or QFX above and the ledger fills with real posted transactions.</span>
+            </div>
+            <p class="panel-note">
+              A live always-on connection to Bank of America is a different thing from this, and needs a
+              server-side aggregator (Plaid, MX, Teller) with its own account, approval, and cost. That
+              path is real and the groundwork exists &mdash; but nothing here pretends to be it. What this
+              panel holds is what your own statement says, which is the same data the bank would send.
+            </p>
           </section>
           <section class="panel" id="receipt-panel">
             <span class="kicker" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px">
@@ -4581,6 +4602,428 @@
           return blob.type ? blob : blob.slice(0, blob.size, record.meta.type || "");
         }
 
+        /* ---------- statements: what the bank itself says, parsed locally ---------- */
+
+        /* a CSV line splitter that respects quoted fields and doubled quotes */
+        function splitCsvLine(line) {
+          const out = [];
+          let field = "";
+          let quoted = false;
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (quoted) {
+              if (ch === '"') {
+                if (line[i + 1] === '"') { field += '"'; i++; }
+                else quoted = false;
+              } else field += ch;
+            } else if (ch === '"') {
+              quoted = true;
+            } else if (ch === ",") {
+              out.push(field);
+              field = "";
+            } else {
+              field += ch;
+            }
+          }
+          out.push(field);
+          return out.map((value) => value.trim());
+        }
+
+        function parseMoney(text) {
+          if (text == null) return null;
+          let raw = String(text).trim();
+          if (!raw) return null;
+          const parenNegative = /^\(.*\)$/.test(raw);
+          raw = raw.replace(/[()]/g, "").replace(/[$\u00a3\u20ac\u00a5,\s]/g, "");
+          if (!raw || !/^-?\d*\.?\d+$/.test(raw)) return null;
+          const value = parseFloat(raw);
+          if (!Number.isFinite(value)) return null;
+          return parenNegative ? -value : value;
+        }
+
+        /* dates as banks print them: 08/21/2026, 2026-08-21, 20260821 */
+        function parseStatementDate(text) {
+          if (!text) return null;
+          const raw = String(text).trim();
+          let match = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
+          if (match) return match[1] + "-" + match[2] + "-" + match[3];
+          match = /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/.exec(raw);
+          if (match) {
+            let year = match[3];
+            if (year.length === 2) year = (Number(year) > 70 ? "19" : "20") + year;
+            return year + "-" + match[1].padStart(2, "0") + "-" + match[2].padStart(2, "0");
+          }
+          match = /^(\d{4})(\d{2})(\d{2})/.exec(raw);
+          if (match) return match[1] + "-" + match[2] + "-" + match[3];
+          return null;
+        }
+
+        function parseOfx(text) {
+          const rows = [];
+          const account = (/<ACCTID>([^<\r\n]+)/i.exec(text) || [])[1];
+          const currency = (/<CURDEF>([^<\r\n]+)/i.exec(text) || [])[1];
+          const blocks = text.split(/<STMTTRN>/i).slice(1);
+          for (const block of blocks) {
+            const pick = (tag) => {
+              const hit = new RegExp("<" + tag + ">([^<\\r\\n]*)", "i").exec(block);
+              return hit ? hit[1].trim() : null;
+            };
+            const date = parseStatementDate(pick("DTPOSTED"));
+            const amount = parseMoney(pick("TRNAMT"));
+            if (!date || amount === null) continue;
+            const name = pick("NAME") || pick("MEMO") || "transaction";
+            const memo = pick("MEMO");
+            rows.push({
+              date,
+              description: memo && memo !== name ? name + " \u2014 " + memo : name,
+              amount,
+              account: account ? account.slice(-4) : null,
+              currency: currency || null,
+              ref: pick("FITID"),
+            });
+          }
+          return rows;
+        }
+
+        function parseStatementCsv(text) {
+          const lines = text.split(/\r?\n/).filter((line) => line.trim());
+          /* banks put preamble above the real header — find the header row
+             by looking for a date column beside an amount column */
+          let headerIndex = -1;
+          let columns = null;
+          for (let i = 0; i < Math.min(lines.length, 40); i++) {
+            const cells = splitCsvLine(lines[i]).map((cell) => cell.toLowerCase());
+            const dateAt = cells.findIndex((cell) => /(^|\b)(posted date|post date|transaction date|date)(\b|$)/.test(cell));
+            const amountAt = cells.findIndex((cell) => /^(amount|debit|credit|amt)/.test(cell));
+            if (dateAt > -1 && amountAt > -1) {
+              headerIndex = i;
+              columns = {
+                date: dateAt,
+                amount: amountAt,
+                description: cells.findIndex((cell) => /(description|payee|merchant|name|memo)/.test(cell)),
+                balance: cells.findIndex((cell) => /(running bal|balance)/.test(cell)),
+                ref: cells.findIndex((cell) => /(reference|ref no|transaction id)/.test(cell)),
+              };
+              break;
+            }
+          }
+          if (headerIndex === -1) return [];
+          const rows = [];
+          for (let i = headerIndex + 1; i < lines.length; i++) {
+            const cells = splitCsvLine(lines[i]);
+            if (cells.length < 2) continue;
+            const date = parseStatementDate(cells[columns.date]);
+            const amount = parseMoney(cells[columns.amount]);
+            if (!date || amount === null) continue;
+            const description = columns.description > -1
+              ? cells[columns.description] : "transaction";
+            rows.push({
+              date,
+              description: description || "transaction",
+              amount,
+              balance: columns.balance > -1 ? parseMoney(cells[columns.balance]) : null,
+              ref: columns.ref > -1 ? cells[columns.ref] || null : null,
+              account: null,
+            });
+          }
+          return rows;
+        }
+
+        function parseStatement(text) {
+          return /<STMTTRN>|<OFX>/i.test(text) ? parseOfx(text) : parseStatementCsv(text);
+        }
+
+        /* a transaction's identity: the same posting re-imported is the same
+           row, no matter how many times the period overlaps */
+        function txnFingerprint(row, accountLabel) {
+          return [
+            accountLabel || "acct",
+            row.date,
+            row.amount.toFixed(2),
+            (row.description || "").toLowerCase().replace(/\s+/g, " ").trim().slice(0, 60),
+          ].join("|");
+        }
+
+        let stmtFiles = [];
+
+        function stmtStatus(message, isError) {
+          const note = $("stmt-status");
+          if (!note) return;
+          note.hidden = !message;
+          note.textContent = message || "";
+          note.style.color = isError ? "#d98181" : "";
+        }
+
+        function renderStmtQueue() {
+          const holder = $("stmt-queue");
+          if (!holder) return;
+          holder.innerHTML = "";
+          $("stmt-pending").hidden = stmtFiles.length === 0;
+          stmtFiles.forEach((file, index) => {
+            const row = document.createElement("div");
+            row.className = "up-row";
+            const name = document.createElement("span");
+            name.className = "up-name";
+            name.textContent = file.name;
+            const size = document.createElement("small");
+            size.textContent = formatBytes(file.size);
+            const state = document.createElement("i");
+            state.className = "up-state";
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.className = "up-kill";
+            kill.textContent = "\u00d7";
+            kill.setAttribute("aria-label", "Remove " + file.name);
+            kill.addEventListener("click", () => {
+              stmtFiles.splice(index, 1);
+              renderStmtQueue();
+            });
+            row.append(name, size, state, kill);
+            holder.append(row);
+          });
+          $("stmt-run-count").textContent = stmtFiles.length === 1
+            ? "1 statement" : stmtFiles.length + " statements";
+        }
+
+        if ($("stmt-drop")) {
+          $("stmt-drop").addEventListener("click", () => $("stmt-file").click());
+          $("stmt-drop").addEventListener("dragover", (event) => {
+            event.preventDefault();
+            $("stmt-drop").classList.add("is-over");
+          });
+          $("stmt-drop").addEventListener("dragleave", () =>
+            $("stmt-drop").classList.remove("is-over"));
+          $("stmt-drop").addEventListener("drop", (event) => {
+            event.preventDefault();
+            $("stmt-drop").classList.remove("is-over");
+            stageStatements(event.dataTransfer.files);
+          });
+          $("stmt-file").addEventListener("change", () => {
+            stageStatements($("stmt-file").files);
+            $("stmt-file").value = "";
+          });
+          $("stmt-clear").addEventListener("click", () => {
+            stmtFiles = [];
+            renderStmtQueue();
+            stmtStatus("");
+          });
+          $("stmt-run").addEventListener("click", importStatements);
+        }
+
+        function stageStatements(fileList) {
+          for (const file of [...fileList]) {
+            const already = stmtFiles.some((held) => held.name === file.name && held.size === file.size);
+            if (!already) stmtFiles.push(file);
+          }
+          renderStmtQueue();
+          stmtStatus("");
+        }
+
+        function transactionsAll() {
+          return records.filter((record) =>
+            record.meta && record.meta.module === "resources" && record.meta.kind === "transaction");
+        }
+
+        async function importStatements() {
+          if (!stmtFiles.length) return;
+          const queue = stmtFiles.slice();
+          const marks = [...$("stmt-queue").querySelectorAll(".up-state")];
+          $("stmt-run").disabled = true;
+          $("stmt-clear").disabled = true;
+          const held = new Set(transactionsAll().map((record) => record.meta.fingerprint));
+          let imported = 0;
+          let skipped = 0;
+          const failed = [];
+          for (let i = 0; i < queue.length; i++) {
+            const file = queue[i];
+            if (marks[i]) marks[i].className = "up-state is-working";
+            try {
+              stmtStatus("Reading " + file.name + "\u2026");
+              const text = await file.text();
+              const rows = parseStatement(text);
+              if (!rows.length) throw new Error("no transactions found — is this a statement export?");
+              const accountLabel = (rows.find((row) => row.account) || {}).account ||
+                file.name.replace(/\.[^.]+$/, "").slice(0, 40);
+              for (let r = 0; r < rows.length; r++) {
+                const row = rows[r];
+                const fingerprint = txnFingerprint(row, accountLabel);
+                if (held.has(fingerprint)) { skipped++; continue; }
+                held.add(fingerprint);
+                stmtStatus("Filing " + (imported + 1) + " of " + rows.length + " from " + file.name + "\u2026");
+                await seal(row.description, null, {
+                  kind: "record",
+                  defer: true,
+                  quiet: true,
+                  throwOnError: true,
+                  occurredAt: row.date + "T12:00:00Z",
+                  meta: {
+                    module: "resources",
+                    kind: "transaction",
+                    fingerprint,
+                    account: accountLabel,
+                    source_file: file.name,
+                    amount: row.amount,
+                    txn: {
+                      date: row.date,
+                      description: row.description,
+                      amount: row.amount,
+                      balance: row.balance != null ? row.balance : undefined,
+                      currency: row.currency || undefined,
+                      ref: row.ref || undefined,
+                    },
+                  },
+                });
+                imported++;
+              }
+              if (marks[i]) marks[i].className = "up-state is-done";
+            } catch (error) {
+              failed.push({ file, reason: error.message });
+              if (marks[i]) {
+                marks[i].className = "up-state is-failed";
+                marks[i].title = error.message;
+              }
+            }
+          }
+          if (imported) await matchReceiptsToTransactions();
+          if (imported || skipped) renderAll();
+          $("stmt-run").disabled = false;
+          $("stmt-clear").disabled = false;
+          stmtFiles = failed.map((entry) => entry.file);
+          renderStmtQueue();
+          const tail = skipped ? " \u00b7 " + skipped + " already held" : "";
+          if (!failed.length) {
+            stmtStatus("");
+            toast(imported + " transaction" + (imported === 1 ? "" : "s") + " imported" + tail + ".");
+            return;
+          }
+          stmtStatus(imported + " imported" + tail + ", " + failed.length +
+            " failed and still queued \u2014 " + failed[0].file.name + ": " + failed[0].reason, true);
+          toast(imported + " imported, " + failed.length + " failed.");
+        }
+
+        /* a receipt and its posting are the same event seen twice: same
+           amount, within three days. Matching is proposed, never assumed —
+           the link is recorded on both sides and shown as observed. */
+        async function matchReceiptsToTransactions() {
+          const receipts = receiptsAll().filter((record) =>
+            !record.meta.matched_txn &&
+            record.meta.receipt && Number.isFinite(record.meta.receipt.total) &&
+            record.meta.receipt.date);
+          if (!receipts.length) return;
+          const txns = transactionsAll();
+          for (const receipt of receipts) {
+            const total = receipt.meta.receipt.total;
+            const day = Date.parse(receipt.meta.receipt.date + "T12:00:00Z");
+            const hit = txns.find((txn) => {
+              if (txn.meta.matched_receipt) return false;
+              if (Math.abs(Math.abs(txn.meta.amount) - total) > 0.005) return false;
+              const gap = Math.abs(Date.parse(txn.meta.txn.date + "T12:00:00Z") - day);
+              return gap <= 3 * 86400000;
+            });
+            if (!hit) continue;
+            const receiptMeta = { ...receipt.meta, matched_txn: hit.id };
+            const txnMeta = { ...hit.meta, matched_receipt: receipt.id };
+            const [a, b] = await Promise.all([
+              GZ.client.from("records").update({ meta: receiptMeta }).eq("id", receipt.id).select().single(),
+              GZ.client.from("records").update({ meta: txnMeta }).eq("id", hit.id).select().single(),
+            ]);
+            if (a.data) {
+              const at = records.findIndex((held) => held.id === receipt.id);
+              if (at > -1) records[at] = a.data;
+            }
+            if (b.data) {
+              const at = records.findIndex((held) => held.id === hit.id);
+              if (at > -1) records[at] = b.data;
+              hit.meta = txnMeta;
+            }
+          }
+        }
+
+        let ledgerAccountFilter = "All";
+
+        function renderLedger() {
+          const list = $("ledger-list");
+          if (!list) return;
+          const all = transactionsAll().slice().sort((a, b) =>
+            String(b.meta.txn.date).localeCompare(String(a.meta.txn.date)));
+          $("ledger-count").textContent = all.length + " TRANSACTION" + (all.length === 1 ? "" : "S");
+          $("ledger-empty").hidden = all.length > 0;
+
+          let inflow = 0;
+          let outflow = 0;
+          const dates = [];
+          for (const record of all) {
+            const amount = record.meta.txn.amount;
+            if (amount >= 0) inflow += amount; else outflow += Math.abs(amount);
+            dates.push(record.meta.txn.date);
+          }
+          dates.sort();
+          $("ledger-in").textContent = "$" + inflow.toFixed(2);
+          $("ledger-out").textContent = "$" + outflow.toFixed(2);
+          $("ledger-net").textContent = (inflow - outflow < 0 ? "\u2212$" : "$") +
+            Math.abs(inflow - outflow).toFixed(2);
+          $("ledger-span").textContent = dates.length
+            ? dates[0] + " \u2192 " + dates[dates.length - 1]
+            : "no statements imported";
+          $("ledger-matched").textContent = String(
+            receiptsAll().filter((record) => record.meta.matched_txn).length
+          );
+
+          /* one chip per account seen */
+          const accounts = ["All", ...new Set(all.map((record) => record.meta.account).filter(Boolean))];
+          const chips = $("ledger-accounts");
+          chips.innerHTML = "";
+          if (!accounts.includes(ledgerAccountFilter)) ledgerAccountFilter = "All";
+          for (const name of accounts) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = name === ledgerAccountFilter ? "is-on" : "";
+            const count = name === "All"
+              ? all.length
+              : all.filter((record) => record.meta.account === name).length;
+            chip.textContent = name + " " + count;
+            chip.addEventListener("click", () => {
+              ledgerAccountFilter = name;
+              renderLedger();
+            });
+            chips.append(chip);
+          }
+
+          const shown = ledgerAccountFilter === "All"
+            ? all : all.filter((record) => record.meta.account === ledgerAccountFilter);
+          list.innerHTML = "";
+          for (const record of shown.slice(0, 300)) {
+            const txn = record.meta.txn;
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = txn.description;
+            const stamp = document.createElement("time");
+            const sign = txn.amount < 0 ? "\u2212" : "+";
+            stamp.textContent = txn.date + " \u00b7 " + sign + "$" + Math.abs(txn.amount).toFixed(2) +
+              (record.meta.account ? " \u00b7 " + record.meta.account : "") +
+              (txn.balance != null ? " \u00b7 bal $" + txn.balance.toFixed(2) : "");
+            stamp.style.color = txn.amount < 0 ? "" : "var(--green)";
+            item.append(title, stamp);
+            if (record.meta.matched_receipt) {
+              const linked = records.find((held) => held.id === record.meta.matched_receipt);
+              const line = document.createElement("small");
+              line.className = "sen-hash";
+              line.style.color = "var(--green)";
+              line.textContent = "\u21c4 matched to a receipt" +
+                (linked ? ": " + linked.title : "") + " \u2014 same amount within three days";
+              item.append(line);
+            }
+            list.append(item);
+          }
+          if (shown.length > 300) {
+            const more = document.createElement("li");
+            more.style.cssText = "color: var(--faint); font-size: 11px";
+            more.textContent = "Showing the most recent 300 of " + shown.length +
+              " \u2014 the rest are held and searchable.";
+            list.append(more);
+          }
+        }
+
         /* ---------- receipts: the original preserved, the print transcribed ---------- */
 
         const RECEIPT_READ_SYSTEM =
@@ -5767,6 +6210,7 @@
           renderUnit();
           renderUnitInbox();
           renderReceipts();
+          renderLedger();
           renderFieldMemory();
           renderIntakeBanner();
         }
