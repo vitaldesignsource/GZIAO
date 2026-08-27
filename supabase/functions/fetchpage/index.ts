@@ -6,13 +6,18 @@
 // full-text and, later, Sentinel web-domain extraction.
 //
 // Safety posture:
-//   - Deploy with JWT verification ON (the default): only signed-in
-//     GZIAO identities can call it.
+//   - The caller is verified here, in this function, against the project's
+//     auth. It does NOT rely on the platform's JWT gate: that gate checks
+//     the legacy shared secret, which stops working the moment a project
+//     moves to asymmetric signing keys, and a relay must not become an open
+//     proxy because a platform setting changed underneath it.
 //   - https only; named hosts only (no raw IPs); obvious private and
 //     link-local names refused — no reaching into anyone's network. Every
 //     redirect hop is taken manually and revalidated against the same
 //     rules, so a public host cannot bounce us somewhere internal.
 //   - 10-second timeout, 2 MB cap, text-like content only.
+
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ALLOWED_ORIGINS = [
   "https://gziao.com",
@@ -58,6 +63,17 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders(req) });
   }
   if (req.method !== "POST") return refused(req, 405, "POST only");
+
+  /* who is asking — checked here rather than assumed from the gateway */
+  const authorization = req.headers.get("Authorization") ?? "";
+  if (!authorization) return refused(req, 401, "not signed in");
+  const db = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authorization } } },
+  );
+  const { data: userData, error: userError } = await db.auth.getUser();
+  if (userError || !userData?.user) return refused(req, 401, "not signed in");
 
   let url = "";
   try {
