@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=63" />
+    <link rel="stylesheet" href="command.css?v=65" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1104,8 +1104,8 @@
               <button class="prime-btn" id="scr-new" type="button">+ New document</button>
             </div>
           </div>
-          <section class="duo-wide">
-            <div class="panel">
+          <section class="scr-studio" id="scr-studio">
+            <div class="panel scr-library">
               <span class="kicker is-amber" style="display: flex; justify-content: space-between">
                 <span>SAVED DRAFTS</span>
                 <span id="scr-draft-count" style="color: var(--faint)">0</span>
@@ -1122,15 +1122,16 @@
                 <div class="tmpl" data-tmpl="Operational Plan"><small>ACTION</small><b>Operational Plan</b><span>A practical objective, constraints, sequence, ownership, and review cadence.</span></div>
               </div>
             </div>
-            <div class="panel">
-              <span class="kicker" style="display: flex; justify-content: space-between">
-                <span id="scr-mode">NEW COMPOSITION</span>
-                <span style="display: flex; gap: 10px">
-                  <button class="chrono-open" id="scr-export" type="button">EXPORT TEXT</button>
+            <div class="panel scr-compose">
+              <div class="scr-toolbar">
+                <span class="kicker" id="scr-mode">NEW COMPOSITION</span>
+                <span class="scr-tools">
+                  <button class="chrono-open" id="scr-focus" type="button" aria-pressed="false">&#9776; FOCUS</button>
+                  <button class="chrono-open" id="scr-export" type="button">&#10515; EXPORT</button>
                   <button class="chrono-open" id="scr-save" type="button">SAVE DRAFT &#10003;</button>
                 </span>
-              </span>
-              <div class="paper" style="margin-top: 16px">
+              </div>
+              <div class="paper">
                 <div class="paper-head">
                   <small>GZ / IAO &middot; WORKING DRAFT</small>
                   <small id="scr-date"></small>
@@ -1138,18 +1139,19 @@
                 <input type="text" id="scr-title" placeholder="Untitled document" />
                 <textarea id="scr-body" placeholder="Begin writing, or select a template from the library&hellip;"></textarea>
               </div>
-              <div class="privacy-row" style="margin-top: 10px">
+              <div class="scr-foot">
                 <span id="scr-count">0 words</span>
+                <span id="scr-readtime"></span>
                 <span id="scr-state">Unsaved</span>
               </div>
             </div>
-            <div class="panel">
+            <div class="panel scr-control">
               <span class="kicker is-amber">DOCUMENT CONTROL</span>
               <h2>Review field</h2>
               <span class="kicker" style="color: var(--faint); display: block; margin-top: 14px">STATUS</span>
               <div class="pill-status" style="margin-top: 8px; width: 100%">Working draft</div>
               <span class="kicker" style="color: var(--faint); display: block; margin-top: 16px">INSERT SECTION</span>
-              <div class="rec-actions" style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+              <div class="scr-inserts">
                 <button class="ghost-btn scr-ins" type="button">+ Purpose and scope</button>
                 <button class="ghost-btn scr-ins" type="button">+ Known facts</button>
                 <button class="ghost-btn scr-ins" type="button">+ Source register</button>
@@ -9315,9 +9317,69 @@
         }
 
         function scrRefreshStatus(stateText) {
-          $("scr-count").textContent = scrWords() + " words";
+          const words = scrWords();
+          $("scr-count").textContent = words + (words === 1 ? " word" : " words");
           if (stateText) $("scr-state").textContent = stateText;
           $("scr-mode").textContent = editingDraftId ? "EDITING DRAFT" : "NEW COMPOSITION";
+          const readout = $("scr-readtime");
+          if (readout) {
+            /* 200 words a minute is the usual reading estimate; below a
+               minute there is nothing worth saying */
+            const minutes = Math.round(words / 200);
+            readout.textContent = words < 200 ? "" : "about " + minutes +
+              (minutes === 1 ? " minute to read" : " minutes to read");
+          }
+          scrGrow();
+        }
+
+        /* The library lays its templates out as cards once it spans the page.
+           A resize observer rather than a one-shot check, because the panel
+           has no width until the view is first shown. */
+        function scrLibraryShape() {
+          const library = document.querySelector(".scr-library");
+          if (!library) return;
+          const width = library.getBoundingClientRect().width;
+          if (width > 0) library.classList.toggle("is-wide", width > 560);
+        }
+        if (window.ResizeObserver) {
+          const libraryEl = document.querySelector(".scr-library");
+          if (libraryEl) new ResizeObserver(scrLibraryShape).observe(libraryEl);
+        } else {
+          window.addEventListener("resize", scrLibraryShape);
+        }
+
+        /* the page grows with the writing instead of trapping it in a box */
+        function scrGrow() {
+          const body = $("scr-body");
+          if (!body) return;
+          const floor = window.innerWidth <= 820 ? 340 : 460;
+          body.style.height = "auto";
+          body.style.height = Math.max(floor, body.scrollHeight + 4) + "px";
+        }
+
+        if ($("scr-body")) {
+          /* the counter follows the keystroke; only the save is debounced,
+             so the count no longer trails typing by half a second */
+          $("scr-body").addEventListener("input", () => scrRefreshStatus());
+          window.addEventListener("resize", scrGrow);
+        }
+
+        /* focus mode: the rails step aside so the page can breathe */
+        if ($("scr-focus")) {
+          $("scr-focus").addEventListener("click", () => {
+            const studio = $("scr-studio");
+            const on = studio.classList.toggle("is-focus");
+            $("scr-focus").setAttribute("aria-pressed", String(on));
+            $("scr-focus").innerHTML = on ? "\u2715 EXIT FOCUS" : "\u2630 FOCUS";
+            scrGrow();
+            if (on) $("scr-body").focus();
+          });
+          /* Escape leaves focus mode, since it hides the way back */
+          window.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            const studio = $("scr-studio");
+            if (studio && studio.classList.contains("is-focus")) $("scr-focus").click();
+          });
         }
 
         function renderDrafts() {
