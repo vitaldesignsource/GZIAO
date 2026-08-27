@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=56" />
+    <link rel="stylesheet" href="command.css?v=57" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1375,6 +1375,7 @@
                 token &mdash; never your password, which nothing here will ever ask for.
               </p>
             </div>
+            <p class="ledger-fresh" id="ledger-fresh" hidden></p>
             <div class="chips" id="ledger-accounts" style="margin: 14px 0 0"></div>
             <ul class="vault-list" id="ledger-list" style="margin-top: 12px; max-height: 460px"></ul>
             <div class="empty-center" id="ledger-empty" style="padding: 30px">
@@ -5304,6 +5305,32 @@
           $("ledger-matched").textContent = String(
             receiptsAll().filter((record) => record.meta.matched_txn).length
           );
+
+          /* how current the ledger is — the honest answer to "did I forget?",
+             which is the only real cost of importing by hand */
+          const fresh = $("ledger-fresh");
+          if (fresh) {
+            fresh.hidden = !dates.length;
+            if (dates.length) {
+              const newest = dates[dates.length - 1];
+              const days = Math.floor(
+                (Date.now() - Date.parse(newest + "T12:00:00Z")) / 86400000
+              );
+              const live = all.some((record) => record.meta.source === "plaid");
+              let mood = "is-fine";
+              let word;
+              if (days <= 1) word = "current as of " + newest;
+              else if (days <= 40) word = "current through " + newest + " \u2014 " + days + " days ago";
+              else {
+                mood = "is-stale";
+                word = "last posting is " + newest + ", " + days + " days back";
+              }
+              fresh.className = "ledger-fresh " + mood;
+              fresh.textContent = "\u25f7 The ledger " + word +
+                (live ? " \u00b7 live connection active"
+                      : days > 40 ? " \u2014 time to export another statement." : "");
+            }
+          }
 
           /* one chip per account seen */
           const accounts = ["All", ...new Set(all.map((record) => record.meta.account).filter(Boolean))];
