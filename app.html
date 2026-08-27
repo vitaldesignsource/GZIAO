@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=52" />
+    <link rel="stylesheet" href="command.css?v=53" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -512,19 +512,19 @@
                 <select id="doc-folder" style="border: 1px solid var(--line); background: var(--panel-solid); color: var(--paper); height: 38px; padding: 0 10px; font: 400 12px Georgia, serif"></select>
               </label>
               <div class="doc-drop" id="doc-drop">
-                <input type="file" id="doc-file" hidden />
-                <b>Drop a file here or click to choose</b>
-                <span>PDF, images, and documents up to 50&nbsp;MB. Stored encrypted in your private vault; downloadable any time.</span>
+                <input type="file" id="doc-file" multiple hidden />
+                <b>Drop files here or click to choose</b>
+                <span>PDF, images, and documents up to 50&nbsp;MB each &mdash; as many at once as you like. Stored encrypted in your private vault; downloadable any time.</span>
               </div>
               <div class="doc-pending" id="doc-pending" hidden>
-                <span id="doc-pending-name"></span>
+                <div class="up-queue" id="doc-queue"></div>
                 <label class="share-toggle" style="margin: 10px 0">
                   <input type="checkbox" id="doc-shared" />
                   <span></span>
                   Share to the relationship field
                 </label>
-                <button class="prime-btn" id="doc-upload" type="button" style="width: 100%">Preserve document</button>
-                <button class="modal-cancel" id="doc-cancel" type="button">Cancel</button>
+                <button class="prime-btn" id="doc-upload" type="button" style="width: 100%">Preserve <span id="doc-upload-count">document</span></button>
+                <button class="modal-cancel" id="doc-cancel" type="button">Clear the queue</button>
               </div>
               <p class="panel-note" id="doc-status" style="margin-top: 10px" hidden></p>
             </section>
@@ -1024,10 +1024,10 @@
                   <input type="date" id="sen-date" style="border: 1px solid var(--line); background: transparent; color: var(--paper); height: 40px; padding: 0 12px; font: 400 13px Georgia, serif" />
                 </label>
                 <div class="scribe-attach-row" style="margin: 0">
-                  <label class="ghost-btn scribe-attach-btn">Attach the document
-                    <input type="file" id="sen-file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md" hidden />
+                  <label class="ghost-btn scribe-attach-btn">Attach documents
+                    <input type="file" id="sen-file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md" multiple hidden />
                   </label>
-                  <span id="sen-file-name" class="scribe-file-name"></span>
+                  <span id="sen-file-name" class="up-chips"></span>
                   <button class="ghost-btn" id="sen-ai-read" type="button" hidden style="height:36px">&#10022; Read dates with the Scribe</button>
                 </div>
               </div>
@@ -1219,9 +1219,10 @@
                 </select>
               </label>
               <input type="text" id="ops-category-custom" placeholder="Name the new category&hellip;" hidden style="margin-top: -4px" />
-              <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">IMAGES (OPTIONAL)
+              <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px">IMAGES (OPTIONAL &middot; SEVERAL AT ONCE)
                 <input type="file" id="ops-images" accept="image/*" multiple style="color: var(--muted); font-size: 11px" />
               </label>
+              <span class="up-chips" id="ops-image-chips"></span>
               <div class="ops-thumbs" id="ops-edit-thumbs"></div>
               <label class="share-toggle">
                 <input type="checkbox" id="ops-shared" />
@@ -1306,6 +1307,42 @@
             </div>
             <p class="panel-note">Live bank connections need a server-side provider (e.g. Plaid) and are on the roadmap — nothing here pretends otherwise. Statement imports contain real user-provided account data and remain owner-isolated.</p>
           </section>
+          <section class="panel" id="receipt-panel">
+            <span class="kicker" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px">
+              <span>RECEIPT INTAKE &middot; ORIGINAL PRESERVED, FIGURES TRANSCRIBED</span>
+              <span style="color: var(--faint)" id="receipt-count">0 RECEIPTS</span>
+            </span>
+            <h2>Receipts</h2>
+            <p class="panel-sub">
+              Drop receipts here &mdash; photographs, scans, or PDFs, as many at once as you like. Each
+              original is preserved and digest-sealed; the Scribe transcribes what is printed on it:
+              merchant, date and time, totals, tax, payment method, and the address if one is shown.
+              The printed date and time place it on the timeline; a printed address pins it on the Atlas.
+            </p>
+            <div class="doc-drop" id="receipt-drop" style="margin-top: 14px">
+              <input type="file" id="receipt-file" accept="image/*,.pdf" multiple hidden />
+              <b>Drop receipts here or click to choose</b>
+              <span>Nothing is invented &mdash; only what the receipt itself carries is recorded, and every figure stays editable.</span>
+            </div>
+            <div class="doc-pending" id="receipt-pending" hidden>
+              <div class="up-queue" id="receipt-queue"></div>
+              <label class="share-toggle" style="margin: 10px 0">
+                <input type="checkbox" id="receipt-shared" />
+                <span></span>
+                Share to the relationship field
+              </label>
+              <button class="prime-btn" id="receipt-run" type="button" style="width: 100%">Preserve and transcribe <span id="receipt-run-count"></span></button>
+              <button class="modal-cancel" id="receipt-clear" type="button">Clear the queue</button>
+            </div>
+            <p class="panel-note" id="receipt-status" style="margin-top: 10px" hidden></p>
+            <div class="strip" style="margin-top: 14px">
+              <div class="strip-cell"><div><small>TRANSCRIBED SPEND</small><b id="receipt-total">$0.00</b></div><span id="receipt-span">no receipts yet</span></div>
+              <div class="strip-cell"><div><small>TAX RECORDED</small><b id="receipt-tax">$0.00</b></div><span>as printed</span></div>
+              <div class="strip-cell"><div><small>PLACED ON THE ATLAS</small><b id="receipt-mapped">0</b></div><span>receipts with a printed address</span></div>
+            </div>
+            <ul class="vault-list" id="receipt-list" style="margin-top: 14px; max-height: 460px"></ul>
+          </section>
+
           <section class="ledger-tabs">
             <button class="ledger-tab is-on" type="button"><span class="ledger-ava">PE</span><span><small>PRIVATE LEDGER</small><b>Personal</b></span></button>
             <button class="ledger-tab" type="button"><span class="ledger-ava" id="res-op-ava">OP</span><span><small>PRIVATE LEDGER</small><b id="res-op-name">Operator</b></span></button>
@@ -1502,8 +1539,8 @@
             </label>
             <div class="scribe-attach-row">
               <label class="ghost-btn scribe-attach-btn">
-                Attach document
-                <input type="file" id="scribe-file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md" hidden />
+                Attach documents
+                <input type="file" id="scribe-file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md" multiple hidden />
               </label>
               <span id="scribe-file-name" class="scribe-file-name"></span>
               <button class="ghost-btn" id="scribe-file-clear" type="button" hidden style="height:32px">&times;</button>
@@ -2008,7 +2045,7 @@
               <h1>The Atlas</h1>
               <p>Private profile pins and a knowledge architecture that preserves provenance.</p>
             </div>
-            <div class="mp-actions"><div class="pill-status"><i></i>0 PRIVATE PINS</div></div>
+            <div class="mp-actions"><div class="pill-status"><i></i><span id="atlas-pin-count">0 PRIVATE PINS</span></div></div>
           </div>
           <section class="chrono-row" style="grid-template-columns: 380px 1fr">
             <div class="panel">
@@ -4195,7 +4232,7 @@
           ticket: "Tickets", court: "Court documents", case: "Case notes", correspondence: "Correspondence",
         };
         let senFilter = "All";
-        let senFile = null;
+        let senFiles = [];
         let senExtractedDates = [];
 
         function sentinelAll() {
@@ -4209,12 +4246,45 @@
         });
 
         $("sen-file").addEventListener("change", () => {
-          senFile = $("sen-file").files[0] || null;
+          for (const file of [...$("sen-file").files]) {
+            const already = senFiles.some((held) => held.name === file.name && held.size === file.size);
+            if (!already) senFiles.push(file);
+          }
+          $("sen-file").value = "";
           senExtractedDates = [];
           $("sen-dates-out").hidden = true;
-          $("sen-file-name").textContent = senFile ? senFile.name : "";
-          $("sen-ai-read").hidden = !senFile;
+          renderSenFiles();
         });
+
+        /* one matter can carry several papers — the citation, the notice,
+           the photograph of the sign */
+        function renderSenFiles() {
+          const holder = $("sen-file-name");
+          holder.innerHTML = "";
+          senFiles.forEach((file, index) => {
+            const chip = document.createElement("span");
+            chip.className = "up-chip";
+            const label = document.createElement("span");
+            label.textContent = file.name;
+            label.title = file.name + " \u00b7 " + formatBytes(file.size);
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.textContent = "\u00d7";
+            kill.setAttribute("aria-label", "Remove " + file.name);
+            kill.addEventListener("click", () => {
+              senFiles.splice(index, 1);
+              senExtractedDates = [];
+              $("sen-dates-out").hidden = true;
+              renderSenFiles();
+            });
+            chip.append(label, kill);
+            holder.append(chip);
+          });
+          $("sen-ai-read").hidden = senFiles.length === 0;
+          $("sen-ai-read").innerHTML = senFiles.length > 1
+            ? "\u2726 Read dates from " + senFiles.length + " documents"
+            : "\u2726 Read dates with the Scribe";
+        }
 
         /* the Scribe reads the uploaded matter: dates, parties, amount, title */
         const SEN_READ_SCHEMA_CLAUDE = {
@@ -4340,17 +4410,37 @@
         }
 
         async function senReadWithScribe() {
-          if (!senFile) return;
+          if (!senFiles.length) return;
           $("sen-ai-read").disabled = true;
-          $("sen-status").textContent = "The Scribe is reading the document…";
+          const merged = [];
+          const failures = [];
+          let readCount = 0;
           try {
-            const result = await extractMatterFacts(senFile, senFile.name);
-            if (!result.dates.length && !result.title) throw new Error("nothing extracted");
-            senExtractedDates = result.dates;
-            if (result.title && !$("sen-title").value.trim()) $("sen-title").value = result.title;
-            if (result.summary && !$("sen-body").value.trim()) $("sen-body").value = result.summary;
-            if (result.matter_type && SEN_TYPES[result.matter_type]) $("sen-type").value = result.matter_type;
-            if (Number.isFinite(result.amount) && !$("sen-amount").value) $("sen-amount").value = result.amount;
+            for (let i = 0; i < senFiles.length; i++) {
+              const file = senFiles[i];
+              $("sen-status").textContent = senFiles.length > 1
+                ? "The Scribe is reading " + (i + 1) + " of " + senFiles.length + " \u2014 " + file.name + "\u2026"
+                : "The Scribe is reading the document\u2026";
+              try {
+                const result = await extractMatterFacts(file, file.name);
+                if (!result.dates.length && !result.title) throw new Error("nothing extracted");
+                readCount++;
+                /* the same hearing printed on two papers is one date */
+                for (const d of result.dates || []) {
+                  const already = merged.some((held) => held.date === d.date && held.label === d.label);
+                  if (!already) merged.push({ ...d, source: file.name });
+                }
+                if (result.title && !$("sen-title").value.trim()) $("sen-title").value = result.title;
+                if (result.summary && !$("sen-body").value.trim()) $("sen-body").value = result.summary;
+                if (result.matter_type && SEN_TYPES[result.matter_type]) $("sen-type").value = result.matter_type;
+                if (Number.isFinite(result.amount) && !$("sen-amount").value) $("sen-amount").value = result.amount;
+              } catch (error) {
+                failures.push(file.name);
+              }
+            }
+            if (!readCount) throw new Error(failures.length ? "nothing could be read" : "nothing extracted");
+            merged.sort((a, b) => a.date.localeCompare(b.date));
+            senExtractedDates = merged;
             if (senExtractedDates.length && !$("sen-date").value) $("sen-date").value = senExtractedDates[0].date;
             const chips = $("sen-dates-chips");
             chips.innerHTML = "";
@@ -4359,13 +4449,19 @@
               chip.type = "button";
               chip.className = "is-on";
               chip.style.cursor = "default";
-              chip.textContent = d.date + " · " + d.label;
+              chip.textContent = d.date + " \u00b7 " + d.label +
+                (senFiles.length > 1 && d.source ? " \u00b7 " + d.source : "");
               chips.append(chip);
             }
             $("sen-dates-out").hidden = !senExtractedDates.length;
-            $("sen-status").textContent = senExtractedDates.length
-              ? senExtractedDates.length + " date" + (senExtractedDates.length === 1 ? "" : "s") + " extracted — verify against the original."
-              : "The document yielded no machine-readable dates.";
+            const readNote = senFiles.length > 1
+              ? " across " + readCount + " of " + senFiles.length + " documents"
+              : "";
+            $("sen-status").textContent = (senExtractedDates.length
+              ? senExtractedDates.length + " date" + (senExtractedDates.length === 1 ? "" : "s") +
+                " extracted" + readNote + " \u2014 verify against the originals."
+              : "No machine-readable dates" + readNote + ".") +
+              (failures.length ? " Unread: " + failures.join(", ") + "." : "");
           } catch (error) {
             $("sen-status").textContent = "Read failed: " + error.message;
           } finally {
@@ -4388,20 +4484,36 @@
             if (Number.isFinite(amount) && amount > 0) meta.amount = amount;
             const keyDate = $("sen-date").value || (senExtractedDates[0] && senExtractedDates[0].date) || null;
             if (keyDate) meta.key_date = keyDate;
-            if (senFile) {
-              const safeName = senFile.name.replace(/[^\w.\-]+/g, "_");
-              const path = user.id + "/sentinel/" + Date.now() + "_" + safeName;
-              /* the digest first — tamper-evidence begins at intake */
-              try {
-                meta.sha256 = await sha256Hex(await senFile.arrayBuffer());
-                meta.sha256_at = new Date().toISOString();
-              } catch (hashError) { /* older engines: file still stored, unhashed */ }
-              const { error } = await GZ.client.storage.from("vault")
-                .upload(path, senFile, { contentType: senFile.type || "application/octet-stream" });
-              if (error) throw new Error("upload: " + error.message);
-              meta.path = path;
-              meta.size = senFile.size;
-              meta.type = senFile.type || "file";
+            if (senFiles.length) {
+              meta.files = [];
+              for (let i = 0; i < senFiles.length; i++) {
+                const file = senFiles[i];
+                $("sen-status").textContent = senFiles.length > 1
+                  ? "Storing " + (i + 1) + " of " + senFiles.length + " \u2014 " + file.name + "\u2026"
+                  : "Storing " + file.name + "\u2026";
+                const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+                const path = user.id + "/sentinel/" + Date.now() + "_" + i + "_" + safeName;
+                const entry = { path, name: file.name, size: file.size, type: file.type || "file" };
+                /* the digest first — tamper-evidence begins at intake */
+                try {
+                  entry.sha256 = await sha256Hex(await file.arrayBuffer());
+                  entry.sha256_at = new Date().toISOString();
+                } catch (hashError) { /* older engines: file still stored, unhashed */ }
+                const { error } = await GZ.client.storage.from("vault")
+                  .upload(path, file, { contentType: file.type || "application/octet-stream" });
+                if (error) throw new Error("upload: " + error.message);
+                meta.files.push(entry);
+              }
+              /* the first paper is the matter's face — every older reader
+                 (viewer, migration, print) looks at meta.path */
+              const primary = meta.files[0];
+              meta.path = primary.path;
+              meta.size = primary.size;
+              meta.type = primary.type;
+              if (primary.sha256) {
+                meta.sha256 = primary.sha256;
+                meta.sha256_at = primary.sha256_at;
+              }
             }
             const ok = await seal($("sen-title").value.trim(), $("sen-body").value.trim() || null, {
               kind: "record",
@@ -4411,9 +4523,9 @@
             });
             if (!ok) throw new Error("record refused");
             $("sen-form").reset();
-            senFile = null;
+            senFiles = [];
             senExtractedDates = [];
-            $("sen-file-name").textContent = "";
+            renderSenFiles();
             $("sen-ai-read").hidden = true;
             $("sen-dates-out").hidden = true;
             $("sen-status").textContent = "";
@@ -4467,6 +4579,529 @@
           const blob = await response.blob();
           /* the blob may come back typeless — restore what the record knows */
           return blob.type ? blob : blob.slice(0, blob.size, record.meta.type || "");
+        }
+
+        /* ---------- receipts: the original preserved, the print transcribed ---------- */
+
+        const RECEIPT_READ_SYSTEM =
+          "You transcribe retail and service receipts for a private financial register. Report ONLY what " +
+          "is printed on the receipt. Give the merchant name as printed; the transaction date as " +
+          "YYYY-MM-DD and the time as HH:MM in 24-hour form exactly as the receipt shows them; the grand " +
+          "total, subtotal, and tax as numbers; the currency code; the payment method and the last four " +
+          "digits of the card if shown; the street address of the location if the receipt prints one; and " +
+          "each line item with its price. If a field is not printed, omit it — never infer, estimate, " +
+          "complete a partial address, or convert a date you cannot read. An unreadable receipt yields " +
+          "nothing, which is a valid answer.";
+
+        const RECEIPT_FIELDS = {
+          merchant: { type: "string", description: "Merchant name exactly as printed" },
+          date: { type: "string", description: "Transaction date as YYYY-MM-DD, only if printed" },
+          time: { type: "string", description: "Transaction time as HH:MM 24-hour, only if printed" },
+          total: { type: "number", description: "Grand total as printed" },
+          subtotal: { type: "number", description: "Subtotal as printed" },
+          tax: { type: "number", description: "Tax as printed" },
+          currency: { type: "string", description: "Currency code such as USD, only if determinable from the receipt" },
+          payment_method: { type: "string", description: "Payment method as printed, e.g. VISA, CASH" },
+          card_last4: { type: "string", description: "Last four digits of the card if printed" },
+          address: { type: "string", description: "Full street address of the location, only if printed" },
+          category: { type: "string", description: "A short category for the purchase, e.g. groceries, fuel, dining" },
+          items: {
+            type: "array",
+            description: "Line items as printed",
+            items: {
+              type: "object",
+              properties: {
+                description: { type: "string" },
+                qty: { type: "number" },
+                price: { type: "number" },
+              },
+              required: ["description"],
+            },
+          },
+        };
+
+        const RECEIPT_SCHEMA_CLAUDE = {
+          name: "read_receipt",
+          description: "Transcribe the printed contents of a receipt.",
+          input_schema: { type: "object", properties: RECEIPT_FIELDS, required: [] },
+        };
+
+        const RECEIPT_SCHEMA_GEMINI = {
+          type: "OBJECT",
+          properties: {
+            merchant: { type: "STRING" },
+            date: { type: "STRING" },
+            time: { type: "STRING" },
+            total: { type: "NUMBER" },
+            subtotal: { type: "NUMBER" },
+            tax: { type: "NUMBER" },
+            currency: { type: "STRING" },
+            payment_method: { type: "STRING" },
+            card_last4: { type: "STRING" },
+            address: { type: "STRING" },
+            category: { type: "STRING" },
+            items: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  description: { type: "STRING" },
+                  qty: { type: "NUMBER" },
+                  price: { type: "NUMBER" },
+                },
+              },
+            },
+          },
+        };
+
+        async function extractReceiptFacts(fileLike, displayName) {
+          if (!scribeKey()) throw new Error("Connect a key in The Scribe first — free Gemini works.");
+          const media = fileLike.type || "";
+          let fileBlock = null, fileText = null;
+          if (media === "application/pdf" || /^image\//.test(media)) {
+            fileBlock = { media: media || "application/pdf", data: await fileToBase64(fileLike) };
+          } else {
+            fileText = "Receipt \u201c" + (displayName || fileLike.name || "receipt") + "\u201d:\n\n" +
+              (await fileLike.text()).slice(0, 40000);
+          }
+          let result;
+          if (scribeProviderId() === "anthropic") {
+            const content = [];
+            if (fileBlock) content.push(fileBlock.media === "application/pdf"
+              ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: fileBlock.data } }
+              : { type: "image", source: { type: "base64", media_type: fileBlock.media, data: fileBlock.data } });
+            if (fileText) content.push({ type: "text", text: fileText });
+            content.push({ type: "text", text: "Transcribe this receipt." });
+            const response = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                "x-api-key": scribeKey(),
+                "anthropic-version": "2023-06-01",
+                "anthropic-dangerous-direct-browser-access": "true",
+              },
+              body: JSON.stringify({
+                model: SCRIBE_PROVIDERS.anthropic.model, max_tokens: 1500,
+                system: RECEIPT_READ_SYSTEM,
+                tools: [RECEIPT_SCHEMA_CLAUDE],
+                tool_choice: { type: "tool", name: "read_receipt" },
+                messages: [{ role: "user", content }],
+              }),
+            });
+            if (!response.ok) throw new Error("API " + response.status);
+            const message = await response.json();
+            const toolUse = (message.content || []).find((block) => block.type === "tool_use");
+            result = toolUse && toolUse.input;
+          } else {
+            const parts = [];
+            if (fileBlock) parts.push({ inline_data: { mime_type: fileBlock.media, data: fileBlock.data } });
+            if (fileText) parts.push({ text: fileText });
+            parts.push({ text: "Transcribe this receipt." });
+            const response = await fetch(
+              "https://generativelanguage.googleapis.com/v1beta/models/" +
+              SCRIBE_PROVIDERS.gemini.model + ":generateContent",
+              {
+                method: "POST",
+                headers: { "content-type": "application/json", "x-goog-api-key": scribeKey() },
+                body: JSON.stringify({
+                  system_instruction: { parts: [{ text: RECEIPT_READ_SYSTEM }] },
+                  contents: [{ role: "user", parts }],
+                  generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: RECEIPT_SCHEMA_GEMINI,
+                    maxOutputTokens: 1500,
+                  },
+                }),
+              }
+            );
+            if (!response.ok) throw new Error("API " + response.status);
+            const message = await response.json();
+            const text = message.candidates && message.candidates[0] &&
+              message.candidates[0].content.parts[0].text;
+            result = text ? JSON.parse(text) : null;
+          }
+          result = result || {};
+          /* keep only what a receipt can actually carry */
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(result.date || "")) delete result.date;
+          if (!/^\d{2}:\d{2}$/.test(result.time || "")) delete result.time;
+          for (const key of ["total", "subtotal", "tax"]) {
+            if (!Number.isFinite(result[key])) delete result[key];
+          }
+          result.items = Array.isArray(result.items)
+            ? result.items.filter((item) => item && item.description)
+            : [];
+          return result;
+        }
+
+        /* the printed local time, resolved to a real instant: the receipt's own
+           timezone when its address gives one, else the home field's, else UTC —
+           and the chart is always told which of the three was used */
+        async function receiptInstant(date, time, geo) {
+          if (!date) return { iso: null, basis: "no printed date" };
+          const clock = time || "12:00";
+          let zone = null;
+          let basis = "";
+          if (geo && Number.isFinite(geo.lat)) {
+            zone = await zoneForCoords(geo.lat, geo.lon);
+            if (zone) basis = "the receipt's own timezone (" + zone + ")";
+          }
+          if (!zone) {
+            const home = homeGeo();
+            if (home && home.zone) {
+              zone = home.zone;
+              basis = "your home timezone (" + zone + ")";
+            }
+          }
+          if (!zone) {
+            return {
+              iso: date + "T" + clock + ":00Z",
+              basis: "UTC — no timezone could be established",
+              zone: null,
+            };
+          }
+          const naive = new Date(date + "T" + clock + ":00Z");
+          const offset = offsetForZone(zone, naive);
+          if (offset === null) {
+            return { iso: date + "T" + clock + ":00Z", basis: "UTC — offset unavailable", zone: null };
+          }
+          return {
+            iso: new Date(naive.getTime() - offset * 3600000).toISOString(),
+            basis,
+            zone,
+          };
+        }
+
+        let receiptFiles = [];
+
+        function receiptStatus(message, isError) {
+          const note = $("receipt-status");
+          if (!note) return;
+          note.hidden = !message;
+          note.textContent = message || "";
+          note.style.color = isError ? "#d98181" : "";
+        }
+
+        function stageReceipts(fileList) {
+          const refused = [];
+          for (const file of [...fileList]) {
+            if (file.size > 50 * 1048576) {
+              refused.push(file.name);
+              continue;
+            }
+            const already = receiptFiles.some(
+              (held) => held.name === file.name && held.size === file.size
+            );
+            if (!already) receiptFiles.push(file);
+          }
+          renderReceiptQueue();
+          receiptStatus(
+            refused.length ? refused.length + " file(s) over the 50 MB limit left out." : "",
+            refused.length > 0
+          );
+        }
+
+        function renderReceiptQueue() {
+          const holder = $("receipt-queue");
+          if (!holder) return;
+          holder.innerHTML = "";
+          $("receipt-pending").hidden = receiptFiles.length === 0;
+          receiptFiles.forEach((file, index) => {
+            const row = document.createElement("div");
+            row.className = "up-row";
+            const name = document.createElement("span");
+            name.className = "up-name";
+            name.textContent = file.name;
+            name.title = file.name;
+            const size = document.createElement("small");
+            size.textContent = formatBytes(file.size);
+            const state = document.createElement("i");
+            state.className = "up-state";
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.className = "up-kill";
+            kill.textContent = "\u00d7";
+            kill.setAttribute("aria-label", "Remove " + file.name);
+            kill.addEventListener("click", () => {
+              receiptFiles.splice(index, 1);
+              renderReceiptQueue();
+            });
+            row.append(name, size, state, kill);
+            holder.append(row);
+          });
+          $("receipt-run-count").textContent = receiptFiles.length === 1
+            ? "1 receipt" : receiptFiles.length + " receipts";
+        }
+
+        if ($("receipt-drop")) {
+          $("receipt-drop").addEventListener("click", () => $("receipt-file").click());
+          $("receipt-drop").addEventListener("dragover", (event) => {
+            event.preventDefault();
+            $("receipt-drop").classList.add("is-over");
+          });
+          $("receipt-drop").addEventListener("dragleave", () =>
+            $("receipt-drop").classList.remove("is-over"));
+          $("receipt-drop").addEventListener("drop", (event) => {
+            event.preventDefault();
+            $("receipt-drop").classList.remove("is-over");
+            if (event.dataTransfer.files.length) stageReceipts(event.dataTransfer.files);
+          });
+          $("receipt-file").addEventListener("change", () => {
+            if ($("receipt-file").files.length) stageReceipts($("receipt-file").files);
+            $("receipt-file").value = "";
+          });
+          $("receipt-clear").addEventListener("click", () => {
+            receiptFiles = [];
+            $("receipt-file").value = "";
+            renderReceiptQueue();
+            receiptStatus("");
+          });
+          $("receipt-run").addEventListener("click", processReceipts);
+        }
+
+        async function processReceipts() {
+          if (!receiptFiles.length) return;
+          if (!scribeKey()) return toast("Connect a key in The Scribe first — free Gemini works.");
+          const shared = $("receipt-shared").checked;
+          const queue = receiptFiles.slice();
+          const marks = [...$("receipt-queue").querySelectorAll(".up-state")];
+          $("receipt-run").disabled = true;
+          $("receipt-clear").disabled = true;
+          const failed = [];
+          let sealed = 0;
+          for (let i = 0; i < queue.length; i++) {
+            const file = queue[i];
+            if (marks[i]) marks[i].className = "up-state is-working";
+            let storedPath = null;
+            try {
+              /* the original first — the record is worthless without it */
+              receiptStatus("Preserving " + (i + 1) + " of " + queue.length + " \u2014 " + file.name + "\u2026");
+              const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+              const path = user.id + "/receipts/" + Date.now() + "_" + i + "_" + safeName;
+              const meta = {
+                module: "resources",
+                kind: "receipt",
+                path,
+                size: file.size,
+                type: file.type || "file",
+              };
+              try {
+                meta.sha256 = await sha256Hex(await file.arrayBuffer());
+                meta.sha256_at = new Date().toISOString();
+              } catch (hashError) { /* stored unhashed rather than not at all */ }
+              const { error: uploadError } = await GZ.client.storage.from("vault")
+                .upload(path, file, { contentType: file.type || "application/octet-stream" });
+              if (uploadError) throw new Error(uploadError.message);
+              storedPath = path;
+
+              receiptStatus("The Scribe is reading " + (i + 1) + " of " + queue.length + " \u2014 " + file.name + "\u2026");
+              let read = {};
+              try {
+                read = await extractReceiptFacts(file, file.name);
+              } catch (readError) {
+                meta.read_error = readError.message;
+              }
+              meta.receipt = read;
+
+              /* a printed address becomes an Atlas pin */
+              if (read.address) {
+                receiptStatus("Locating " + (read.merchant || file.name) + "\u2026");
+                const geo = await scribeGeocode(read.address);
+                if (geo) meta.geo = geo;
+              }
+              /* and the printed date and time become a real instant */
+              const stamp = await receiptInstant(read.date, read.time, meta.geo);
+              meta.time_basis = stamp.basis;
+              if (stamp.zone) meta.zone = stamp.zone;
+              if (Number.isFinite(read.total)) meta.amount = read.total;
+
+              const title = read.merchant
+                ? read.merchant + (Number.isFinite(read.total)
+                    ? " \u00b7 " + (read.currency ? read.currency + " " : "$") + read.total.toFixed(2)
+                    : "")
+                : "Receipt \u00b7 " + file.name;
+              const bodyLines = [];
+              if (read.date) bodyLines.push("Printed date: " + read.date + (read.time ? " " + read.time : ""));
+              if (read.address) bodyLines.push("Printed address: " + read.address);
+              if (read.payment_method) {
+                bodyLines.push("Paid by " + read.payment_method +
+                  (read.card_last4 ? " ending " + read.card_last4 : ""));
+              }
+              if (Number.isFinite(read.subtotal)) bodyLines.push("Subtotal: " + read.subtotal.toFixed(2));
+              if (Number.isFinite(read.tax)) bodyLines.push("Tax: " + read.tax.toFixed(2));
+              if (read.items && read.items.length) {
+                bodyLines.push("");
+                for (const item of read.items.slice(0, 40)) {
+                  bodyLines.push("\u00b7 " + item.description +
+                    (item.qty ? " \u00d7" + item.qty : "") +
+                    (Number.isFinite(item.price) ? " \u2014 " + item.price.toFixed(2) : ""));
+                }
+              }
+              if (meta.read_error) bodyLines.push("", "The Scribe could not read this one: " + meta.read_error);
+
+              await seal(title, bodyLines.join("\n") || null, {
+                kind: "record",
+                shared,
+                defer: true,
+                quiet: true,
+                throwOnError: true,
+                occurredAt: stamp.iso || undefined,
+                meta,
+              });
+              sealed++;
+              if (marks[i]) marks[i].className = "up-state is-done";
+            } catch (error) {
+              if (storedPath) await GZ.client.storage.from("vault").remove([storedPath]);
+              failed.push({ file, reason: error.message });
+              if (marks[i]) {
+                marks[i].className = "up-state is-failed";
+                marks[i].title = error.message;
+              }
+            }
+          }
+          if (sealed) renderAll();
+          $("receipt-run").disabled = false;
+          $("receipt-clear").disabled = false;
+          receiptFiles = failed.map((entry) => entry.file);
+          renderReceiptQueue();
+          if (!failed.length) {
+            $("receipt-shared").checked = false;
+            receiptStatus("");
+            toast(sealed + " receipt" + (sealed === 1 ? "" : "s") + " preserved and transcribed.");
+            return;
+          }
+          receiptStatus(
+            sealed + " transcribed, " + failed.length + " failed and still queued \u2014 " +
+            failed[0].file.name + ": " + failed[0].reason, true
+          );
+          toast(sealed + " transcribed, " + failed.length + " failed.");
+        }
+
+        function receiptsAll() {
+          return records.filter((record) =>
+            record.meta && record.meta.module === "resources" && record.meta.kind === "receipt");
+        }
+
+        function renderReceipts() {
+          const list = $("receipt-list");
+          if (!list) return;
+          const all = receiptsAll().slice().sort((a, b) =>
+            String(b.occurred_at || b.created_at).localeCompare(String(a.occurred_at || a.created_at)));
+          $("receipt-count").textContent = all.length + " RECEIPT" + (all.length === 1 ? "" : "S");
+          let spend = 0;
+          let tax = 0;
+          let mapped = 0;
+          const dates = [];
+          for (const record of all) {
+            const r = record.meta.receipt || {};
+            if (Number.isFinite(r.total)) spend += r.total;
+            if (Number.isFinite(r.tax)) tax += r.tax;
+            if (record.meta.geo) mapped++;
+            if (r.date) dates.push(r.date);
+          }
+          $("receipt-total").textContent = "$" + spend.toFixed(2);
+          $("receipt-tax").textContent = "$" + tax.toFixed(2);
+          $("receipt-mapped").textContent = String(mapped);
+          dates.sort();
+          $("receipt-span").textContent = dates.length
+            ? dates[0] + " \u2192 " + dates[dates.length - 1]
+            : "no printed dates yet";
+
+          list.innerHTML = "";
+          for (const record of all) {
+            const r = record.meta.receipt || {};
+            const item = document.createElement("li");
+            const title = document.createElement("b");
+            title.textContent = record.title;
+            if (isShared(record)) {
+              const badge = document.createElement("i");
+              badge.className = "share-badge";
+              badge.textContent = "SHARED";
+              title.append(badge);
+            }
+            const stamp = document.createElement("time");
+            stamp.textContent = [
+              r.date ? r.date + (r.time ? " \u00b7 " + r.time : "") : "no printed date",
+              r.category || null,
+              r.payment_method
+                ? r.payment_method + (r.card_last4 ? " " + r.card_last4 : "")
+                : null,
+            ].filter(Boolean).join(" \u00b7 ");
+            item.append(title, stamp);
+            if (record.meta.time_basis && r.date) {
+              const basis = document.createElement("small");
+              basis.className = "sen-hash";
+              basis.textContent = "\u25f7 placed on the timeline using " + record.meta.time_basis;
+              item.append(basis);
+            }
+            if (r.address) {
+              const where = document.createElement("small");
+              where.className = "sen-hash";
+              where.textContent = (record.meta.geo ? "\u25c9 " : "\u25cb ") + r.address +
+                (record.meta.geo ? " \u00b7 pinned on the Atlas" : " \u00b7 not found by the geocoder");
+              item.append(where);
+            }
+            if (record.meta.sha256) {
+              const seal = document.createElement("small");
+              seal.className = "sen-hash";
+              seal.title = "SHA-256 " + record.meta.sha256;
+              seal.textContent = "\u2318 " + record.meta.sha256.slice(0, 12) + "\u2026 sealed" +
+                (record.meta.sha256_at ? " " + record.meta.sha256_at.slice(0, 10) : "");
+              item.append(seal);
+            }
+            if (record.meta.read_error) {
+              const warn = document.createElement("small");
+              warn.className = "sen-hash";
+              warn.style.color = "#d98181";
+              warn.textContent = "\u26a0 unread: " + record.meta.read_error + " \u2014 the original is preserved";
+              item.append(warn);
+            }
+            const actions = document.createElement("span");
+            actions.className = "rec-actions-row";
+            const view = document.createElement("button");
+            view.type = "button";
+            view.style.color = "var(--gold)";
+            view.textContent = "View the original";
+            view.addEventListener("click", () => openDocViewer(record));
+            actions.append(view);
+            if (record.body) {
+              const detail = document.createElement("button");
+              detail.type = "button";
+              detail.textContent = "Transcription";
+              detail.addEventListener("click", () => {
+                const open = item.querySelector(".receipt-body");
+                if (open) return open.remove();
+                const pre = document.createElement("pre");
+                pre.className = "receipt-body";
+                pre.textContent = record.body;
+                item.append(pre);
+              });
+              actions.append(detail);
+            }
+            if (isMine(record)) {
+              const share = document.createElement("button");
+              share.type = "button";
+              share.textContent = isShared(record) ? "Make private" : "Share";
+              share.addEventListener("click", () => setVisibility(record, !isShared(record)));
+              actions.append(share);
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.className = "is-destroy";
+              remove.textContent = "Destroy";
+              remove.addEventListener("click", async () => {
+                const { error } = await GZ.client.from("records").delete().eq("id", record.id);
+                if (error) return toast("Could not remove: " + error.message);
+                if (record.meta.path) {
+                  await GZ.client.storage.from("vault").remove([record.meta.path]);
+                }
+                records = records.filter((held) => held.id !== record.id);
+                renderAll();
+                toast("Receipt destroyed with its original.");
+              });
+              actions.append(remove);
+            }
+            item.append(actions);
+            list.append(item);
+          }
         }
 
         /* ---------- the archive: everything, exportable, yours ---------- */
@@ -4586,6 +5221,9 @@
               if (record.meta && record.meta.path) paths.add(record.meta.path);
               if (record.meta && Array.isArray(record.meta.images)) {
                 for (const p of record.meta.images) paths.add(p);
+              }
+              if (record.meta && Array.isArray(record.meta.files)) {
+                for (const doc of record.meta.files) if (doc && doc.path) paths.add(doc.path);
               }
             }
             let pulled = 0;
@@ -4801,7 +5439,15 @@
               "<span>" + esc(SEN_TYPES[m.matter] || "") + " \u00b7 " + esc(m.status || "open") +
               (m.amount ? " \u00b7 $" + Number(m.amount).toFixed(2) : "") + "</span>" +
               (record.body ? "<p>" + esc(record.body) + "</p>" : "") +
-              (m.sha256 ? "<code>SHA-256 " + esc(m.sha256) + (m.sha256_at ? " \u00b7 hashed " + m.sha256_at.slice(0, 10) : "") + "</code>" : "") +
+              (Array.isArray(m.files) && m.files.length
+                ? m.files.map((doc) => doc.sha256
+                    ? "<code>" + esc(doc.name) + " \u2014 SHA-256 " + esc(doc.sha256) +
+                      (doc.sha256_at ? " \u00b7 hashed " + doc.sha256_at.slice(0, 10) : "") + "</code>"
+                    : "<code>" + esc(doc.name) + " \u2014 stored, not hashed</code>").join("")
+                : (m.sha256
+                    ? "<code>SHA-256 " + esc(m.sha256) +
+                      (m.sha256_at ? " \u00b7 hashed " + m.sha256_at.slice(0, 10) : "") + "</code>"
+                    : "")) +
               "</div>";
           }
           html += "<p class=\"ps-foot\">Dates listed are as printed on the underlying documents or entered by the holder. " +
@@ -4919,25 +5565,39 @@
               body.textContent = record.body;
               item.append(body);
             }
-            if (record.meta.sha256) {
+            const attached = Array.isArray(record.meta.files) && record.meta.files.length
+              ? record.meta.files
+              : (record.meta.path
+                  ? [{ path: record.meta.path, name: record.title, size: record.meta.size,
+                       type: record.meta.type, sha256: record.meta.sha256, sha256_at: record.meta.sha256_at }]
+                  : []);
+            for (const doc of attached) {
+              if (!doc.sha256) continue;
               const seal = document.createElement("small");
               seal.className = "sen-hash";
-              seal.title = "SHA-256 " + record.meta.sha256 +
-                (record.meta.sha256_at ? " · computed " + record.meta.sha256_at : "");
-              seal.textContent = "\u2318 " + record.meta.sha256.slice(0, 12) + "\u2026 sealed" +
-                (record.meta.sha256_at ? " " + record.meta.sha256_at.slice(0, 10) : "");
+              seal.title = "SHA-256 " + doc.sha256 +
+                (doc.sha256_at ? " · computed " + doc.sha256_at : "");
+              seal.textContent = "\u2318 " + doc.sha256.slice(0, 12) + "\u2026 sealed" +
+                (doc.sha256_at ? " " + doc.sha256_at.slice(0, 10) : "") +
+                (attached.length > 1 ? " \u00b7 " + doc.name : "");
               item.append(seal);
             }
             const actions = document.createElement("span");
             actions.className = "rec-actions-row";
-            if (record.meta.path) {
+            attached.forEach((doc, index) => {
               const view = document.createElement("button");
               view.type = "button";
               view.style.color = "var(--gold)";
-              view.textContent = "View document";
-              view.addEventListener("click", () => openDocViewer(record));
+              view.textContent = attached.length === 1
+                ? "View document"
+                : "View \u00b7 " + (doc.name.length > 22 ? doc.name.slice(0, 20) + "\u2026" : doc.name);
+              view.title = doc.name;
+              view.addEventListener("click", () => openDocViewer({
+                title: doc.name || record.title,
+                meta: { path: doc.path, type: doc.type },
+              }));
               actions.append(view);
-            }
+            });
             if (isMine(record)) {
               const close = document.createElement("button");
               close.type = "button";
@@ -5106,6 +5766,7 @@
           renderCalendar();
           renderUnit();
           renderUnitInbox();
+          renderReceipts();
           renderFieldMemory();
           renderIntakeBanner();
         }
@@ -5558,11 +6219,14 @@
             .select()
             .single();
           if (error) {
-            toast("Seal failed: " + error.message);
+            /* a batch reports its own failures once, at the end */
+            if (!opts.quiet) toast("Seal failed: " + error.message);
+            if (opts.throwOnError) throw new Error(error.message);
             return false;
           }
           records.unshift(inserted);
-          renderAll();
+          /* deferred: the caller re-renders once when the batch is done */
+          if (!opts.defer) renderAll();
           return true;
         }
 
@@ -5635,7 +6299,7 @@
         });
 
         /* ---------- document preservation ---------- */
-        let pendingFile = null;
+        let pendingFiles = [];
 
         function docStatus(message, isError) {
           const el = $("doc-status");
@@ -5659,62 +6323,142 @@
         $("doc-drop").addEventListener("drop", (event) => {
           event.preventDefault();
           $("doc-drop").classList.remove("is-over");
-          if (event.dataTransfer.files.length) stageFile(event.dataTransfer.files[0]);
+          if (event.dataTransfer.files.length) stageFiles(event.dataTransfer.files);
         });
         $("doc-file").addEventListener("change", () => {
-          if ($("doc-file").files.length) stageFile($("doc-file").files[0]);
+          if ($("doc-file").files.length) stageFiles($("doc-file").files);
+          /* clear the control so the same file can be chosen again after a removal */
+          $("doc-file").value = "";
         });
 
-        function stageFile(file) {
-          if (file.size > 50 * 1048576) {
-            docStatus("That file is " + formatBytes(file.size) + " — the limit is 50 MB.", true);
-            return;
+        /* files accumulate: choosing or dropping again adds to the queue
+           rather than replacing what is already waiting */
+        function stageFiles(fileList) {
+          const refused = [];
+          for (const file of [...fileList]) {
+            if (file.size > 50 * 1048576) {
+              refused.push(file.name);
+              continue;
+            }
+            const already = pendingFiles.some(
+              (held) => held.name === file.name && held.size === file.size
+            );
+            if (!already) pendingFiles.push(file);
           }
-          pendingFile = file;
-          $("doc-pending").hidden = false;
-          $("doc-pending-name").textContent = file.name + " · " + formatBytes(file.size);
-          docStatus("");
+          renderDocQueue();
+          docStatus(
+            refused.length
+              ? refused.length + " file" + (refused.length === 1 ? "" : "s") +
+                " over the 50 MB limit left out: " + refused.join(", ")
+              : "",
+            refused.length > 0
+          );
+        }
+
+        function renderDocQueue() {
+          const holder = $("doc-queue");
+          holder.innerHTML = "";
+          $("doc-pending").hidden = pendingFiles.length === 0;
+          if (!pendingFiles.length) return;
+          pendingFiles.forEach((file, index) => {
+            const row = document.createElement("div");
+            row.className = "up-row";
+            const name = document.createElement("span");
+            name.className = "up-name";
+            name.textContent = file.name;
+            name.title = file.name;
+            const size = document.createElement("small");
+            size.textContent = formatBytes(file.size);
+            const state = document.createElement("i");
+            state.className = "up-state";
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.className = "up-kill";
+            kill.textContent = "\u00d7";
+            kill.setAttribute("aria-label", "Remove " + file.name + " from the queue");
+            kill.addEventListener("click", () => {
+              pendingFiles.splice(index, 1);
+              renderDocQueue();
+            });
+            row.append(name, size, state, kill);
+            holder.append(row);
+          });
+          const total = pendingFiles.reduce((sum, file) => sum + file.size, 0);
+          $("doc-upload-count").textContent = pendingFiles.length === 1
+            ? "document"
+            : pendingFiles.length + " documents \u00b7 " + formatBytes(total);
         }
 
         $("doc-cancel").addEventListener("click", () => {
-          pendingFile = null;
-          $("doc-pending").hidden = true;
+          pendingFiles = [];
           $("doc-file").value = "";
+          renderDocQueue();
+          docStatus("");
         });
 
         $("doc-upload").addEventListener("click", async () => {
-          if (!pendingFile) return;
+          if (!pendingFiles.length) return;
           const shared = $("doc-shared").checked;
-          const safeName = pendingFile.name.replace(/[^\w.\-]+/g, "_");
-          const path = user.id + "/" + Date.now() + "_" + safeName;
-          $("doc-upload").disabled = true;
-          docStatus("Preserving " + pendingFile.name + "…");
-          const { error: uploadError } = await GZ.client.storage
-            .from("vault")
-            .upload(path, pendingFile, { contentType: pendingFile.type || "application/octet-stream" });
-          if (uploadError) {
-            $("doc-upload").disabled = false;
-            docStatus("Upload failed: " + uploadError.message, true);
-            return;
-          }
           const folder = $("doc-folder").value || null;
-          const ok = await seal(pendingFile.name, null, {
-            kind: "document",
-            shared,
-            meta: { path, size: pendingFile.size, type: pendingFile.type || "file", folder },
-          });
+          const queue = pendingFiles.slice();
+          const marks = [...$("doc-queue").querySelectorAll(".up-state")];
+          $("doc-upload").disabled = true;
+          $("doc-cancel").disabled = true;
+          const failed = [];
+          let sealed = 0;
+          for (let i = 0; i < queue.length; i++) {
+            const file = queue[i];
+            if (marks[i]) marks[i].className = "up-state is-working";
+            docStatus("Preserving " + (i + 1) + " of " + queue.length + " \u2014 " + file.name + "\u2026");
+            let storedPath = null;
+            try {
+              const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+              const path = user.id + "/" + Date.now() + "_" + i + "_" + safeName;
+              const { error: uploadError } = await GZ.client.storage
+                .from("vault")
+                .upload(path, file, { contentType: file.type || "application/octet-stream" });
+              if (uploadError) throw new Error(uploadError.message);
+              storedPath = path;
+              await seal(file.name, null, {
+                kind: "document",
+                shared,
+                defer: true,
+                quiet: true,
+                throwOnError: true,
+                meta: { path, size: file.size, type: file.type || "file", folder },
+              });
+              sealed++;
+              if (marks[i]) marks[i].className = "up-state is-done";
+            } catch (error) {
+              /* a stored file whose record failed would be an orphan — remove it */
+              if (storedPath) await GZ.client.storage.from("vault").remove([storedPath]);
+              failed.push({ file, reason: error.message });
+              if (marks[i]) {
+                marks[i].className = "up-state is-failed";
+                marks[i].title = error.message;
+              }
+            }
+          }
+          if (sealed) renderAll();
           $("doc-upload").disabled = false;
-          if (!ok) {
-            await GZ.client.storage.from("vault").remove([path]);
-            docStatus("The file was stored but its record failed — rolled back. Try again.", true);
+          $("doc-cancel").disabled = false;
+          $("doc-file").value = "";
+          /* whatever failed stays queued, so a retry is one click */
+          pendingFiles = failed.map((entry) => entry.file);
+          if (!failed.length) {
+            $("doc-shared").checked = false;
+            renderDocQueue();
+            docStatus("");
+            toast(sealed + " document" + (sealed === 1 ? "" : "s") + " preserved in the vault.");
             return;
           }
-          pendingFile = null;
-          $("doc-pending").hidden = true;
-          $("doc-file").value = "";
-          $("doc-shared").checked = false;
-          docStatus("");
-          toast("Document preserved in the vault.");
+          renderDocQueue();
+          docStatus(
+            sealed + " preserved, " + failed.length + " failed and still queued \u2014 " +
+            failed[0].file.name + ": " + failed[0].reason,
+            true
+          );
+          toast(sealed + " preserved, " + failed.length + " failed.");
         });
 
         async function downloadDocument(record) {
@@ -6178,6 +6922,18 @@
           const holder = $("atlas-pins");
           if (!holder) return;
           holder.innerHTML = "";
+          const counter = $("atlas-pin-count");
+          if (counter) {
+            const peoplePins = people.filter(
+              (person) => person.meta && person.meta.geo && Number.isFinite(person.meta.geo.lat)
+            ).length;
+            const receiptPins = records.filter((record) =>
+              record.meta && record.meta.kind === "receipt" &&
+              record.meta.geo && Number.isFinite(record.meta.geo.lat)).length;
+            const total = peoplePins + receiptPins;
+            counter.textContent = total + " PRIVATE PIN" + (total === 1 ? "" : "S") +
+              (receiptPins ? " \u00b7 " + receiptPins + " FROM RECEIPTS" : "");
+          }
           const pinned = people
             .map((person) => ({ person, place: personPlace(person) }))
             .filter((entry) => entry.place);
@@ -6289,7 +7045,30 @@
             );
             atlasMarkers[person.id] = marker;
           }
-          return located.length;
+          /* receipts carry their own place when one was printed on them */
+          const placedReceipts = records.filter((record) =>
+            record.meta && record.meta.kind === "receipt" &&
+            record.meta.geo && Number.isFinite(record.meta.geo.lat));
+          for (const record of placedReceipts) {
+            const geo = record.meta.geo;
+            const r = record.meta.receipt || {};
+            const marker = L.circleMarker([geo.lat, geo.lon], {
+              radius: 6,
+              color: "#5ce0a1",
+              weight: 1.4,
+              fillColor: "#5ce0a1",
+              fillOpacity: 0.3,
+            }).addTo(atlasLayer);
+            marker.bindPopup(
+              '<b class="atlas-pop-name">' + escText(r.merchant || record.title) + "</b>" +
+              '<span class="atlas-pop-rel">receipt' +
+                (r.date ? " \u00b7 " + escText(r.date + (r.time ? " " + r.time : "")) : "") + "</span>" +
+              (r.address ? '<span class="atlas-pop-place">' + escText(r.address) + "</span>" : "") +
+              '<span class="atlas-pop-coords">' + geo.lat.toFixed(4) + ", " + geo.lon.toFixed(4) + "</span>"
+            );
+            atlasMarkers["receipt-" + record.id] = marker;
+          }
+          return located.length + placedReceipts.length;
         }
 
         function openAtlasField() {
@@ -6658,6 +7437,41 @@
           return raw || null;
         }
 
+        /* images accumulate: picking again adds to what is already staged */
+        let opsStagedImages = [];
+        $("ops-images").addEventListener("change", () => {
+          for (const file of [...$("ops-images").files]) {
+            const already = opsStagedImages.some(
+              (held) => held.name === file.name && held.size === file.size
+            );
+            if (!already) opsStagedImages.push(file);
+          }
+          $("ops-images").value = "";
+          renderOpsStagedImages();
+        });
+        function renderOpsStagedImages() {
+          const holder = $("ops-image-chips");
+          if (!holder) return;
+          holder.innerHTML = "";
+          opsStagedImages.forEach((file, index) => {
+            const chip = document.createElement("span");
+            chip.className = "up-chip";
+            const label = document.createElement("span");
+            label.textContent = file.name;
+            label.title = file.name + " \u00b7 " + formatBytes(file.size);
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.textContent = "\u00d7";
+            kill.setAttribute("aria-label", "Remove " + file.name);
+            kill.addEventListener("click", () => {
+              opsStagedImages.splice(index, 1);
+              renderOpsStagedImages();
+            });
+            chip.append(label, kill);
+            holder.append(chip);
+          });
+        }
+
         async function opsUploadImages(files) {
           const paths = [];
           for (const file of files) {
@@ -6683,6 +7497,8 @@
           $("ops-priority").value = "normal";
           $("ops-shared").checked = false;
           $("ops-images").value = "";
+          opsStagedImages = [];
+          renderOpsStagedImages();
           $("ops-category-custom").value = "";
           $("ops-edit-thumbs").innerHTML = "";
           fillOpsCategorySelect("");
@@ -6739,7 +7555,7 @@
           event.preventDefault();
           const due = $("ops-due").value;
           const category = opsChosenCategory();
-          const files = [...($("ops-images").files || [])];
+          const files = opsStagedImages.slice();
           $("ops-form-submit").disabled = true;
           try {
             let imagePaths = opsEditImages.slice();
@@ -9879,7 +10695,7 @@
           },
         };
         let scribeProposals = null;
-        let scribeFile = null;
+        let scribeFiles = [];
 
         function scribeProviderId() {
           const stored = localStorage.getItem("gz-scribe-provider");
@@ -9928,17 +10744,40 @@
         });
 
         $("scribe-file").addEventListener("change", () => {
-          scribeFile = $("scribe-file").files[0] || null;
-          $("scribe-file-name").textContent = scribeFile
-            ? scribeFile.name + " · " + Math.round(scribeFile.size / 1024) + " KB"
-            : "";
-          $("scribe-file-clear").hidden = !scribeFile;
-        });
-        $("scribe-file-clear").addEventListener("click", () => {
-          scribeFile = null;
+          for (const file of [...$("scribe-file").files]) {
+            const already = scribeFiles.some((held) => held.name === file.name && held.size === file.size);
+            if (!already) scribeFiles.push(file);
+          }
           $("scribe-file").value = "";
-          $("scribe-file-name").textContent = "";
-          $("scribe-file-clear").hidden = true;
+          renderScribeFiles();
+        });
+        function renderScribeFiles() {
+          const holder = $("scribe-file-name");
+          holder.innerHTML = "";
+          holder.className = "up-chips";
+          scribeFiles.forEach((file, index) => {
+            const chip = document.createElement("span");
+            chip.className = "up-chip";
+            const label = document.createElement("span");
+            label.textContent = file.name;
+            label.title = file.name + " \u00b7 " + formatBytes(file.size);
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.textContent = "\u00d7";
+            kill.setAttribute("aria-label", "Remove " + file.name);
+            kill.addEventListener("click", () => {
+              scribeFiles.splice(index, 1);
+              renderScribeFiles();
+            });
+            chip.append(label, kill);
+            holder.append(chip);
+          });
+          $("scribe-file-clear").hidden = scribeFiles.length === 0;
+        }
+        $("scribe-file-clear").addEventListener("click", () => {
+          scribeFiles = [];
+          $("scribe-file").value = "";
+          renderScribeFiles();
         });
 
         const SCRIBE_TOOL = {
@@ -10008,12 +10847,12 @@
           });
         }
 
-        async function scribeAskClaude(ask, fileBlock, fileText) {
+        async function scribeAskClaude(ask, fileBlocks, fileText) {
           const content = [];
-          if (fileBlock) {
-            content.push(fileBlock.media === "application/pdf"
-              ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: fileBlock.data } }
-              : { type: "image", source: { type: "base64", media_type: fileBlock.media, data: fileBlock.data } });
+          for (const block of fileBlocks || []) {
+            content.push(block.media === "application/pdf"
+              ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: block.data } }
+              : { type: "image", source: { type: "base64", media_type: block.media, data: block.data } });
           }
           if (fileText) content.push({ type: "text", text: fileText });
           content.push({ type: "text", text: ask });
@@ -10086,9 +10925,11 @@
           required: ["intents"],
         };
 
-        async function scribeAskGemini(ask, fileBlock, fileText) {
+        async function scribeAskGemini(ask, fileBlocks, fileText) {
           const parts = [];
-          if (fileBlock) parts.push({ inline_data: { mime_type: fileBlock.media, data: fileBlock.data } });
+          for (const block of fileBlocks || []) {
+            parts.push({ inline_data: { mime_type: block.media, data: block.data } });
+          }
           if (fileText) parts.push({ text: fileText });
           parts.push({ text: ask });
           const response = await fetch(
@@ -10126,7 +10967,7 @@
 
         async function scribePropose() {
           const instruction = $("scribe-input").value.trim();
-          if (!instruction && !scribeFile) return toast("Tell the Scribe what to enter, or attach a document.");
+          if (!instruction && !scribeFiles.length) return toast("Tell the Scribe what to enter, or attach a document.");
           if (!scribeKey()) {
             toast("Connect an Anthropic API key first — it stays in this browser.");
             return;
@@ -10134,23 +10975,28 @@
           $("scribe-send").disabled = true;
           $("scribe-status").textContent = "The Scribe is reading…";
           try {
-            /* gather the material once, provider-neutrally */
-            let fileBlock = null;
-            let fileText = null;
-            if (scribeFile) {
-              const media = scribeFile.type || "";
+            /* gather the material once, provider-neutrally. Binary papers
+               ride as blocks; text ones are concatenated and named. */
+            const fileBlocks = [];
+            const textParts = [];
+            for (const file of scribeFiles) {
+              const media = file.type || "";
               if (media === "application/pdf" || /^image\//.test(media)) {
-                fileBlock = { media: media || "application/pdf", data: await fileToBase64(scribeFile) };
+                fileBlocks.push({ media: media || "application/pdf", data: await fileToBase64(file) });
               } else {
-                fileText = "Attached document “" + scribeFile.name + "”:\n\n" + (await scribeFile.text()).slice(0, 60000);
+                textParts.push("Attached document \u201c" + file.name + "\u201d:\n\n" +
+                  (await file.text()).slice(0, 60000));
               }
             }
-            const ask = instruction || "File the attached document appropriately.";
+            const fileText = textParts.length ? textParts.join("\n\n---\n\n") : null;
+            const ask = instruction || (scribeFiles.length > 1
+              ? "File these " + scribeFiles.length + " attached documents appropriately."
+              : "File the attached document appropriately.");
             const intents = scribeProviderId() === "anthropic"
-              ? await scribeAskClaude(ask, fileBlock, fileText)
-              : await scribeAskGemini(ask, fileBlock, fileText);
+              ? await scribeAskClaude(ask, fileBlocks, fileText)
+              : await scribeAskGemini(ask, fileBlocks, fileText);
             if (!intents.length) throw new Error("The Scribe proposed nothing — try stating the entry more directly.");
-            scribeProposals = { intents, hasFile: Boolean(scribeFile) };
+            scribeProposals = { intents, hasFile: scribeFiles.length > 0 };
             renderScribeProposals();
             $("scribe-status").textContent = "";
             $("scribe-model-note").textContent = scribeProvider().model.toUpperCase() + " · REVIEW BEFORE COMMIT";
@@ -10279,17 +11125,23 @@
                 if (!fields.title) throw new Error("record without a title");
                 const meta = { source: "scribe" };
                 if (fields.due) meta.due = fields.due;
-                if (fields.kind === "document" && scribeProposals.hasFile && scribeFile) {
-                  /* preserve the original file in the vault, then seal its record */
-                  const safeName = scribeFile.name.replace(/[^\w.\-]+/g, "_");
-                  const path = user.id + "/" + Date.now() + "_" + safeName;
-                  const { error: uploadError } = await GZ.client.storage
-                    .from("vault")
-                    .upload(path, scribeFile, { contentType: scribeFile.type || "application/octet-stream" });
-                  if (uploadError) throw new Error("upload: " + uploadError.message);
-                  meta.path = path;
-                  meta.size = scribeFile.size;
-                  meta.type = scribeFile.type || "file";
+                if (fields.kind === "document" && scribeProposals.hasFile && scribeFiles.length) {
+                  /* preserve the originals in the vault, then seal their record */
+                  meta.files = [];
+                  for (let f = 0; f < scribeFiles.length; f++) {
+                    const file = scribeFiles[f];
+                    const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+                    const path = user.id + "/" + Date.now() + "_" + f + "_" + safeName;
+                    const { error: uploadError } = await GZ.client.storage
+                      .from("vault")
+                      .upload(path, file, { contentType: file.type || "application/octet-stream" });
+                    if (uploadError) throw new Error("upload: " + uploadError.message);
+                    meta.files.push({ path, name: file.name, size: file.size, type: file.type || "file" });
+                  }
+                  const primary = meta.files[0];
+                  meta.path = primary.path;
+                  meta.size = primary.size;
+                  meta.type = primary.type;
                 }
                 const ok = await seal(fields.title, fields.body || null, {
                   kind: fields.kind === "document" ? "document" : (fields.kind || "record"),
@@ -10305,10 +11157,9 @@
           }
           $("scribe-commit").disabled = false;
           scribeProposals = null;
-          scribeFile = null;
+          scribeFiles = [];
           $("scribe-file").value = "";
-          $("scribe-file-name").textContent = "";
-          $("scribe-file-clear").hidden = true;
+          renderScribeFiles();
           $("scribe-input").value = "";
           renderScribeProposals();
           people.sort((a, b) => a.display_name.localeCompare(b.display_name));

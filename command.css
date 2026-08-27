@@ -5812,3 +5812,125 @@ small.ritual-note {
     padding-top: 8px;
   }
 }
+
+/* ================= multi-file upload queues ================= */
+.up-queue {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.up-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 12px;
+  background: #ffffff04;
+}
+.up-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--paper);
+}
+.up-row small {
+  flex: 0 0 auto;
+  color: var(--faint);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.up-state {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-style: normal;
+}
+.up-state.is-working {
+  border-color: var(--gold);
+  animation: up-pulse 1s ease-in-out infinite;
+}
+.up-state.is-done {
+  border-color: var(--green);
+  background: var(--green);
+}
+.up-state.is-failed {
+  border-color: #d98181;
+  background: #d98181;
+}
+@keyframes up-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.up-kill {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.up-kill:hover {
+  color: #d98181;
+}
+
+.up-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.up-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 240px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 6px 4px 11px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.up-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.up-chip button {
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.up-chip button:hover {
+  color: #d98181;
+}
+
+.receipt-body {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-left: 2px solid #5ce0a155;
+  background: #ffffff05;
+  color: var(--muted);
+  font: 400 11.5px/1.55 ui-monospace, Menlo, monospace;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+@media (pointer: coarse) {
+  .up-row { padding: 10px 9px; }
+  .up-kill { padding: 6px 8px; }
+  .up-chip { padding: 7px 8px 7px 13px; }
+}
