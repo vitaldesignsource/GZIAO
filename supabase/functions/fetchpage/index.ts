@@ -9,7 +9,9 @@
 //   - Deploy with JWT verification ON (the default): only signed-in
 //     GZIAO identities can call it.
 //   - https only; named hosts only (no raw IPs); obvious private and
-//     link-local names refused — no reaching into anyone's network.
+//     link-local names refused — no reaching into anyone's network. Every
+//     redirect hop is taken manually and revalidated against the same
+//     rules, so a public host cannot bounce us somewhere internal.
 //   - 10-second timeout, 2 MB cap, text-like content only.
 
 const ALLOWED_ORIGINS = [
@@ -79,14 +81,45 @@ Deno.serve(async (req: Request) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10_000);
   try {
-    const upstream = await fetch(target.href, {
-      signal: controller.signal,
-      redirect: "follow",
-      headers: {
-        "User-Agent": "GZIAO-Reader/1.0 (+https://gziao.com)",
-        "Accept": "text/html,application/xhtml+xml,text/plain,application/json;q=0.9,*/*;q=0.5",
-      },
-    });
+    /* Following redirects automatically would let a public host bounce us
+       to an internal address, since the host rules only ever saw the URL
+       the caller supplied. Each hop is taken by hand and revalidated. */
+    let hops = 0;
+    let current = target;
+    let upstream: Response;
+    while (true) {
+      upstream = await fetch(current.href, {
+        signal: controller.signal,
+        redirect: "manual",
+        headers: {
+          "User-Agent": "GZIAO-Reader/1.0 (+https://gziao.com)",
+          "Accept": "text/html,application/xhtml+xml,text/plain,application/json;q=0.9,*/*;q=0.5",
+        },
+      });
+      if (upstream.status < 300 || upstream.status > 399) break;
+      const location = upstream.headers.get("location");
+      if (!location) break;
+      /* the redirect's own body is never wanted — release it */
+      await upstream.body?.cancel().catch(() => {});
+      if (++hops > 5) return refused(req, 502, "too many redirects");
+      let next: URL;
+      try {
+        next = new URL(location, current.href);
+      } catch {
+        return refused(req, 502, "the redirect target was not a valid URL");
+      }
+      if (next.protocol !== "https:") {
+        return refused(req, 400, "a redirect tried to leave https");
+      }
+      if (next.username || next.password) {
+        return refused(req, 400, "a redirect carried credentials");
+      }
+      const hopProblem = hostRefused(next.hostname);
+      if (hopProblem) {
+        return refused(req, 400, "a redirect pointed somewhere unreachable: " + hopProblem);
+      }
+      current = next;
+    }
     const contentType = upstream.headers.get("content-type") ?? "";
     if (!/text\/|application\/(json|xhtml|xml)/i.test(contentType)) {
       return refused(req, 415, "only text-like content is relayed (got " + contentType + ")");
@@ -121,7 +154,7 @@ Deno.serve(async (req: Request) => {
         status: upstream.status,
         contentType,
         truncated: total > CAP,
-        finalUrl: upstream.url,
+        finalUrl: upstream.url || current.href,
         text,
       }),
       { headers: { ...corsHeaders(req), "Content-Type": "application/json" } },

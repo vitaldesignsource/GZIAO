@@ -1,10 +1,15 @@
 // GZ IAO · plaid — the bank connection's server side.
 //
 // Holds the Plaid client_id and secret, which must never reach a browser.
-// Everything it does is scoped to the calling identity: it talks to the
-// database with the caller's own JWT, so row-level security applies and one
-// identity can never touch another's connection. Access tokens are stored,
-// used, and deleted here — they are never returned to the client.
+// Everything it does is scoped to the calling identity, which is read from
+// the caller's verified JWT and never from the request body.
+//
+// Access tokens are stored, used, and deleted here and are never returned
+// to the client. Since migration 006 no browser session can read the token
+// column at all, so the rows carrying it are reached with the service role;
+// every such query is filtered by the verified owner id, because the
+// service role bypasses row-level security and must be given the boundary
+// explicitly.
 //
 // Secrets required (Edge Functions → Secrets in the Supabase dashboard):
 //   PLAID_CLIENT_ID   your Plaid client_id
@@ -101,6 +106,27 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData?.user) return reply(req, 401, { ok: false, reason: "not signed in" });
   const user = userData.user;
 
+  /* Access tokens are no longer readable by any browser session (migration
+     006 withdrew the column grant), so the rows that carry them are reached
+     with the elevated key instead. RLS does not apply to it, so every query
+     through it is filtered by the id we just verified from the caller's JWT
+     — never by anything the request body claimed.
+
+     Projects created before and after Supabase's key rename inject that key
+     under different names, so take whichever exists rather than assuming. */
+  const SERVICE_KEY_NAMES = [
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_SECRET_KEY",
+    "SB_SECRET_KEY",
+    "SERVICE_ROLE_KEY",
+  ];
+  const serviceKeyName = SERVICE_KEY_NAMES.find((name) => Deno.env.get(name));
+  const serviceKey = serviceKeyName ? Deno.env.get(serviceKeyName)! : "";
+
+  const vault = serviceKey
+    ? createClient(Deno.env.get("SUPABASE_URL")!, serviceKey, { auth: { persistSession: false } })
+    : db;
+
   let action = "";
   let body: Record<string, unknown> = {};
   try {
@@ -150,7 +176,7 @@ Deno.serve(async (req: Request) => {
         /* the connection still works without its display name */
       }
 
-      const { error } = await db.from("plaid_items").upsert({
+      const { error } = await vault.from("plaid_items").upsert({
         owner_id: user.id,
         item_id: itemId,
         access_token: accessToken,
@@ -174,8 +200,9 @@ Deno.serve(async (req: Request) => {
 
     /* ---- 3. what is connected (names only — never tokens) ---- */
     if (action === "items") {
-      const { data, error } = await db.from("plaid_items")
+      const { data, error } = await vault.from("plaid_items")
         .select("item_id, institution_name, accounts, status, last_synced_at, created_at")
+        .eq("owner_id", user.id)
         .neq("status", "removed");
       if (error) throw new Error(error.message);
       return reply(req, 200, { ok: true, items: data ?? [], env: env() });
@@ -183,10 +210,20 @@ Deno.serve(async (req: Request) => {
 
     /* ---- 4. pull transactions since the last cursor ---- */
     if (action === "sync") {
-      const { data: items, error } = await db.from("plaid_items")
+      const { data: items, error } = await vault.from("plaid_items")
         .select("item_id, access_token, cursor, institution_name, accounts")
+        .eq("owner_id", user.id)
         .eq("status", "active");
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (!serviceKey && /permission denied/i.test(error.message)) {
+          throw new Error(
+            "the connector has no elevated key, so it cannot read the stored bank token. " +
+            "Set one of " + SERVICE_KEY_NAMES.join(", ") + " in Edge Function secrets, " +
+            "or call this function with action 'diag' to see which names this project injects.",
+          );
+        }
+        throw new Error(error.message);
+      }
       if (!items?.length) return reply(req, 200, { ok: true, added: [], removed: [], items: 0 });
 
       const added: Record<string, unknown>[] = [];
@@ -242,14 +279,16 @@ Deno.serve(async (req: Request) => {
             cursor = page.next_cursor as string;
             hasMore = Boolean(page.has_more);
           }
-          await db.from("plaid_items")
+          await vault.from("plaid_items")
             .update({ cursor, last_synced_at: new Date().toISOString() })
+            .eq("owner_id", user.id)
             .eq("item_id", item.item_id);
         } catch (itemError) {
           const message = itemError instanceof Error ? itemError.message : String(itemError);
           problems.push((item.institution_name ?? "a connection") + ": " + message);
           if (/ITEM_LOGIN_REQUIRED|reauth/i.test(message)) {
-            await db.from("plaid_items").update({ status: "reauth" }).eq("item_id", item.item_id);
+            await vault.from("plaid_items").update({ status: "reauth" })
+              .eq("owner_id", user.id).eq("item_id", item.item_id);
           }
         }
       }
@@ -263,8 +302,8 @@ Deno.serve(async (req: Request) => {
     if (action === "remove") {
       const itemId = String(body.item_id ?? "");
       if (!itemId) return reply(req, 400, { ok: false, reason: "no item_id" });
-      const { data: rows } = await db.from("plaid_items")
-        .select("access_token").eq("item_id", itemId).limit(1);
+      const { data: rows } = await vault.from("plaid_items")
+        .select("access_token").eq("owner_id", user.id).eq("item_id", itemId).limit(1);
       const token = rows?.[0]?.access_token;
       if (token) {
         try {
@@ -273,9 +312,21 @@ Deno.serve(async (req: Request) => {
           /* already gone at Plaid — still forget it here */
         }
       }
-      const { error } = await db.from("plaid_items").delete().eq("item_id", itemId);
+      const { error } = await vault.from("plaid_items").delete()
+        .eq("owner_id", user.id).eq("item_id", itemId);
       if (error) throw new Error(error.message);
       return reply(req, 200, { ok: true, removed: itemId });
+    }
+
+    /* ---- 6. which elevated key name this project actually injects ---- */
+    if (action === "diag") {
+      return reply(req, 200, {
+        ok: true,
+        env: env(),
+        serviceKeyName: serviceKeyName ?? null,
+        serviceKeyPresent: Boolean(serviceKey),
+        available: SERVICE_KEY_NAMES.filter((name) => Boolean(Deno.env.get(name))),
+      });
     }
 
     return reply(req, 400, { ok: false, reason: "unknown action: " + action });

@@ -1,10 +1,14 @@
 -- ============================================================
 -- GZ IAO · Migration 004 — connected bank items (Plaid)
 --
--- One row per linked institution. The access token is a bearer
--- credential for that bank connection: it never reaches the browser,
--- is never returned by any function, and is readable only by the
--- identity that created it. Safe to re-run.
+-- One row per linked institution. The access token is a bearer credential
+-- for that bank connection.
+--
+-- NOTE: as written, this migration's policy grants the owner SELECT on
+-- every column, including access_token — so a signed-in browser session
+-- could read it. Migration 006 withdraws that grant. Apply 006 as well;
+-- this file is kept as it ran, not rewritten to hide the mistake.
+-- Safe to re-run.
 -- ============================================================
 
 create table if not exists public.plaid_items (
