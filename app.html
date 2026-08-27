@@ -4779,30 +4779,66 @@
           }
         }
 
+        /* OAuth banks (Bank of America among them) send the browser to their
+           own site and back. Link must be re-created on return with the same
+           token, so the token is kept until the round trip completes. */
+        const PLAID_REDIRECT = location.origin + location.pathname;
+
+        function plaidLinkHandler(linkToken, receivedRedirectUri) {
+          return window.Plaid.create({
+            token: linkToken,
+            receivedRedirectUri: receivedRedirectUri || undefined,
+            onSuccess: async (publicToken) => {
+              try {
+                localStorage.removeItem("gz-plaid-link-token");
+                bankNote("Sealing the connection\u2026");
+                const result = await plaidCall("exchange", { public_token: publicToken });
+                toast("Connected to " + (result.institution_name || "your bank") + ".");
+                await renderBankItems();
+                await syncBank();
+              } catch (error) {
+                bankNote("Could not complete the connection: " + error.message, true);
+              }
+            },
+            onExit: (error) => {
+              localStorage.removeItem("gz-plaid-link-token");
+              bankNote(error
+                ? "Connection cancelled: " + (error.display_message || error.error_message || "closed")
+                : "Connection cancelled \u2014 nothing was linked.");
+            },
+          });
+        }
+
+        /* returning from a bank's OAuth page */
+        async function resumePlaidOAuth() {
+          if (!/oauth_state_id=/.test(location.search)) return;
+          const linkToken = localStorage.getItem("gz-plaid-link-token");
+          const href = location.href;
+          /* clear the query so a reload does not try to resume twice */
+          history.replaceState(null, "", location.pathname + location.hash);
+          if (!linkToken) {
+            bankNote("The bank sent you back, but the link had expired. Start the connection again.", true);
+            return;
+          }
+          try {
+            setView("resources");
+            await loadPlaidLink();
+            plaidLinkHandler(linkToken, href).open();
+          } catch (error) {
+            bankNote("Could not resume the connection: " + error.message, true);
+          }
+        }
+
         async function connectBank() {
           $("bank-connect").disabled = true;
           bankNote("Opening your bank's sign-in\u2026");
           try {
-            const [{ link_token }] = await Promise.all([plaidCall("link_token"), loadPlaidLink()]);
-            const handler = window.Plaid.create({
-              token: link_token,
-              onSuccess: async (publicToken) => {
-                try {
-                  bankNote("Sealing the connection\u2026");
-                  const result = await plaidCall("exchange", { public_token: publicToken });
-                  toast("Connected to " + (result.institution_name || "your bank") + ".");
-                  await renderBankItems();
-                  await syncBank();
-                } catch (error) {
-                  bankNote("Could not complete the connection: " + error.message, true);
-                }
-              },
-              onExit: (error) => {
-                bankNote(error
-                  ? "Connection cancelled: " + (error.display_message || error.error_message || "closed")
-                  : "Connection cancelled — nothing was linked.");
-              },
-            });
+            const [{ link_token }] = await Promise.all([
+              plaidCall("link_token", { redirect_uri: PLAID_REDIRECT }),
+              loadPlaidLink(),
+            ]);
+            localStorage.setItem("gz-plaid-link-token", link_token);
+            const handler = plaidLinkHandler(link_token);
             handler.open();
           } catch (error) {
             bankNote(error.message, true);
@@ -12142,6 +12178,8 @@
         if (restricted && $("tabbar")) $("tabbar").hidden = true;
         const initial = location.hash.replace("#/", "");
         setView(restricted ? "thework" : MODULES[initial] ? initial : "command");
+        /* a bank's OAuth page sends the browser back here to finish linking */
+        resumePlaidOAuth();
         /* the watchtower keeps itself current: today's brief loads in the
            background on every boot (served from the daily cache when fresh) */
         setTimeout(() => {
