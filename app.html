@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=58" />
+    <link rel="stylesheet" href="command.css?v=60" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1377,6 +1377,40 @@
             </div>
             <p class="ledger-fresh" id="ledger-fresh" hidden></p>
             <div class="chips" id="ledger-accounts" style="margin: 14px 0 0"></div>
+            <div class="led-filters" id="led-filters">
+              <input type="search" id="led-q" placeholder="Search merchant, account, or category&hellip;" autocomplete="off" />
+              <select id="led-when" aria-label="Date range">
+                <option value="">Any date</option>
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="mtd">This month</option>
+                <option value="ytd">This year</option>
+                <option value="custom">Between&hellip;</option>
+              </select>
+              <select id="led-dir" aria-label="Direction">
+                <option value="">In and out</option>
+                <option value="out">Money out</option>
+                <option value="in">Money in</option>
+              </select>
+              <select id="led-cat" aria-label="Category"></select>
+              <select id="led-state" aria-label="Status">
+                <option value="">Posted and pending</option>
+                <option value="posted">Posted only</option>
+                <option value="pending">Pending only</option>
+              </select>
+              <span class="led-range" id="led-range" hidden>
+                <input type="date" id="led-from" aria-label="From date" />
+                <span>&rarr;</span>
+                <input type="date" id="led-to" aria-label="To date" />
+              </span>
+              <span class="led-amounts">
+                <input type="number" id="led-min" placeholder="Min $" step="0.01" min="0" aria-label="Minimum amount" />
+                <input type="number" id="led-max" placeholder="Max $" step="0.01" min="0" aria-label="Maximum amount" />
+              </span>
+              <button type="button" id="led-clear" hidden>&times; Clear</button>
+            </div>
+            <p class="led-result" id="led-result" hidden></p>
             <ul class="vault-list" id="ledger-list" style="margin-top: 12px; max-height: 460px"></ul>
             <div class="empty-center" id="ledger-empty" style="padding: 30px">
               <b>No statements imported yet.</b>
@@ -5312,6 +5346,99 @@
         }
 
         let ledgerAccountFilter = "All";
+        const ledgerFilter = { q: "", when: "", dir: "", cat: "", state: "", from: "", to: "", min: "", max: "" };
+
+        /* PLAID CATEGORY NAMES ARE SHOUTED — say them like a person */
+        function prettyCategory(raw) {
+          if (!raw) return "";
+          return raw.charAt(0) + raw.slice(1).toLowerCase().replace(/_/g, " ");
+        }
+
+        /* the window a date preset covers, as YYYY-MM-DD bounds */
+        function ledgerWindow() {
+          const today = new Date();
+          const iso = (d) => d.toISOString().slice(0, 10);
+          const back = (days) => iso(new Date(today.getTime() - days * 86400000));
+          switch (ledgerFilter.when) {
+            case "7": return [back(7), iso(today)];
+            case "30": return [back(30), iso(today)];
+            case "90": return [back(90), iso(today)];
+            case "mtd": return [iso(today).slice(0, 8) + "01", iso(today)];
+            case "ytd": return [iso(today).slice(0, 4) + "-01-01", iso(today)];
+            case "custom": return [ledgerFilter.from || "", ledgerFilter.to || ""];
+            default: return ["", ""];
+          }
+        }
+
+        function ledgerFilterActive() {
+          return Boolean(ledgerFilter.q || ledgerFilter.when || ledgerFilter.dir ||
+            ledgerFilter.cat || ledgerFilter.state || ledgerFilter.min || ledgerFilter.max ||
+            ledgerAccountFilter !== "All");
+        }
+
+        function applyLedgerFilter(rows) {
+          const [from, to] = ledgerWindow();
+          const needle = ledgerFilter.q.trim().toLowerCase();
+          const min = parseFloat(ledgerFilter.min);
+          const max = parseFloat(ledgerFilter.max);
+          return rows.filter((record) => {
+            const txn = record.meta.txn;
+            if (ledgerAccountFilter !== "All" && record.meta.account !== ledgerAccountFilter) return false;
+            if (from && txn.date < from) return false;
+            if (to && txn.date > to) return false;
+            if (ledgerFilter.dir === "out" && txn.amount >= 0) return false;
+            if (ledgerFilter.dir === "in" && txn.amount < 0) return false;
+            if (ledgerFilter.cat && (txn.category || "") !== ledgerFilter.cat) return false;
+            if (ledgerFilter.state === "pending" && !record.meta.pending) return false;
+            if (ledgerFilter.state === "posted" && record.meta.pending) return false;
+            /* amounts are compared by size, so "over $50" means either direction */
+            const size = Math.abs(txn.amount);
+            if (Number.isFinite(min) && size < min) return false;
+            if (Number.isFinite(max) && size > max) return false;
+            if (needle) {
+              const hay = [txn.description, record.meta.account, prettyCategory(txn.category),
+                txn.address, record.meta.institution].filter(Boolean).join(" ").toLowerCase();
+              if (!hay.includes(needle)) return false;
+            }
+            return true;
+          });
+        }
+
+        function wireLedgerFilters() {
+          if (!$("led-q") || $("led-q").dataset.wired) return;
+          $("led-q").dataset.wired = "1";
+          let typing = null;
+          $("led-q").addEventListener("input", () => {
+            clearTimeout(typing);
+            typing = setTimeout(() => {
+              ledgerFilter.q = $("led-q").value;
+              renderLedger();
+            }, 180);
+          });
+          const bind = (id, key) => $(id).addEventListener("change", () => {
+            ledgerFilter[key] = $(id).value;
+            if (key === "when") $("led-range").hidden = $(id).value !== "custom";
+            renderLedger();
+          });
+          bind("led-when", "when");
+          bind("led-dir", "dir");
+          bind("led-cat", "cat");
+          bind("led-state", "state");
+          bind("led-from", "from");
+          bind("led-to", "to");
+          bind("led-min", "min");
+          bind("led-max", "max");
+          $("led-clear").addEventListener("click", () => {
+            for (const key of Object.keys(ledgerFilter)) ledgerFilter[key] = "";
+            ledgerAccountFilter = "All";
+            for (const id of ["led-q", "led-when", "led-dir", "led-cat", "led-state",
+              "led-from", "led-to", "led-min", "led-max"]) {
+              if ($(id)) $(id).value = "";
+            }
+            $("led-range").hidden = true;
+            renderLedger();
+          });
+        }
 
         function renderLedger() {
           const list = $("ledger-list");
@@ -5320,11 +5447,35 @@
             String(b.meta.txn.date).localeCompare(String(a.meta.txn.date)));
           $("ledger-count").textContent = all.length + " TRANSACTION" + (all.length === 1 ? "" : "S");
           $("ledger-empty").hidden = all.length > 0;
+          $("led-filters").hidden = all.length === 0;
 
+          wireLedgerFilters();
+          /* the category list reflects what is actually held */
+          const catSelect = $("led-cat");
+          if (catSelect) {
+            const present = [...new Set(all.map((r) => r.meta.txn.category).filter(Boolean))].sort();
+            const kept = catSelect.value;
+            catSelect.innerHTML = "";
+            const any = document.createElement("option");
+            any.value = "";
+            any.textContent = "Any category";
+            catSelect.append(any);
+            for (const cat of present) {
+              const opt = document.createElement("option");
+              opt.value = cat;
+              opt.textContent = prettyCategory(cat);
+              catSelect.append(opt);
+            }
+            catSelect.value = present.includes(kept) ? kept : "";
+          }
+
+          /* everything below the account chips describes the FILTERED set, so
+             the totals always answer the question actually on screen */
+          const shown = applyLedgerFilter(all);
           let inflow = 0;
           let outflow = 0;
           const dates = [];
-          for (const record of all) {
+          for (const record of shown) {
             dates.push(record.meta.txn.date);
             /* a superseded import and a pending posting are both held and
                shown, but neither is counted: one would double, one may change */
@@ -5332,8 +5483,8 @@
             const amount = record.meta.txn.amount;
             if (amount >= 0) inflow += amount; else outflow += Math.abs(amount);
           }
-          const supersededCount = all.filter((record) => record.meta.superseded_by).length;
-          const pendingCount = all.filter((record) => record.meta.pending).length;
+          const supersededCount = shown.filter((record) => record.meta.superseded_by).length;
+          const pendingCount = shown.filter((record) => record.meta.pending).length;
           dates.sort();
           $("ledger-in").textContent = "$" + inflow.toFixed(2);
           $("ledger-out").textContent = "$" + outflow.toFixed(2);
@@ -5394,8 +5545,16 @@
             chips.append(chip);
           }
 
-          const shown = ledgerAccountFilter === "All"
-            ? all : all.filter((record) => record.meta.account === ledgerAccountFilter);
+          const active = ledgerFilterActive();
+          $("led-clear").hidden = !active;
+          const result = $("led-result");
+          result.hidden = !active;
+          if (active) {
+            result.textContent = shown.length === all.length
+              ? "Every transaction matches."
+              : shown.length + " of " + all.length + " transactions match \u2014 " +
+                "the figures above describe this selection.";
+          }
           list.innerHTML = "";
           for (const record of shown.slice(0, 300)) {
             const txn = record.meta.txn;
@@ -5448,11 +5607,17 @@
             }
             list.append(item);
           }
+          if (!shown.length && all.length) {
+            const none = document.createElement("li");
+            none.style.cssText = "color: var(--faint); font-size: 12px; padding: 14px 0";
+            none.textContent = "No transaction matches these filters.";
+            list.append(none);
+          }
           if (shown.length > 300) {
             const more = document.createElement("li");
             more.style.cssText = "color: var(--faint); font-size: 11px";
             more.textContent = "Showing the most recent 300 of " + shown.length +
-              " \u2014 the rest are held and searchable.";
+              " \u2014 narrow the filters to reach the rest.";
             list.append(more);
           }
         }
