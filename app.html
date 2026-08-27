@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=53" />
+    <link rel="stylesheet" href="command.css?v=55" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1292,12 +1292,55 @@
             </span>
             <h2>Accounts and statements</h2>
             <p class="panel-sub">
-              Download a statement from your bank &mdash; Bank of America exports CSV, QFX, and OFX from
-              Online Banking under <b>Statements &amp; Documents</b> &rarr; <b>Download</b> &mdash; and drop
-              the file here. Every transaction is read, dated, and held under your identity alone. No
-              credentials are ever asked for, entered, or stored: the file already in your hands is
-              the whole mechanism.
+              Export the transactions from your bank and drop the file here. Every one is read, dated,
+              and held under your identity alone. Nothing asks for a login, and no password, token, or
+              account number is ever entered or stored here &mdash; the file already in your hands is
+              the whole mechanism, and it is read inside this browser without leaving the device.
             </p>
+            <details class="bank-guide">
+              <summary>How to export from your bank &mdash; step by step</summary>
+              <div class="bank-guide-body">
+                <b>Bank of America, on the website</b>
+                <ol>
+                  <li>Sign in at bankofamerica.com and open the account you want &mdash; checking, savings,
+                    or a credit card. Each is exported separately.</li>
+                  <li>On the account&rsquo;s activity page, set the date range you want first. The export
+                    only contains what is on screen, so a narrow range gives a short file.</li>
+                  <li>Find the download control on that page &mdash; a downward arrow or a
+                    <b>Download</b> link sitting above the transaction list, near the search box.</li>
+                  <li>Choose a file type. Any of these work here:
+                    <b>Microsoft Excel (.csv)</b>, <b>Quicken (.qfx)</b>, <b>QuickBooks (.qbo)</b>, or
+                    <b>Money (.ofx)</b>. CSV is the plainest and easiest to check by eye.</li>
+                  <li>Download it, then drop it on the panel below. Several files at once is fine &mdash;
+                    checking and credit card together, or a year of months in one go.</li>
+                </ol>
+                <p>
+                  In the mobile app the export is usually under the account&rsquo;s
+                  <b>Statements &amp; Documents</b>, though the phone app sometimes offers only PDF
+                  statements. PDFs are not transaction exports and will not import &mdash; use the website
+                  for CSV or QFX.
+                </p>
+                <b>Any other bank</b>
+                <p>
+                  The same idea everywhere: open the account&rsquo;s transaction list, look for
+                  <i>Download</i>, <i>Export</i>, or <i>Save as</i>, and pick CSV, QFX, or OFX. Statement
+                  PDFs are pictures of a statement, not data, and are not read here.
+                </p>
+                <b>Overlapping months are safe</b>
+                <p>
+                  Every transaction is fingerprinted by its account, date, amount, and description, so
+                  re-importing a period already held changes nothing. When in doubt, export a wider range
+                  than you need &mdash; duplicates are recognised and skipped, and gaps are the only real
+                  mistake.
+                </p>
+                <b>What never happens</b>
+                <p>
+                  This system will never ask for your online banking username, password, one-time code,
+                  or full account number, and you should never enter them anywhere in it. Any page or
+                  message that asks you for them while claiming to be part of this system is not.
+                </p>
+              </div>
+            </details>
             <div class="doc-drop" id="stmt-drop" style="margin-top: 14px">
               <input type="file" id="stmt-file" accept=".csv,.qfx,.ofx,.qbo,.txt" multiple hidden />
               <b>Drop statements here or click to choose</b>
