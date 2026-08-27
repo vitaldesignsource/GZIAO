@@ -4480,7 +4480,10 @@
         /* one extractor, shared by fresh uploads and files already in the
            vault — takes a Blob-like with .type/.text(), returns the result */
         async function extractMatterFacts(fileLike, displayName) {
-          if (!scribeKey()) throw new Error("Connect a key in The Scribe first — free Gemini works.");
+          if (!scribeKey() && !(await scribeRelayCanServe())) {
+            throw new Error("No model key available. Set one in Supabase (Edge Functions → Secrets) " +
+              "so it never touches this browser, or connect one in The Scribe.");
+          }
           const media = fileLike.type || "";
           let fileBlock = null, fileText = null;
           if (media === "application/pdf" || /^image\//.test(media)) {
@@ -4497,24 +4500,13 @@
               : { type: "image", source: { type: "base64", media_type: fileBlock.media, data: fileBlock.data } });
             if (fileText) content.push({ type: "text", text: fileText });
             content.push({ type: "text", text: "Extract this matter's facts." });
-            const response = await fetch("https://api.anthropic.com/v1/messages", {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                "x-api-key": scribeKey(),
-                "anthropic-version": "2023-06-01",
-                "anthropic-dangerous-direct-browser-access": "true",
-              },
-              body: JSON.stringify({
-                model: SCRIBE_PROVIDERS.anthropic.model, max_tokens: 1500,
-                system: SEN_READ_SYSTEM,
-                tools: [SEN_READ_SCHEMA_CLAUDE],
-                tool_choice: { type: "tool", name: "read_matter" },
-                messages: [{ role: "user", content }],
-              }),
+            const message = await askModel({
+              max_tokens: 1500,
+              system: SEN_READ_SYSTEM,
+              tools: [SEN_READ_SCHEMA_CLAUDE],
+              tool_choice: { type: "tool", name: "read_matter" },
+              messages: [{ role: "user", content }],
             });
-            if (!response.ok) throw new Error("API " + response.status);
-            const message = await response.json();
             const toolUse = (message.content || []).find((block) => block.type === "tool_use");
             result = toolUse && toolUse.input;
           } else {
@@ -4522,25 +4514,15 @@
             if (fileBlock) parts.push({ inline_data: { mime_type: fileBlock.media, data: fileBlock.data } });
             if (fileText) parts.push({ text: fileText });
             parts.push({ text: "Extract this matter's facts." });
-            const response = await fetch(
-              "https://generativelanguage.googleapis.com/v1beta/models/" +
-              SCRIBE_PROVIDERS.gemini.model + ":generateContent",
-              {
-                method: "POST",
-                headers: { "content-type": "application/json", "x-goog-api-key": scribeKey() },
-                body: JSON.stringify({
-                  system_instruction: { parts: [{ text: SEN_READ_SYSTEM }] },
-                  contents: [{ role: "user", parts }],
-                  generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: SEN_READ_SCHEMA_GEMINI,
-                    maxOutputTokens: 1500,
-                  },
-                }),
-              }
-            );
-            if (!response.ok) throw new Error("API " + response.status);
-            const message = await response.json();
+            const message = await askModel({
+              system_instruction: { parts: [{ text: SEN_READ_SYSTEM }] },
+              contents: [{ role: "user", parts }],
+              generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: SEN_READ_SCHEMA_GEMINI,
+                maxOutputTokens: 1500,
+              },
+            });
             const text = message.candidates && message.candidates[0] &&
               message.candidates[0].content.parts[0].text;
             result = text ? JSON.parse(text) : null;
@@ -5951,7 +5933,10 @@
         };
 
         async function extractReceiptFacts(fileLike, displayName) {
-          if (!scribeKey()) throw new Error("Connect a key in The Scribe first — free Gemini works.");
+          if (!scribeKey() && !(await scribeRelayCanServe())) {
+            throw new Error("No model key available. Set one in Supabase (Edge Functions → Secrets) " +
+              "so it never touches this browser, or connect one in The Scribe.");
+          }
           const media = fileLike.type || "";
           let fileBlock = null, fileText = null;
           if (media === "application/pdf" || /^image\//.test(media)) {
@@ -5968,24 +5953,13 @@
               : { type: "image", source: { type: "base64", media_type: fileBlock.media, data: fileBlock.data } });
             if (fileText) content.push({ type: "text", text: fileText });
             content.push({ type: "text", text: "Transcribe this receipt." });
-            const response = await fetch("https://api.anthropic.com/v1/messages", {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                "x-api-key": scribeKey(),
-                "anthropic-version": "2023-06-01",
-                "anthropic-dangerous-direct-browser-access": "true",
-              },
-              body: JSON.stringify({
-                model: SCRIBE_PROVIDERS.anthropic.model, max_tokens: 1500,
-                system: RECEIPT_READ_SYSTEM,
-                tools: [RECEIPT_SCHEMA_CLAUDE],
-                tool_choice: { type: "tool", name: "read_receipt" },
-                messages: [{ role: "user", content }],
-              }),
+            const message = await askModel({
+              max_tokens: 1500,
+              system: RECEIPT_READ_SYSTEM,
+              tools: [RECEIPT_SCHEMA_CLAUDE],
+              tool_choice: { type: "tool", name: "read_receipt" },
+              messages: [{ role: "user", content }],
             });
-            if (!response.ok) throw new Error("API " + response.status);
-            const message = await response.json();
             const toolUse = (message.content || []).find((block) => block.type === "tool_use");
             result = toolUse && toolUse.input;
           } else {
@@ -5993,25 +5967,15 @@
             if (fileBlock) parts.push({ inline_data: { mime_type: fileBlock.media, data: fileBlock.data } });
             if (fileText) parts.push({ text: fileText });
             parts.push({ text: "Transcribe this receipt." });
-            const response = await fetch(
-              "https://generativelanguage.googleapis.com/v1beta/models/" +
-              SCRIBE_PROVIDERS.gemini.model + ":generateContent",
-              {
-                method: "POST",
-                headers: { "content-type": "application/json", "x-goog-api-key": scribeKey() },
-                body: JSON.stringify({
-                  system_instruction: { parts: [{ text: RECEIPT_READ_SYSTEM }] },
-                  contents: [{ role: "user", parts }],
-                  generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: RECEIPT_SCHEMA_GEMINI,
-                    maxOutputTokens: 1500,
-                  },
-                }),
-              }
-            );
-            if (!response.ok) throw new Error("API " + response.status);
-            const message = await response.json();
+            const message = await askModel({
+              system_instruction: { parts: [{ text: RECEIPT_READ_SYSTEM }] },
+              contents: [{ role: "user", parts }],
+              generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: RECEIPT_SCHEMA_GEMINI,
+                maxOutputTokens: 1500,
+              },
+            });
             const text = message.candidates && message.candidates[0] &&
               message.candidates[0].content.parts[0].text;
             result = text ? JSON.parse(text) : null;
@@ -6156,7 +6120,9 @@
 
         async function processReceipts() {
           if (!receiptFiles.length) return;
-          if (!scribeKey()) return toast("Connect a key in The Scribe first — free Gemini works.");
+          if (!scribeKey() && !(await scribeRelayCanServe())) {
+            return toast("No model key available — set one in Supabase, or connect one in The Scribe.");
+          }
           const shared = $("receipt-shared").checked;
           const queue = receiptFiles.slice();
           const marks = [...$("receipt-queue").querySelectorAll(".up-state")];
@@ -12017,17 +11983,161 @@
           return localStorage.getItem(scribeProvider().store) || "";
         }
 
-        function refreshScribeState() {
+        /* ---- the relay: a model key belongs on a server, not in a browser ----
+           When the scribe function is deployed and holds a key for the chosen
+           provider, every model call goes through it and this browser never
+           holds a credential. A key pasted here still works as a fallback so
+           nothing breaks mid-flight, but the relay is preferred whenever it
+           can answer. */
+        let scribeRelayState = null; /* null = unasked; else {gemini, anthropic} */
+        let scribeRelayAskedAt = 0;
+        const SCRIBE_RELAY_RETRY_MS = 60000;
+
+        async function scribeRelayProviders() {
+          /* a positive answer is kept for the session, but a negative one is
+             only held briefly — otherwise deploying the relay, or a moment of
+             bad network at boot, would leave the app permanently convinced
+             there is no relay */
+          const fresh = scribeRelayState !== null &&
+            (scribeRelayState.reachable || Date.now() - scribeRelayAskedAt < SCRIBE_RELAY_RETRY_MS);
+          if (fresh) return scribeRelayState;
+          scribeRelayAskedAt = Date.now();
+          scribeRelayState = { gemini: false, anthropic: false, reachable: false };
+          try {
+            const { data } = await GZ.client.auth.getSession();
+            const token = data && data.session && data.session.access_token;
+            if (!token) return scribeRelayState;
+            const response = await fetch(GZ_CONFIG.SUPABASE_URL + "/functions/v1/scribe", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token,
+                "apikey": GZ_CONFIG.SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({ action: "status" }),
+            });
+            if (response.status === 404) return scribeRelayState;
+            const result = await response.json().catch(() => ({}));
+            if (result.ok && result.providers) {
+              scribeRelayState = { ...result.providers, reachable: true };
+            }
+          } catch (error) { /* unreachable relay simply is not used */ }
+          return scribeRelayState;
+        }
+
+        async function scribeRelayCanServe() {
+          const providers = await scribeRelayProviders();
+          return Boolean(providers && providers[scribeProviderId()]);
+        }
+
+        /* one call shape for every model request in the system */
+        async function askModel(payload) {
+          const providerId = scribeProviderId();
+          const model = scribeProvider().model;
+          if (await scribeRelayCanServe()) {
+            const { data } = await GZ.client.auth.getSession();
+            const response = await fetch(GZ_CONFIG.SUPABASE_URL + "/functions/v1/scribe", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + data.session.access_token,
+                "apikey": GZ_CONFIG.SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({ provider: providerId, model, payload }),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error(result.reason || "the relay returned " + response.status);
+            }
+            return result;
+          }
+          /* no relay for this provider — fall back to a key held here */
+          const key = scribeKey();
+          if (!key) {
+            throw new Error(
+              "No key for " + scribeProvider().label + ". Either set one in Supabase " +
+              "(Edge Functions \u2192 Secrets) so it never touches this browser, or paste one below."
+            );
+          }
+          if (providerId === "anthropic") {
+            const response = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                "x-api-key": key,
+                "anthropic-version": "2023-06-01",
+                "anthropic-dangerous-direct-browser-access": "true",
+              },
+              body: JSON.stringify({ ...payload, model }),
+            });
+            if (!response.ok) {
+              const detail = await response.json().catch(() => null);
+              throw new Error((detail && detail.error && detail.error.message) || "API returned " + response.status);
+            }
+            return response.json();
+          }
+          const response = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
+            {
+              method: "POST",
+              headers: { "content-type": "application/json", "x-goog-api-key": key },
+              body: JSON.stringify(payload),
+            }
+          );
+          if (!response.ok) {
+            const detail = await response.json().catch(() => null);
+            throw new Error((detail && detail.error && detail.error.message) || "API returned " + response.status);
+          }
+          return response.json();
+        }
+
+        async function refreshScribeState() {
           const provider = scribeProvider();
           $("scribe-provider").value = scribeProviderId();
           const has = Boolean(scribeKey());
-          $("scribe-state").textContent = has
-            ? "SCRIBE CONNECTED · " + provider.label.toUpperCase()
-            : "NO KEY SET · " + provider.label.toUpperCase();
-          $("scribe-key-title").textContent = has
-            ? provider.label + " key held in this browser"
-            : "Connect the Scribe";
-          $("scribe-key").placeholder = has ? "•••••••••••• (saved)" : provider.placeholder;
+          const relayed = await scribeRelayCanServe();
+          /* the relay is the better state, so say so plainly and tell the
+             holder of a browser key that they no longer need it */
+          $("scribe-state").textContent = relayed
+            ? "SCRIBE CONNECTED \u00b7 " + provider.label.toUpperCase() + " \u00b7 KEY HELD SERVER-SIDE"
+            : has
+              ? "SCRIBE CONNECTED \u00b7 " + provider.label.toUpperCase() + " \u00b7 KEY IN THIS BROWSER"
+              : "NO KEY SET \u00b7 " + provider.label.toUpperCase();
+          $("scribe-key-title").textContent = relayed
+            ? provider.label + " key held in Supabase, never in this browser"
+            : has
+              ? provider.label + " key held in this browser"
+              : "Connect the Scribe";
+          $("scribe-key").placeholder = has ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022 (saved)" : provider.placeholder;
+
+          let note = $("scribe-relay-note");
+          if (!note) {
+            note = document.createElement("p");
+            note.id = "scribe-relay-note";
+            note.className = "panel-note";
+            $("scribe-key-title").parentElement.append(note);
+          }
+          if (relayed && has) {
+            note.innerHTML = "This provider is served by the relay, so the key saved in this " +
+              "browser is no longer used. <button type=\"button\" id=\"scribe-forget\" " +
+              "class=\"chrono-open\">Forget the browser key</button>";
+            const forget = $("scribe-forget");
+            if (forget) {
+              forget.addEventListener("click", () => {
+                localStorage.removeItem(scribeProvider().store);
+                refreshScribeState();
+                toast("Browser key forgotten. The relay continues to serve.");
+              });
+            }
+          } else if (relayed) {
+            note.textContent = "Served by the relay — no key is stored in this browser, and every " +
+              "signed-in identity shares one configuration.";
+          } else {
+            note.textContent = "A key saved here lives in this browser's storage. Setting " +
+              (scribeProviderId() === "gemini" ? "GEMINI_API_KEY" : "ANTHROPIC_API_KEY") +
+              " in Supabase (Edge Functions \u2192 Secrets) instead keeps it off this device " +
+              "and serves every identity at once.";
+          }
         }
 
         $("scribe-provider").addEventListener("change", () => {
@@ -12163,28 +12273,13 @@
           }
           if (fileText) content.push({ type: "text", text: fileText });
           content.push({ type: "text", text: ask });
-          const response = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-              "x-api-key": scribeKey(),
-              "anthropic-version": "2023-06-01",
-              "anthropic-dangerous-direct-browser-access": "true",
-            },
-            body: JSON.stringify({
-              model: SCRIBE_PROVIDERS.anthropic.model,
-              max_tokens: 3000,
-              system: scribeSystemPrompt(),
-              tools: [SCRIBE_TOOL],
-              tool_choice: { type: "tool", name: "commit_intents" },
-              messages: [{ role: "user", content }],
-            }),
+          const message = await askModel({
+            max_tokens: 3000,
+            system: scribeSystemPrompt(),
+            tools: [SCRIBE_TOOL],
+            tool_choice: { type: "tool", name: "commit_intents" },
+            messages: [{ role: "user", content }],
           });
-          if (!response.ok) {
-            const detail = await response.json().catch(() => null);
-            throw new Error((detail && detail.error && detail.error.message) || "API returned " + response.status);
-          }
-          const message = await response.json();
           const toolUse = (message.content || []).find((block) => block.type === "tool_use");
           return toolUse && toolUse.input && Array.isArray(toolUse.input.intents) ? toolUse.input.intents : [];
         }
@@ -12239,31 +12334,15 @@
           }
           if (fileText) parts.push({ text: fileText });
           parts.push({ text: ask });
-          const response = await fetch(
-            "https://generativelanguage.googleapis.com/v1beta/models/" +
-            SCRIBE_PROVIDERS.gemini.model + ":generateContent",
-            {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                "x-goog-api-key": scribeKey(),
-              },
-              body: JSON.stringify({
-                system_instruction: { parts: [{ text: scribeSystemPrompt() }] },
-                contents: [{ role: "user", parts }],
-                generationConfig: {
-                  responseMimeType: "application/json",
-                  responseSchema: GEMINI_SCHEMA,
-                  maxOutputTokens: 3000,
-                },
-              }),
-            }
-          );
-          if (!response.ok) {
-            const detail = await response.json().catch(() => null);
-            throw new Error((detail && detail.error && detail.error.message) || "API returned " + response.status);
-          }
-          const message = await response.json();
+          const message = await askModel({
+            system_instruction: { parts: [{ text: scribeSystemPrompt() }] },
+            contents: [{ role: "user", parts }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: GEMINI_SCHEMA,
+              maxOutputTokens: 3000,
+            },
+          });
           const text = message.candidates && message.candidates[0] &&
             message.candidates[0].content && message.candidates[0].content.parts &&
             message.candidates[0].content.parts[0] && message.candidates[0].content.parts[0].text;
@@ -12275,8 +12354,8 @@
         async function scribePropose() {
           const instruction = $("scribe-input").value.trim();
           if (!instruction && !scribeFiles.length) return toast("Tell the Scribe what to enter, or attach a document.");
-          if (!scribeKey()) {
-            toast("Connect an Anthropic API key first — it stays in this browser.");
+          if (!scribeKey() && !(await scribeRelayCanServe())) {
+            toast("No model key available — set one in Supabase, or connect one below.");
             return;
           }
           $("scribe-send").disabled = true;
