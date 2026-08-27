@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=60" />
+    <link rel="stylesheet" href="command.css?v=63" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1376,6 +1376,30 @@
               </p>
             </div>
             <p class="ledger-fresh" id="ledger-fresh" hidden></p>
+            <div class="fin-visuals" id="fin-visuals" hidden>
+              <div class="fin-flow">
+                <div class="fin-head">
+                  <span>CASHFLOW</span>
+                  <b id="fin-flow-span"></b>
+                </div>
+                <svg class="fin-chart" id="fin-chart" viewBox="0 0 600 170" preserveAspectRatio="none" role="img" aria-label="Daily inflow and outflow"></svg>
+                <div class="fin-legend">
+                  <span><i class="is-in"></i>in</span>
+                  <span><i class="is-out"></i>out</span>
+                  <span class="fin-hover" id="fin-hover"></span>
+                </div>
+              </div>
+              <div class="fin-ring" id="fin-ring">
+                <div class="fin-head">
+                  <span id="fin-ring-head">WHERE IT WENT</span>
+                  <b id="fin-ring-total"></b>
+                </div>
+                <div class="fin-ring-body">
+                  <svg class="fin-donut" id="fin-donut" viewBox="0 0 120 120" role="img" aria-label="Outflow by category"></svg>
+                  <ul class="fin-cats" id="fin-cats"></ul>
+                </div>
+              </div>
+            </div>
             <div class="chips" id="ledger-accounts" style="margin: 14px 0 0"></div>
             <div class="led-filters" id="led-filters">
               <input type="search" id="led-q" placeholder="Search merchant, account, or category&hellip;" autocomplete="off" />
@@ -5440,6 +5464,233 @@
           });
         }
 
+        /* ---------- the money, drawn ---------- */
+
+        const CAT_COLOURS = [
+          "#d0ad6d", "#63dfca", "#a78bfa", "#e08baf", "#5ce0a1",
+          "#e0b866", "#7fb8e0", "#c98be0", "#e08b8b", "#8be0c4",
+          "#b9a0e0", "#e0cf8b", "#8ba6e0",
+        ];
+        function categoryColour(name, index) {
+          return CAT_COLOURS[index % CAT_COLOURS.length];
+        }
+
+        /* daily totals across the range actually on screen */
+        function dailyFlow(rows) {
+          const byDay = new Map();
+          for (const record of rows) {
+            if (record.meta.superseded_by) continue;
+            const day = record.meta.txn.date;
+            const cell = byDay.get(day) || { day, in: 0, out: 0 };
+            const amount = record.meta.txn.amount;
+            if (amount >= 0) cell.in += amount; else cell.out += Math.abs(amount);
+            byDay.set(day, cell);
+          }
+          return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
+        }
+
+        function renderCashflow(rows) {
+          const svg = $("fin-chart");
+          if (!svg) return;
+          const days = dailyFlow(rows);
+          svg.innerHTML = "";
+          $("fin-flow-span").textContent = days.length
+            ? days.length + (days.length === 1 ? " day" : " days")
+            : "";
+          if (!days.length) return;
+
+          const W = 600, H = 170, PAD = 6;
+          const mid = H / 2;
+          const peak = Math.max(1, ...days.map((d) => Math.max(d.in, d.out)));
+          const slot = W / days.length;
+          const barW = Math.max(1.5, Math.min(22, slot * 0.62));
+          const scale = (value) => (value / peak) * (mid - PAD);
+
+          let html =
+            '<line x1="0" y1="' + mid + '" x2="' + W + '" y2="' + mid +
+            '" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1"/>';
+
+          days.forEach((d, i) => {
+            const x = i * slot + slot / 2 - barW / 2;
+            const inH = scale(d.in);
+            const outH = scale(d.out);
+            /* bars grow from the centre line — the axis is the day, the
+               distance is the money */
+            if (d.in > 0) {
+              html += '<rect class="fin-bar is-in" x="' + x.toFixed(2) + '" y="' + (mid - inH).toFixed(2) +
+                '" width="' + barW.toFixed(2) + '" height="' + inH.toFixed(2) +
+                '" rx="1" style="--grow:' + inH.toFixed(2) + 'px; --delay:' + (i * 12) + 'ms"/>';
+            }
+            if (d.out > 0) {
+              html += '<rect class="fin-bar is-out" x="' + x.toFixed(2) + '" y="' + mid.toFixed(2) +
+                '" width="' + barW.toFixed(2) + '" height="' + outH.toFixed(2) +
+                '" rx="1" style="--grow:' + outH.toFixed(2) + 'px; --delay:' + (i * 12) + 'ms"/>';
+            }
+            /* an invisible full-height target so hovering a sparse day still works */
+            html += '<rect class="fin-hit" x="' + (i * slot).toFixed(2) + '" y="0" width="' +
+              slot.toFixed(2) + '" height="' + H + '" fill="transparent" data-day="' + d.day +
+              '" data-in="' + d.in.toFixed(2) + '" data-out="' + d.out.toFixed(2) + '"/>';
+          });
+          svg.innerHTML = html;
+
+          const readout = $("fin-hover");
+          const show = (event) => {
+            const hit = event.target.closest(".fin-hit");
+            if (!hit) return;
+            const inV = Number(hit.dataset.in), outV = Number(hit.dataset.out);
+            readout.innerHTML = "<b>" + hit.dataset.day + "</b> " +
+              (inV ? '<span class="t-in">+$' + inV.toFixed(2) + "</span> " : "") +
+              (outV ? '<span class="t-out">\u2212$' + outV.toFixed(2) + "</span>" : "") +
+              (!inV && !outV ? "nothing moved" : "");
+          };
+          svg.addEventListener("mousemove", show);
+          svg.addEventListener("touchstart", show, { passive: true });
+          svg.addEventListener("mouseleave", () => { readout.textContent = ""; });
+        }
+
+        function renderCategoryRing(rows) {
+          const donut = $("fin-donut");
+          const list = $("fin-cats");
+          if (!donut || !list) return;
+          const outgoing = rows.filter((r) => !r.meta.superseded_by && r.meta.txn.amount < 0);
+          /* the live feed carries categories; an imported statement does not.
+             Rather than one meaningless "uncategorised" blob, fall back to
+             grouping by merchant — still a fact the data states, not a guess. */
+          const categorised = outgoing.filter((r) => r.meta.txn.category).length;
+          const byMerchant = categorised < outgoing.length / 2;
+          const spend = new Map();
+          let total = 0;
+          for (const record of outgoing) {
+            const key = byMerchant
+              ? (record.meta.txn.description || "unnamed").trim().slice(0, 42)
+              : (record.meta.txn.category || "UNCATEGORIZED");
+            const amount = Math.abs(record.meta.txn.amount);
+            spend.set(key, (spend.get(key) || 0) + amount);
+            total += amount;
+          }
+          let slices = [...spend.entries()]
+            .map(([key, value]) => ({ key, value }))
+            .sort((a, b) => b.value - a.value);
+          /* a hundred merchants is not a chart — keep the big ones, gather the tail */
+          if (slices.length > 9) {
+            const tail = slices.slice(8);
+            slices = slices.slice(0, 8).concat([{
+              key: "__REST__",
+              value: tail.reduce((sum, item) => sum + item.value, 0),
+              rest: tail.length,
+            }]);
+          }
+          const heading = $("fin-ring-head");
+          if (heading) heading.textContent = byMerchant ? "WHERE IT WENT \u00b7 BY MERCHANT" : "WHERE IT WENT";
+          $("fin-ring-total").textContent = total ? "$" + total.toFixed(2) : "";
+          donut.innerHTML = "";
+          list.innerHTML = "";
+          if (!total) return;
+
+          const R = 46, CX = 60, CY = 60, THICK = 15;
+          let angle = -Math.PI / 2;
+          let circumference = 2 * Math.PI * R;
+          let offset = 0;
+          slices.forEach((slice, index) => {
+            const share = slice.value / total;
+            const colour = categoryColour(slice.key, index);
+            const dash = share * circumference;
+            const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            ring.setAttribute("cx", CX);
+            ring.setAttribute("cy", CY);
+            ring.setAttribute("r", R);
+            ring.setAttribute("fill", "none");
+            ring.setAttribute("stroke", colour);
+            ring.setAttribute("stroke-width", THICK);
+            ring.setAttribute("stroke-dasharray", dash.toFixed(2) + " " + (circumference - dash).toFixed(2));
+            ring.setAttribute("stroke-dashoffset", (-offset).toFixed(2));
+            ring.setAttribute("transform", "rotate(-90 " + CX + " " + CY + ")");
+            const picked = slice.key !== "__REST__" &&
+              (byMerchant ? ledgerFilter.q === slice.key : ledgerFilter.cat === slice.key);
+            ring.setAttribute("class", "fin-arc" + (picked ? " is-picked" : "") +
+              (slice.key === "__REST__" ? " is-rest" : ""));
+            ring.style.setProperty("--delay", (index * 55) + "ms");
+            ring.dataset.cat = slice.key;
+            donut.append(ring);
+            offset += dash;
+
+            const isRest = slice.key === "__REST__";
+            const label = isRest
+              ? slice.rest + " smaller ones"
+              : (byMerchant ? slice.key : prettyCategory(slice.key));
+            const li = document.createElement("li");
+            li.className = "fin-cat" + (picked ? " is-picked" : "") + (isRest ? " is-rest" : "");
+            if (!isRest) {
+              li.tabIndex = 0;
+              li.setAttribute("role", "button");
+              li.title = "Show only " + label;
+            }
+            li.innerHTML = '<i style="background:' + colour + '"></i>' +
+              "<span>" + escText(label) + "</span>" +
+              "<b>$" + slice.value.toFixed(2) + "</b>" +
+              '<em>' + Math.round(share * 100) + "%</em>";
+            /* the chart is a control: a slice picks itself into the filter */
+            const pick = () => {
+              if (isRest) return;
+              if (byMerchant) {
+                ledgerFilter.q = ledgerFilter.q === slice.key ? "" : slice.key;
+                if ($("led-q")) $("led-q").value = ledgerFilter.q;
+              } else {
+                ledgerFilter.cat = ledgerFilter.cat === slice.key ? "" : slice.key;
+                if ($("led-cat")) $("led-cat").value = ledgerFilter.cat;
+              }
+              renderLedger();
+            };
+            li.addEventListener("click", pick);
+            li.addEventListener("keydown", (event) => {
+              if (event.key === "Enter" || event.key === " ") { event.preventDefault(); pick(); }
+            });
+            list.append(li);
+          });
+          donut.querySelectorAll(".fin-arc").forEach((arc) => {
+            if (arc.dataset.cat === "__REST__") return;
+            arc.addEventListener("click", () => {
+              if (byMerchant) {
+                ledgerFilter.q = ledgerFilter.q === arc.dataset.cat ? "" : arc.dataset.cat;
+                if ($("led-q")) $("led-q").value = ledgerFilter.q;
+              } else {
+                ledgerFilter.cat = ledgerFilter.cat === arc.dataset.cat ? "" : arc.dataset.cat;
+                if ($("led-cat")) $("led-cat").value = ledgerFilter.cat;
+              }
+              renderLedger();
+            });
+          });
+
+          const hole = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          hole.setAttribute("x", CX);
+          hole.setAttribute("y", CY + 1);
+          hole.setAttribute("class", "fin-hole");
+          hole.textContent = byMerchant ? "merchants" : "categories";
+          donut.append(hole);
+        }
+
+        /* a number that arrives rather than blinks into place */
+        function countTo(el, value, prefix) {
+          if (!el) return;
+          const from = Number(el.dataset.value || 0);
+          if (Math.abs(from - value) < 0.005) return;
+          el.dataset.value = String(value);
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            el.textContent = (prefix || "") + value.toFixed(2);
+            return;
+          }
+          const started = performance.now();
+          const span = 520;
+          const step = (now) => {
+            const t = Math.min(1, (now - started) / span);
+            /* ease-out so it settles rather than slams */
+            const eased = 1 - Math.pow(1 - t, 3);
+            el.textContent = (prefix || "") + (from + (value - from) * eased).toFixed(2);
+            if (t < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }
+
         function renderLedger() {
           const list = $("ledger-list");
           if (!list) return;
@@ -5486,10 +5737,13 @@
           const supersededCount = shown.filter((record) => record.meta.superseded_by).length;
           const pendingCount = shown.filter((record) => record.meta.pending).length;
           dates.sort();
-          $("ledger-in").textContent = "$" + inflow.toFixed(2);
-          $("ledger-out").textContent = "$" + outflow.toFixed(2);
-          $("ledger-net").textContent = (inflow - outflow < 0 ? "\u2212$" : "$") +
-            Math.abs(inflow - outflow).toFixed(2);
+          countTo($("ledger-in"), inflow, "$");
+          countTo($("ledger-out"), outflow, "$");
+          const net = inflow - outflow;
+          countTo($("ledger-net"), Math.abs(net), net < 0 ? "\u2212$" : "$");
+          $("fin-visuals").hidden = shown.length === 0;
+          renderCashflow(shown);
+          renderCategoryRing(shown);
           $("ledger-span").textContent = dates.length
             ? dates[0] + " \u2192 " + dates[dates.length - 1] +
               (supersededCount ? " \u00b7 " + supersededCount + " superseded" : "") +
