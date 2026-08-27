@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=57" />
+    <link rel="stylesheet" href="command.css?v=58" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -4730,9 +4730,15 @@
               name.textContent = item.institution_name || "Connected institution";
               const detail = document.createElement("span");
               const accounts = Array.isArray(item.accounts) ? item.accounts : [];
-              detail.textContent = accounts.map((a) =>
-                (a.name || "account") + (a.mask ? " \u2022\u2022" + a.mask : "")).join(" \u00b7 ") ||
-                "no accounts listed";
+              const named = accounts.map((a) =>
+                (a.name || "account") + (a.mask ? " \u2022\u2022" + a.mask : ""));
+              /* a bank can return a dozen accounts; the row stays one line
+                 tall so its controls never get pushed out of sight */
+              detail.textContent = named.length
+                ? named.slice(0, 2).join(" \u00b7 ") +
+                  (named.length > 2 ? " \u00b7 and " + (named.length - 2) + " more" : "")
+                : "no accounts listed";
+              if (named.length > 2) detail.title = named.join("\n");
               const when = document.createElement("small");
               when.textContent = item.status === "reauth"
                 ? "needs re-authentication at your bank"

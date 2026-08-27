@@ -6050,6 +6050,10 @@ small.ritual-note {
   grid-column: 1;
   color: var(--muted);
   font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 .bank-item small {
   grid-column: 1;
@@ -6072,6 +6076,18 @@ small.ritual-note {
 .bank-item button:hover {
   color: #d98181;
   border-color: #d9818155;
+}
+
+@media (max-width: 700px) {
+  .bank-item {
+    grid-template-columns: 1fr;
+  }
+  .bank-item button {
+    grid-row: auto;
+    grid-column: 1;
+    justify-self: start;
+    margin-top: 8px;
+  }
 }
 #bank-note {
   margin-top: 10px;
