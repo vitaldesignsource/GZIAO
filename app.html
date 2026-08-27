@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=55" />
+    <link rel="stylesheet" href="command.css?v=56" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1357,6 +1357,23 @@
               <div class="strip-cell"><div><small>RECORDED OUTFLOW</small><b id="ledger-out">$0.00</b></div><span>as posted</span></div>
               <div class="strip-cell"><div><small>NET MOVEMENT</small><b id="ledger-net">$0.00</b></div><span>inflow less outflow</span></div>
               <div class="strip-cell"><div><small>RECEIPTS MATCHED</small><b id="ledger-matched">0</b></div><span>to a posted transaction</span></div>
+            </div>
+            <div class="bank-live" id="bank-live">
+              <div class="bank-live-head">
+                <span>
+                  <b>Live connection</b>
+                  <small id="bank-live-env"></small>
+                </span>
+                <span style="display: flex; gap: 8px; flex-wrap: wrap">
+                  <button class="ghost-btn" id="bank-connect" type="button">+ Connect a bank</button>
+                  <button class="ghost-btn" id="bank-sync" type="button" hidden>&#8635; Sync now</button>
+                </span>
+              </div>
+              <div id="bank-items"></div>
+              <p class="panel-note" id="bank-note">
+                A live connection authenticates you on your bank&rsquo;s own site and hands this system a
+                token &mdash; never your password, which nothing here will ever ask for.
+              </p>
             </div>
             <div class="chips" id="ledger-accounts" style="margin: 14px 0 0"></div>
             <ul class="vault-list" id="ledger-list" style="margin-top: 12px; max-height: 460px"></ul>
@@ -4645,6 +4662,275 @@
           return blob.type ? blob : blob.slice(0, blob.size, record.meta.type || "");
         }
 
+        /* ---------- the live bank connection (Plaid) ---------- */
+
+        let plaidState = "unknown"; /* unknown | ready | absent | unconfigured */
+        let bankPanelChecked = false;
+
+        async function plaidCall(action, payload) {
+          const { data } = await GZ.client.auth.getSession();
+          const token = data && data.session && data.session.access_token;
+          if (!token) throw new Error("not signed in");
+          const response = await fetch(GZ_CONFIG.SUPABASE_URL + "/functions/v1/plaid", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + token,
+              "apikey": GZ_CONFIG.SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify({ action, ...(payload || {}) }),
+          });
+          if (response.status === 404) {
+            plaidState = "absent";
+            throw new Error("The bank connector is not deployed on this project yet.");
+          }
+          const result = await response.json().catch(() => ({}));
+          if (response.status === 503) {
+            plaidState = "unconfigured";
+            throw new Error(result.reason || "The connector has no Plaid credentials yet.");
+          }
+          if (!result.ok) throw new Error(result.reason || "the request failed");
+          plaidState = "ready";
+          return result;
+        }
+
+        /* Plaid Link is a hosted script by necessity — it is only fetched when
+           you actually open a connection, never on a normal page load */
+        function loadPlaidLink() {
+          if (window.Plaid) return Promise.resolve();
+          return new Promise((resolve, reject) => {
+            const tag = document.createElement("script");
+            tag.src = "https://cdn.plaid.com/link/v2/stable/link-initialize.js";
+            tag.onload = () => resolve();
+            tag.onerror = () => reject(new Error("Plaid Link could not be loaded — check the connection."));
+            document.head.append(tag);
+          });
+        }
+
+        function bankNote(message, isError) {
+          const note = $("bank-note");
+          if (!note) return;
+          note.textContent = message;
+          note.style.color = isError ? "#d98181" : "";
+        }
+
+        async function renderBankItems() {
+          const holder = $("bank-items");
+          if (!holder) return;
+          try {
+            const result = await plaidCall("items");
+            holder.innerHTML = "";
+            $("bank-live-env").textContent = result.env ? result.env.toUpperCase() : "";
+            $("bank-sync").hidden = !result.items.length;
+            for (const item of result.items) {
+              const row = document.createElement("div");
+              row.className = "bank-item";
+              const name = document.createElement("b");
+              name.textContent = item.institution_name || "Connected institution";
+              const detail = document.createElement("span");
+              const accounts = Array.isArray(item.accounts) ? item.accounts : [];
+              detail.textContent = accounts.map((a) =>
+                (a.name || "account") + (a.mask ? " \u2022\u2022" + a.mask : "")).join(" \u00b7 ") ||
+                "no accounts listed";
+              const when = document.createElement("small");
+              when.textContent = item.status === "reauth"
+                ? "needs re-authentication at your bank"
+                : item.last_synced_at
+                  ? "last synced " + new Date(item.last_synced_at).toLocaleString()
+                  : "never synced";
+              if (item.status === "reauth") when.style.color = "#d98181";
+              const cut = document.createElement("button");
+              cut.type = "button";
+              cut.className = "is-destroy";
+              cut.textContent = "Disconnect";
+              cut.addEventListener("click", async () => {
+                if (!window.confirm("Disconnect " + (item.institution_name || "this bank") +
+                  "? Transactions already imported stay; no new ones will arrive.")) return;
+                try {
+                  await plaidCall("remove", { item_id: item.item_id });
+                  toast("Disconnected.");
+                  renderBankItems();
+                } catch (error) {
+                  bankNote("Could not disconnect: " + error.message, true);
+                }
+              });
+              row.append(name, detail, when, cut);
+              holder.append(row);
+            }
+            if (!result.items.length) {
+              bankNote("No bank connected yet. Connecting opens your bank's own sign-in — " +
+                "this system never sees your password.");
+            } else {
+              bankNote("Connected. Syncing pulls new transactions into the ledger below; " +
+                "postings already held are recognised and never doubled.");
+            }
+          } catch (error) {
+            holder.innerHTML = "";
+            $("bank-sync").hidden = true;
+            if (plaidState === "absent") {
+              bankNote("The live connector is not deployed on this project. Statement import below " +
+                "works regardless and needs nothing installed.");
+            } else if (plaidState === "unconfigured") {
+              bankNote(error.message, true);
+            } else {
+              bankNote("Bank connector unreachable: " + error.message, true);
+            }
+          }
+        }
+
+        async function connectBank() {
+          $("bank-connect").disabled = true;
+          bankNote("Opening your bank's sign-in\u2026");
+          try {
+            const [{ link_token }] = await Promise.all([plaidCall("link_token"), loadPlaidLink()]);
+            const handler = window.Plaid.create({
+              token: link_token,
+              onSuccess: async (publicToken) => {
+                try {
+                  bankNote("Sealing the connection\u2026");
+                  const result = await plaidCall("exchange", { public_token: publicToken });
+                  toast("Connected to " + (result.institution_name || "your bank") + ".");
+                  await renderBankItems();
+                  await syncBank();
+                } catch (error) {
+                  bankNote("Could not complete the connection: " + error.message, true);
+                }
+              },
+              onExit: (error) => {
+                bankNote(error
+                  ? "Connection cancelled: " + (error.display_message || error.error_message || "closed")
+                  : "Connection cancelled — nothing was linked.");
+              },
+            });
+            handler.open();
+          } catch (error) {
+            bankNote(error.message, true);
+          } finally {
+            $("bank-connect").disabled = false;
+          }
+        }
+
+        async function syncBank() {
+          $("bank-sync").disabled = true;
+          bankNote("Pulling new transactions\u2026");
+          try {
+            const result = await plaidCall("sync");
+            const held = new Map(
+              transactionsAll().map((record) => [record.meta.fingerprint, record])
+            );
+            let imported = 0;
+            let updated = 0;
+            for (const row of result.added.concat(result.modified || [])) {
+              const fingerprint = "plaid:" + row.transaction_id;
+              const meta = {
+                module: "resources",
+                kind: "transaction",
+                source: "plaid",
+                fingerprint,
+                account: row.account || row.institution || "connected account",
+                institution: row.institution || null,
+                amount: row.amount,
+                pending: Boolean(row.pending),
+                txn: {
+                  date: row.date,
+                  description: row.description || row.raw_name,
+                  amount: row.amount,
+                  currency: row.currency || undefined,
+                  ref: row.transaction_id,
+                  category: row.category || undefined,
+                  channel: row.channel || undefined,
+                  pending: Boolean(row.pending),
+                },
+              };
+              if (row.location && Number.isFinite(row.location.lat)) {
+                meta.geo = { lat: row.location.lat, lon: row.location.lon, resolved: row.location.address };
+                meta.txn.address = row.location.address || undefined;
+              }
+              const existing = held.get(fingerprint);
+              if (existing) {
+                const { data } = await GZ.client.from("records")
+                  .update({ meta: { ...existing.meta, ...meta }, title: meta.txn.description })
+                  .eq("id", existing.id).select().single();
+                if (data) {
+                  const at = records.findIndex((r) => r.id === existing.id);
+                  if (at > -1) records[at] = data;
+                  updated++;
+                }
+                continue;
+              }
+              await seal(meta.txn.description, null, {
+                kind: "record",
+                defer: true,
+                quiet: true,
+                throwOnError: true,
+                occurredAt: row.date + "T12:00:00Z",
+                meta,
+              });
+              imported++;
+            }
+            /* a posting Plaid retracted was never real — drop it */
+            let dropped = 0;
+            for (const gone of result.removed || []) {
+              const record = transactionsAll().find((r) => r.meta.fingerprint === "plaid:" + gone);
+              if (!record) continue;
+              await GZ.client.from("records").delete().eq("id", record.id);
+              records = records.filter((held2) => held2.id !== record.id);
+              dropped++;
+            }
+            if (imported || updated || dropped) {
+              await flagCrossSourceDuplicates();
+              await matchReceiptsToTransactions();
+              renderAll();
+            }
+            await renderBankItems();
+            const parts = [];
+            if (imported) parts.push(imported + " new");
+            if (updated) parts.push(updated + " updated");
+            if (dropped) parts.push(dropped + " retracted");
+            bankNote(parts.length
+              ? "Synced: " + parts.join(", ") + "."
+              : "Synced — nothing new since the last pull.");
+            if (result.problems) bankNote("Synced with problems: " + result.problems.join(" · "), true);
+          } catch (error) {
+            bankNote("Sync failed: " + error.message, true);
+          } finally {
+            $("bank-sync").disabled = false;
+          }
+        }
+
+        /* The same purchase can arrive twice: once from an imported statement,
+           once from the live feed. Their descriptions differ, so fingerprints
+           cannot catch it. Same amount within a day, different sources: the
+           live posting is authoritative and the imported one is marked
+           superseded — held, shown, but kept out of the totals. */
+        async function flagCrossSourceDuplicates() {
+          const all = transactionsAll();
+          const live = all.filter((record) => record.meta.source === "plaid");
+          const imported = all.filter((record) =>
+            record.meta.source !== "plaid" && !record.meta.superseded_by);
+          if (!live.length || !imported.length) return;
+          for (const record of imported) {
+            const amount = record.meta.txn.amount;
+            const day = Date.parse(record.meta.txn.date + "T12:00:00Z");
+            const twin = live.find((other) =>
+              Math.abs(other.meta.txn.amount - amount) < 0.005 &&
+              Math.abs(Date.parse(other.meta.txn.date + "T12:00:00Z") - day) <= 86400000);
+            if (!twin) continue;
+            const meta = { ...record.meta, superseded_by: twin.id };
+            const { data } = await GZ.client.from("records")
+              .update({ meta }).eq("id", record.id).select().single();
+            if (data) {
+              const at = records.findIndex((held) => held.id === record.id);
+              if (at > -1) records[at] = data;
+            }
+          }
+        }
+
+        if ($("bank-connect")) {
+          $("bank-connect").addEventListener("click", connectBank);
+          $("bank-sync").addEventListener("click", syncBank);
+        }
+
         /* ---------- statements: what the bank itself says, parsed locally ---------- */
 
         /* a CSV line splitter that respects quoted fields and doubled quotes */
@@ -4996,18 +5282,25 @@
           let outflow = 0;
           const dates = [];
           for (const record of all) {
+            dates.push(record.meta.txn.date);
+            /* a superseded import and a pending posting are both held and
+               shown, but neither is counted: one would double, one may change */
+            if (record.meta.superseded_by || record.meta.pending) continue;
             const amount = record.meta.txn.amount;
             if (amount >= 0) inflow += amount; else outflow += Math.abs(amount);
-            dates.push(record.meta.txn.date);
           }
+          const supersededCount = all.filter((record) => record.meta.superseded_by).length;
+          const pendingCount = all.filter((record) => record.meta.pending).length;
           dates.sort();
           $("ledger-in").textContent = "$" + inflow.toFixed(2);
           $("ledger-out").textContent = "$" + outflow.toFixed(2);
           $("ledger-net").textContent = (inflow - outflow < 0 ? "\u2212$" : "$") +
             Math.abs(inflow - outflow).toFixed(2);
           $("ledger-span").textContent = dates.length
-            ? dates[0] + " \u2192 " + dates[dates.length - 1]
-            : "no statements imported";
+            ? dates[0] + " \u2192 " + dates[dates.length - 1] +
+              (supersededCount ? " \u00b7 " + supersededCount + " superseded" : "") +
+              (pendingCount ? " \u00b7 " + pendingCount + " pending" : "")
+            : "nothing imported yet";
           $("ledger-matched").textContent = String(
             receiptsAll().filter((record) => record.meta.matched_txn).length
           );
@@ -5046,7 +5339,35 @@
               (record.meta.account ? " \u00b7 " + record.meta.account : "") +
               (txn.balance != null ? " \u00b7 bal $" + txn.balance.toFixed(2) : "");
             stamp.style.color = txn.amount < 0 ? "" : "var(--green)";
+            if (record.meta.source === "plaid") {
+              const badge = document.createElement("i");
+              badge.className = "share-badge";
+              badge.textContent = "LIVE";
+              title.append(badge);
+            }
+            if (record.meta.pending) {
+              const badge = document.createElement("i");
+              badge.className = "share-badge";
+              badge.textContent = "PENDING";
+              title.append(badge);
+            }
+            if (record.meta.superseded_by) item.style.opacity = "0.5";
             item.append(title, stamp);
+            if (record.meta.superseded_by) {
+              const line = document.createElement("small");
+              line.className = "sen-hash";
+              line.textContent = "\u21ca superseded by the live feed \u2014 held for the record, " +
+                "left out of the totals";
+              item.append(line);
+            }
+            if (record.meta.txn.category || record.meta.txn.address) {
+              const line = document.createElement("small");
+              line.className = "sen-hash";
+              line.textContent = [record.meta.txn.category, record.meta.txn.address]
+                .filter(Boolean).join(" \u00b7 ") +
+                (record.meta.geo ? " \u00b7 pinned on the Atlas" : "");
+              item.append(line);
+            }
             if (record.meta.matched_receipt) {
               const linked = records.find((held) => held.id === record.meta.matched_receipt);
               const line = document.createElement("small");
@@ -6254,6 +6575,10 @@
           renderUnitInbox();
           renderReceipts();
           renderLedger();
+          if (!bankPanelChecked) {
+            bankPanelChecked = true;
+            renderBankItems();
+          }
           renderFieldMemory();
           renderIntakeBanner();
         }
@@ -7415,11 +7740,11 @@
               (person) => person.meta && person.meta.geo && Number.isFinite(person.meta.geo.lat)
             ).length;
             const receiptPins = records.filter((record) =>
-              record.meta && record.meta.kind === "receipt" &&
+              record.meta && (record.meta.kind === "receipt" || record.meta.kind === "transaction") &&
               record.meta.geo && Number.isFinite(record.meta.geo.lat)).length;
             const total = peoplePins + receiptPins;
             counter.textContent = total + " PRIVATE PIN" + (total === 1 ? "" : "S") +
-              (receiptPins ? " \u00b7 " + receiptPins + " FROM RECEIPTS" : "");
+              (receiptPins ? " \u00b7 " + receiptPins + " FROM THE LEDGER" : "");
           }
           const pinned = people
             .map((person) => ({ person, place: personPlace(person) }))
@@ -7532,9 +7857,10 @@
             );
             atlasMarkers[person.id] = marker;
           }
-          /* receipts carry their own place when one was printed on them */
+          /* receipts carry their own place when one was printed on them, and
+             the live feed sometimes carries the merchant's coordinates */
           const placedReceipts = records.filter((record) =>
-            record.meta && record.meta.kind === "receipt" &&
+            record.meta && (record.meta.kind === "receipt" || record.meta.kind === "transaction") &&
             record.meta.geo && Number.isFinite(record.meta.geo.lat));
           for (const record of placedReceipts) {
             const geo = record.meta.geo;
@@ -7546,11 +7872,16 @@
               fillColor: "#5ce0a1",
               fillOpacity: 0.3,
             }).addTo(atlasLayer);
+            const isReceipt = record.meta.kind === "receipt";
+            const when = isReceipt
+              ? (r.date ? r.date + (r.time ? " " + r.time : "") : "")
+              : (record.meta.txn ? record.meta.txn.date : "");
+            const where = isReceipt ? r.address : (record.meta.txn && record.meta.txn.address);
             marker.bindPopup(
               '<b class="atlas-pop-name">' + escText(r.merchant || record.title) + "</b>" +
-              '<span class="atlas-pop-rel">receipt' +
-                (r.date ? " \u00b7 " + escText(r.date + (r.time ? " " + r.time : "")) : "") + "</span>" +
-              (r.address ? '<span class="atlas-pop-place">' + escText(r.address) + "</span>" : "") +
+              '<span class="atlas-pop-rel">' + (isReceipt ? "receipt" : "transaction") +
+                (when ? " \u00b7 " + escText(when) : "") + "</span>" +
+              (where ? '<span class="atlas-pop-place">' + escText(where) + "</span>" : "") +
               '<span class="atlas-pop-coords">' + geo.lat.toFixed(4) + ", " + geo.lon.toFixed(4) + "</span>"
             );
             atlasMarkers["receipt-" + record.id] = marker;
