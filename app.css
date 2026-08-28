@@ -90,7 +90,7 @@ html[data-theme="light"] .gate-panel {
 }
 
 .gate-message.is-error {
-  color: #d98181;
+  color: var(--danger);
 }
 
 .gate-message.is-ok {
@@ -326,7 +326,7 @@ html[data-theme="light"] .deck-module {
 }
 
 .vault-list button:hover {
-  color: #d98181;
+  color: var(--danger);
 }
 
 .deck-empty {

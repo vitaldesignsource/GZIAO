@@ -14,6 +14,13 @@
   --m2: #e3c76a;
   --m3: #6fb0e8;
   --m4: #a78bfa;
+  /* Every error, overdue, and destructive affordance in the app was the
+     literal #d98181, and every "life domains" accent the literal #e08baf.
+     Neither had a light-theme value anywhere, so on light they landed at
+     2.76:1 and 2.41:1 — the destructive controls were the least readable
+     thing on screen in the theme where being sure matters most. */
+  --danger: #d98181;
+  --rose: #e08baf;
 }
 
 html[data-theme="light"] {
@@ -35,6 +42,8 @@ html[data-theme="light"] {
   --m2: #7f6c26;
   --m3: #2f6cb0;
   --m4: #6a54c9;
+  --danger: #b0342f;
+  --rose: #a83a6b;
 }
 
 [hidden] {

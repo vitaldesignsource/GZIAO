@@ -19,9 +19,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=6" />
+    <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=77" />
+    <link rel="stylesheet" href="command.css?v=78" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -405,8 +405,8 @@
           </section>
 
           <section class="trio">
-            <div class="panel" style="border-left: 3px solid #e08baf66">
-              <span class="kicker" style="display: flex; justify-content: space-between; color: #e08baf">
+            <div class="panel" style="border-left: 3px solid color-mix(in srgb, var(--rose) 40%, transparent)">
+              <span class="kicker" style="display: flex; justify-content: space-between; color: var(--rose)">
                 <span>LIFE DOMAINS</span>
                 <span style="color: var(--faint)">MANAGE</span>
               </span>
@@ -416,7 +416,7 @@
               <div class="bar-row"><small>Operations</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 82"></div></div><b>82</b></div>
               <div class="bar-row"><small>Resources</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 64; --bar-color: var(--violet)"></div></div><b>64</b></div>
               <div class="bar-row"><small>Relationships</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 91"></div></div><b>91</b></div>
-              <div class="bar-row"><small>Documents</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 58; --bar-color: #e08baf"></div></div><b>58</b></div>
+              <div class="bar-row"><small>Documents</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 58; --bar-color: var(--rose)"></div></div><b>58</b></div>
               <div class="bar-row"><small>Timing</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 77"></div></div><b>77</b></div>
             </div>
             <div class="panel" style="border-left: 3px solid #d0ad6d66">
@@ -811,7 +811,7 @@
               <h2>System layers</h2>
               <ul class="layer-list">
                 <li><i style="--layer-color: var(--amber)"></i><div><b>Western Tropical</b><span>Natal &middot; Transits &middot; Synastry</span></div><em>SOLAR LIVE</em></li>
-                <li><i style="--layer-color: #e08baf"></i><div><b>Western Sidereal</b><span>Selectable ayanamsha</span></div><em>SOLAR LIVE</em></li>
+                <li><i style="--layer-color: var(--rose)"></i><div><b>Western Sidereal</b><span>Selectable ayanamsha</span></div><em>SOLAR LIVE</em></li>
                 <li><i style="--layer-color: var(--violet)"></i><div><b>Jyotish</b><span>R&#257;&#347;i &middot; Nakshatra &middot; Da&#347;&#257;</span></div><em>ARCHITECTURE READY</em></li>
                 <li><i style="--layer-color: var(--green)"></i><div><b>Taoist Cycles</b><span>Five phases &middot; Stems &middot; Branches</span></div><em>ATLAS LINKED</em></li>
               </ul>
@@ -893,7 +893,7 @@
               <div class="bar-row"><small>Records</small><div class="bar-track"><div class="bar-fill" id="fc-records-bar" style="--bar-pct: 4"></div></div><b id="fc-records">0</b></div>
               <div class="bar-row"><small>Operations</small><div class="bar-track"><div class="bar-fill" id="fc-ops-bar" style="--bar-pct: 2; --bar-color: var(--violet)"></div></div><b id="fc-ops">0</b></div>
               <div class="bar-row"><small>Resources</small><div class="bar-track"><div class="bar-fill" id="fc-res-bar" style="--bar-pct: 2; --bar-color: var(--amber)"></div></div><b id="fc-res">0</b></div>
-              <div class="bar-row"><small>Vault</small><div class="bar-track"><div class="bar-fill" id="fc-vault-bar" style="--bar-pct: 4; --bar-color: #e08baf"></div></div><b id="fc-vault">0</b></div>
+              <div class="bar-row"><small>Vault</small><div class="bar-track"><div class="bar-fill" id="fc-vault-bar" style="--bar-pct: 4; --bar-color: var(--rose)"></div></div><b id="fc-vault">0</b></div>
               <div class="privacy-row" style="justify-content: flex-start"><span><i></i>Owner-isolated data &middot; live index</span></div>
             </div>
           </section>
@@ -1196,7 +1196,7 @@
 
           <section class="strip">
             <div class="strip-cell"><div><small>OPEN ACTIONS</small><b id="ops-open">0</b></div><span id="ops-done-sub">0 completed</span></div>
-            <div class="strip-cell"><div><small>OVERDUE</small><b id="ops-overdue" style="color: #d98181">0</b></div><span>Past their date</span></div>
+            <div class="strip-cell"><div><small>OVERDUE</small><b id="ops-overdue" style="color: var(--danger)">0</b></div><span>Past their date</span></div>
             <div class="strip-cell"><div><small>DUE THIS WEEK</small><b id="ops-week">0</b></div><span>Time-sensitive</span></div>
             <div class="strip-cell"><div><small>ALERTS</small><b id="ops-alert-state">Blocked</b></div><span><button class="chrono-open" id="ops-alert-enable" type="button" style="padding: 0">ENABLE BROWSER ALERTS</button></span></div>
           </section>
@@ -2068,7 +2068,7 @@
                     <div class="bar-row"><small>Cards mastered</small><div class="bar-track"><div class="bar-fill" id="rec-bar-cards" style="--bar-pct: 0; --bar-color: var(--violet)"></div></div><b id="rec-val-cards">0</b></div>
                     <div class="bar-row"><small>Examination</small><div class="bar-track"><div class="bar-fill" id="rec-bar-exam" style="--bar-pct: 0; --bar-color: var(--amber)"></div></div><b id="rec-val-exam">—</b></div>
                     <div class="bar-row"><small>Practice done</small><div class="bar-track"><div class="bar-fill" id="rec-bar-practice" style="--bar-pct: 0; --bar-color: var(--m3)"></div></div><b id="rec-val-practice">0</b></div>
-                    <div class="bar-row"><small>Drill best streak</small><div class="bar-track"><div class="bar-fill" id="rec-bar-drill" style="--bar-pct: 0; --bar-color: #e08baf"></div></div><b id="rec-val-drill">0</b></div>
+                    <div class="bar-row"><small>Drill best streak</small><div class="bar-track"><div class="bar-fill" id="rec-bar-drill" style="--bar-pct: 0; --bar-color: var(--rose)"></div></div><b id="rec-val-drill">0</b></div>
                   </div>
                 </div>
               </section>
@@ -2402,7 +2402,7 @@
           <button class="ghost-btn" id="pd-cast" type="button" style="border-color: var(--amber); color: var(--amber)">Cast natal chart &rarr;</button>
           <button class="ghost-btn" id="pd-share" type="button"></button>
           <button class="ghost-btn" id="pd-edit" type="button">Edit profile</button>
-          <button class="ghost-btn is-destroy" id="pd-delete" type="button" style="border-color: #d9818155; color: #d98181">Destroy</button>
+          <button class="ghost-btn is-destroy" id="pd-delete" type="button" style="border-color: color-mix(in srgb, var(--danger) 33%, transparent); color: var(--danger)">Destroy</button>
         </div>
         <button class="modal-cancel" type="button" id="pd-close">Close</button>
       </div>
@@ -3883,7 +3883,7 @@
             const ring = document.createElement("div");
             ring.className = "score-ring";
             ring.innerHTML = "<div><b>" + finding.score + "</b><small>" + finding.tag + "</small></div>";
-            if (finding.score >= 85) ring.style.borderColor = "#d98181";
+            if (finding.score >= 85) ring.style.borderColor = "var(--danger)";
             const copy = document.createElement("div");
             const kicker = document.createElement("small");
             kicker.textContent = finding.cat;
@@ -4382,7 +4382,7 @@
             title.textContent = "Invitation to " + link.to_email;
             const stamp = document.createElement("time");
             stamp.textContent = link.status === "pending" ? "awaiting their approval" : "declined";
-            if (link.status === "declined") stamp.style.color = "#d98181";
+            if (link.status === "declined") stamp.style.color = "var(--danger)";
             const actions = document.createElement("span");
             actions.className = "rec-actions-row";
             if (link.status === "declined") {
@@ -4408,7 +4408,7 @@
             title.textContent = "\u201c" + (record ? record.title : "a record") + "\u201d offered to " + share.to_email;
             const stamp = document.createElement("time");
             stamp.textContent = share.status === "pending" ? "awaiting their decision" : "declined";
-            if (share.status === "declined") stamp.style.color = "#d98181";
+            if (share.status === "declined") stamp.style.color = "var(--danger)";
             const actions = document.createElement("span");
             actions.className = "rec-actions-row";
             const drop = document.createElement("button");
@@ -5169,7 +5169,7 @@
           const note = $("bank-note");
           if (!note) return;
           note.textContent = message;
-          note.style.color = isError ? "#d98181" : "";
+          note.style.color = isError ? "var(--danger)" : "";
         }
 
         async function renderBankItems() {
@@ -5202,7 +5202,7 @@
                 : item.last_synced_at
                   ? "last synced " + new Date(item.last_synced_at).toLocaleString()
                   : "never synced";
-              if (item.status === "reauth") when.style.color = "#d98181";
+              if (item.status === "reauth") when.style.color = "var(--danger)";
               const cut = document.createElement("button");
               cut.type = "button";
               cut.className = "is-destroy";
@@ -5624,7 +5624,7 @@
           if (!note) return;
           note.hidden = !message;
           note.textContent = message || "";
-          note.style.color = isError ? "#d98181" : "";
+          note.style.color = isError ? "var(--danger)" : "";
         }
 
         function renderStmtQueue() {
@@ -5910,7 +5910,7 @@
         /* ---------- the money, drawn ---------- */
 
         const CAT_COLOURS = [
-          "#d0ad6d", "#63dfca", "#a78bfa", "#e08baf", "#5ce0a1",
+          "#d0ad6d", "#63dfca", "#a78bfa", "var(--rose)", "#5ce0a1",
           "#e0b866", "#7fb8e0", "#c98be0", "#e08b8b", "#8be0c4",
           "#b9a0e0", "#e0cf8b", "#8ba6e0",
         ];
@@ -6526,7 +6526,7 @@
           if (!note) return;
           note.hidden = !message;
           note.textContent = message || "";
-          note.style.color = isError ? "#d98181" : "";
+          note.style.color = isError ? "var(--danger)" : "";
         }
 
         function stageReceipts(fileList) {
@@ -6803,7 +6803,7 @@
             if (record.meta.read_error) {
               const warn = document.createElement("small");
               warn.className = "sen-hash";
-              warn.style.color = "#d98181";
+              warn.style.color = "var(--danger)";
               warn.textContent = "\u26a0 unread: " + record.meta.read_error + " \u2014 the original is preserved";
               item.append(warn);
             }
@@ -7419,8 +7419,8 @@
           const net = owedToMe - iOwe;
           $("debt-totals").innerHTML = all.length
             ? '<span>OWED TO ME <b style="color: var(--green)">$' + owedToMe.toFixed(2) + "</b></span>" +
-              '<span>I OWE <b style="color: #d98181">$' + iOwe.toFixed(2) + "</b></span>" +
-              '<span>NET <b style="color: ' + (net >= 0 ? "var(--green)" : "#d98181") + '">' +
+              '<span>I OWE <b style="color: var(--danger)">$' + iOwe.toFixed(2) + "</b></span>" +
+              '<span>NET <b style="color: ' + (net >= 0 ? "var(--green)" : "var(--danger)") + '">' +
               (net < 0 ? "-" : "") + "$" + Math.abs(net).toFixed(2) + "</b></span>"
             : "";
           list.innerHTML = "";
@@ -8092,7 +8092,7 @@
           const el = $("doc-status");
           el.hidden = !message;
           el.textContent = message || "";
-          el.style.color = isError ? "#d98181" : "";
+          el.style.color = isError ? "var(--danger)" : "";
         }
 
         function formatBytes(bytes) {
@@ -9138,7 +9138,7 @@
             const stamp = document.createElement("time");
             const days = daysUntil(actionDue(record));
             stamp.textContent = dueLabel(record) || "no date";
-            if (days !== null && days < 0) stamp.style.color = "#d98181";
+            if (days !== null && days < 0) stamp.style.color = "var(--danger)";
             else if (days !== null && days <= 2) stamp.style.color = "var(--amber)";
             item.append(title, stamp);
             if (record.body) {
@@ -11425,7 +11425,7 @@
         }
 
         const WHEEL_ASPECT_COLOR = {
-          Conjunction: "#d0ad6d", Sextile: "#63dfca", Square: "#e08baf",
+          Conjunction: "#d0ad6d", Sextile: "#63dfca", Square: "var(--rose)",
           Trine: "#5ce0a1", Opposition: "#c86a8a",
         };
 
@@ -11452,7 +11452,7 @@
           /* the second ring: another chart's bodies on the outer band, with
              chords for every cross-contact within 3° */
           if (overlay) {
-            const ringColor = overlay.__ring === "person" ? "#e08baf" : "#63dfca";
+            const ringColor = overlay.__ring === "person" ? "var(--rose)" : "#63dfca";
             let overlayHtml = "";
             for (const place of overlay.placements) {
               const tick = wheelXY(place.lon, 134);
@@ -11525,7 +11525,7 @@
               '" stroke="#d0ad6d" stroke-width="1.4"/>';
             planetHtml += window.GZ_GLYPHS.group(
               place.body, pos.x, pos.y, 15,
-              place.retrograde ? "#e08baf" : "var(--paper)", 1.5
+              place.retrograde ? "var(--rose)" : "var(--paper)", 1.5
             );
             /* the exact degree, written under the glyph */
             const within = place.lon - Math.floor(place.lon / 30) * 30;
@@ -11770,7 +11770,7 @@
             mot.innerHTML = place.retrograde
               ? window.GZ_GLYPHS.svg("Retrograde", { size: 13, cls: "glyph-cell" }) + "<span>retrograde</span>"
               : "<span>direct</span>";
-            if (place.retrograde) mot.style.color = "#e08baf";
+            if (place.retrograde) mot.style.color = "var(--rose)";
             const dec = document.createElement("td");
             dec.className = "t-dim";
             if (place.declination != null) {
@@ -12367,7 +12367,7 @@
             dasha.startLord + "</b> with <b style=\"color: var(--paper)\">" + dasha.balanceYears.toFixed(2) +
             "</b> of its years remaining. " + dasha.yearConvention + "." +
             (natal.timeUnknown
-              ? " <span style=\"color: #e08baf\">Birth time unknown — the Moon moves ~13\u00b0 a day, so the nakshatra itself may be wrong and this whole ladder with it.</span>"
+              ? " <span style=\"color: var(--rose)\">Birth time unknown — the Moon moves ~13\u00b0 a day, so the nakshatra itself may be wrong and this whole ladder with it.</span>"
               : "");
           if (now) {
             const line = document.createElement("p");

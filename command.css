@@ -2698,8 +2698,8 @@ body.command-body {
 }
 
 .srs-again {
-  border: 1px solid #d9818166;
-  color: #d98181;
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--danger);
 }
 
 .srs-good {
@@ -3124,9 +3124,9 @@ body.command-body {
 }
 
 .quiz-option.is-wrong {
-  border-color: #d98181;
-  background: #d9818118;
-  color: #d98181;
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 9%, transparent);
+  color: var(--danger);
 }
 
 .quiz-option:disabled {
@@ -4021,7 +4021,10 @@ html[data-theme="light"] #view-thework::before {
 }
 
 .leaflet-control-attribution {
-  background: #0d121ad9 !important;
+  /* the neighbouring leaflet rules use var(--panel-solid); this one kept
+     the dark value as a literal, so in light theme it put dark-grey text
+     on a near-black plate over light map tiles */
+  background: var(--panel-solid) !important;
   color: var(--faint) !important;
   font-size: 8.5px !important;
 }
@@ -4529,7 +4532,7 @@ small.ritual-note {
   border-radius: 50%;
   border: 1px solid var(--panel-line-bright);
   background: var(--panel-solid);
-  color: #d98181;
+  color: var(--danger);
   font-size: 12px;
   cursor: pointer;
   line-height: 1;
@@ -5534,7 +5537,7 @@ small.ritual-note {
 .vs-gold { fill: #d0ad6d; }
 .vs-teal { fill: #63dfca; }
 .vs-violet { fill: #a78bfa; }
-.vs-rose { fill: #e08baf; }
+.vs-rose { fill: var(--rose); }
 
 /* atlas — graticule and survey sweep */
 .vs-grat {
@@ -5737,7 +5740,9 @@ small.ritual-note {
   height: 16px;
   border-radius: 999px;
   background: var(--gold);
-  color: #141414;
+  /* was the literal #141414 — fine on the dark palette's teal at 11.4:1,
+     but 3.07:1 on the light palette's darker teal, for a 9px digit */
+  color: var(--ink);
   font: 600 9px Inter, sans-serif;
   font-style: normal;
   display: inline-flex;
@@ -5862,8 +5867,8 @@ small.ritual-note {
   background: var(--green);
 }
 .up-state.is-failed {
-  border-color: #d98181;
-  background: #d98181;
+  border-color: var(--danger);
+  background: var(--danger);
 }
 @keyframes up-pulse {
   0%, 100% { opacity: 0.3; }
@@ -5880,7 +5885,7 @@ small.ritual-note {
   padding: 2px 4px;
 }
 .up-kill:hover {
-  color: #d98181;
+  color: var(--danger);
 }
 
 .up-chips {
@@ -5915,7 +5920,7 @@ small.ritual-note {
   padding: 0 2px;
 }
 .up-chip button:hover {
-  color: #d98181;
+  color: var(--danger);
 }
 
 .receipt-body {
@@ -6074,8 +6079,8 @@ small.ritual-note {
   align-self: center;
 }
 .bank-item button:hover {
-  color: #d98181;
-  border-color: #d9818155;
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 33%, transparent);
 }
 
 @media (max-width: 700px) {
@@ -6166,8 +6171,8 @@ small.ritual-note {
   cursor: pointer;
 }
 .led-filters #led-clear:hover {
-  color: #d98181;
-  border-color: #d9818155;
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 33%, transparent);
 }
 .led-result {
   margin: 10px 0 0;
@@ -6443,7 +6448,11 @@ small.ritual-note {
   transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
 }
 .panel:hover {
-  border-color: var(--panel-line-hover, #ffffff1f);
+  /* --panel-line-hover was never declared anywhere, so this always painted
+     the #ffffff1f fallback. On dark that brightens the edge; on light it
+     lays white over an already-lighter border, so the panel outline faded
+     on hover instead of lifting. */
+  border-color: var(--panel-line-bright);
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.28);
 }
 
