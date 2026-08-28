@@ -72,7 +72,10 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authorization } } },
   );
-  const { data: userData, error: userError } = await db.auth.getUser();
+  /* the token must be handed to getUser explicitly: without an argument
+     supabase-js looks for a stored session, which a server has never had */
+  const bearer = authorization.replace(/^Bearer\s+/i, "");
+  const { data: userData, error: userError } = await db.auth.getUser(bearer);
   if (userError || !userData?.user) return refused(req, 401, "not signed in");
 
   let url = "";
