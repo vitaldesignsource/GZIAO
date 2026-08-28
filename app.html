@@ -5657,11 +5657,22 @@
         /* a number that arrives rather than blinks into place */
         function countTo(el, value, prefix) {
           if (!el) return;
+          const target = (prefix || "") + value.toFixed(2);
+          /* Guard on what is actually painted, not on the last value asked
+             for. The two diverge whenever the animation below never ran —
+             a background tab throttles requestAnimationFrame — and guarding
+             on the stored number alone would then skip the repaint forever,
+             leaving a stale figure on screen. */
+          if (el.textContent === target) {
+            el.dataset.value = String(value);
+            return;
+          }
           const from = Number(el.dataset.value || 0);
-          if (Math.abs(from - value) < 0.005) return;
           el.dataset.value = String(value);
-          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            el.textContent = (prefix || "") + value.toFixed(2);
+          /* no frames will run while hidden, so write the figure outright */
+          if (document.hidden ||
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            el.textContent = target;
             return;
           }
           const started = performance.now();
@@ -5670,7 +5681,9 @@
             const t = Math.min(1, (now - started) / span);
             /* ease-out so it settles rather than slams */
             const eased = 1 - Math.pow(1 - t, 3);
-            el.textContent = (prefix || "") + (from + (value - from) * eased).toFixed(2);
+            el.textContent = t < 1
+              ? (prefix || "") + (from + (value - from) * eased).toFixed(2)
+              : target;
             if (t < 1) requestAnimationFrame(step);
           };
           requestAnimationFrame(step);
