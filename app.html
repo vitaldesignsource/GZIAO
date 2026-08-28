@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=66" />
+    <link rel="stylesheet" href="command.css?v=69" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -534,6 +534,15 @@
               <div class="chips" id="vault-folders" style="margin: 12px 0 0"></div>
               <ul class="vault-list" id="vault-list" style="margin-top: 16px; max-height: 460px"></ul>
               <div class="deck-empty" id="vault-status"></div>
+            </section>
+            <section class="panel" id="trash-panel">
+              <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
+                <span>TRASH</span>
+                <button class="chrono-open" id="trash-empty" type="button" hidden>PURGE EVERYTHING</button>
+              </span>
+              <h2 style="font-size: 20px">Destroyed, not yet gone</h2>
+              <p class="panel-sub" id="trash-note">Destroying a record moves it here. Nothing is removed from the database until it is purged, and a purge is a separate, deliberate act.</p>
+              <ul class="vault-list" id="trash-list" style="margin-top: 14px; max-height: 300px"></ul>
             </section>
           </div>
         </div>
@@ -2193,15 +2202,15 @@
           <section class="chrono-row" style="grid-template-columns: 380px 1fr">
             <div class="panel">
               <span class="kicker" style="display: flex; justify-content: space-between">
-                <span>PROFILE-LINKED PLACES</span>
-                <span id="atlas-pin-count" style="color: var(--faint)">0 PINS</span>
+                <span>PLACES IN THE FIELD</span>
+                <span id="atlas-place-count" style="color: var(--faint)">0 PINS</span>
               </span>
               <h2>Family map field</h2>
-              <p class="panel-sub">Every person in Constellations with a place appears here automatically. Select a pin to open its map.</p>
+              <p class="panel-sub">Every person with a place, and every receipt or transaction that carried one. Select a pin to open its map.</p>
               <div id="atlas-pins" style="margin-top: 8px"></div>
               <div class="empty-center" id="atlas-pins-empty" style="padding: 30px 10px">
                 <b style="font-size: 14px">No pins placed yet.</b>
-                <span>Add an address or birthplace to a person in Constellations and they appear here.</span>
+                <span>Add an address or birthplace to a person, or upload a receipt that prints one, and it appears here.</span>
               </div>
               <p class="panel-note">Locations resolve through OpenStreetMap's public geocoder only when you select a pin, and the result is cached to the profile.</p>
             </div>
@@ -2220,7 +2229,7 @@
             </div>
           </section>
           <section class="top-search" style="max-width: none">
-            <input type="search" placeholder="Search systems, symbols, sources, and correspondences&hellip;" style="height: 46px" disabled />
+            <input type="search" id="atlas-q" placeholder="Filter places by name, person, merchant, or address&hellip;" autocomplete="off" style="height: 46px" />
             <kbd>6 ENTRIES</kbd>
           </section>
           <section class="corr-grid">
@@ -2411,15 +2420,40 @@
 
         /* localhost-only preview mode: app.html?mock=1 — never active in production */
         if (location.hostname === "localhost" && location.search.includes("mock=1")) {
+          /* ?mock=1&pre008=1 drops deleted_at from the mock rows, so the
+             behaviour before migration 008 is applied \u2014 which is what
+             production does until Sky runs it \u2014 stays testable rather than
+             assumed. The column check below then answers 42703, exactly as
+             Postgres does. */
+          const pre008 = location.search.includes("pre008=1");
           const store = {
             records: [
               {
                 id: "d1", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
+                deleted_at: null,
                 title: "First sealed record", body: "A demonstration entry held privately in the vault.",
                 created_at: new Date().toISOString(),
               },
               {
+                id: "rc1", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
+                deleted_at: null, title: "Receipt · Ironwood Hardware",
+                body: null, created_at: new Date().toISOString(),
+                occurred_at: localDay() + "T16:20:00Z",
+                meta: {
+                  module: "resources", kind: "receipt",
+                  geo: { lat: 33.4936, lon: -111.9261, resolved: "Scottsdale, AZ" },
+                  receipt: {
+                    merchant: "IRONWOOD HARDWARE", date: localDay(), time: "16:20",
+                    total: 48.72, tax: 3.41, currency: "USD", payment_method: "VISA",
+                    address: "7014 E 1st Ave, Scottsdale, AZ 85251", category: "hardware",
+                    items: [{ description: "Brass compression fitting", qty: 2, price: 9.18 },
+                            { description: "PTFE thread tape", qty: 1, price: 3.29 }],
+                  },
+                },
+              },
+              {
                 id: "cal-shared-demo", owner_id: "mock-partner", kind: "record", visibility: "shared",
+                deleted_at: null,
                 household_id: "mock-household", grade: null,
                 title: "Equinox dinner", body: "Brought in by the other member of the household.",
                 occurred_at: localDay(Date.now() + 3 * 86400000) + "T19:00:00Z",
@@ -2463,6 +2497,9 @@
               },
             ],
           };
+          if (pre008) {
+            for (const row of store.records) delete row.deleted_at;
+          }
           GZ.client = {
             auth: {
               getSession: async () => ({
@@ -2509,6 +2546,32 @@
                         dir * String(a[column] ?? "").localeCompare(String(b[column] ?? "")));
                       return chain;
                     },
+                    is: (column, value) => {
+                      if (rows.length && !(column in rows[0])) {
+                        failure = failure || missingColumn(column);
+                        return chain;
+                      }
+                      /* PostgREST "is null" matches a null column; a mock row
+                         that simply omits the key is the same thing */
+                      view = value === null
+                        ? view.filter((r) => r[column] == null)
+                        : view.filter((r) => r[column] === value);
+                      return chain;
+                    },
+                    not: (column, operator, value) => {
+                      if (rows.length && !(column in rows[0])) {
+                        failure = failure || missingColumn(column);
+                        return chain;
+                      }
+                      if (operator !== "is") {
+                        failure = failure || { code: "PGRST100", message: "unsupported operator: " + operator };
+                        return chain;
+                      }
+                      view = value === null
+                        ? view.filter((r) => r[column] != null)
+                        : view.filter((r) => r[column] !== value);
+                      return chain;
+                    },
                     range: (from, to) => { view = view.slice(from, to + 1); return chain; },
                     limit: (n) => { view = view.slice(0, n); return chain; },
                     eq: () => chain,
@@ -2535,22 +2598,49 @@
                     },
                   }),
                 }),
+                /* The real client resolves update().eq() and delete().eq()
+                   on their own; the mock used to require .select().single()
+                   and returned a plain object otherwise, so `await
+                   update(...).eq(...)` yielded a non-promise with no error
+                   field. That reads as success while changing nothing \u2014 the
+                   soft delete would have appeared to work and silently kept
+                   every record. Both are thenable now, and applied once. */
                 update: (patch) => ({
-                  eq: (_col, id) => ({
-                    select: () => ({
-                      single: async () => {
-                        const row = rows.find((r) => r.id === id);
-                        Object.assign(row, patch);
-                        return { data: { ...row }, error: null };
-                      },
-                    }),
-                  }),
+                  eq: (column, value) => {
+                    let outcome = null;
+                    const run = () => {
+                      if (outcome) return outcome;
+                      const hit = rows.filter((r) => r[column] === value);
+                      for (const row of hit) Object.assign(row, patch);
+                      outcome = { data: hit.map((r) => ({ ...r })), error: null };
+                      return outcome;
+                    };
+                    return {
+                      select: () => ({
+                        single: async () => {
+                          const done = run();
+                          return done.data.length
+                            ? { data: done.data[0], error: null }
+                            : { data: null, error: { code: "PGRST116", message: "no rows returned" } };
+                        },
+                      }),
+                      then: (resolve, reject) =>
+                        Promise.resolve(run()).then(resolve, reject),
+                    };
+                  },
                 }),
                 delete: () => ({
-                  eq: async (_col, id) => {
-                    const i = rows.findIndex((r) => r.id === id);
-                    if (i > -1) rows.splice(i, 1);
-                    return { error: null };
+                  eq: (column, value) => {
+                    let outcome = null;
+                    const run = () => {
+                      if (outcome) return outcome;
+                      for (let i = rows.length - 1; i >= 0; i--) {
+                        if (rows[i][column] === value) rows.splice(i, 1);
+                      }
+                      outcome = { data: null, error: null };
+                      return outcome;
+                    };
+                    return { then: (resolve, reject) => Promise.resolve(run()).then(resolve, reject) };
                   },
                 }),
               };
@@ -2773,16 +2863,32 @@
            short page comes back, which is the only proof of the end. */
         const RECORD_PAGE = 1000;
 
+        /* Whether migration 008 has been applied. Until it has, deleted_at
+           does not exist and Destroy has to fall back to a real delete \u2014 so
+           this is detected rather than assumed, and the Trash panel says
+           which mode it is in instead of quietly behaving differently. */
+        let softDeleteAvailable = true;
+        let trashed = [];
+
         async function loadRecords() {
           const gathered = [];
           let from = 0;
           while (true) {
-            const { data: rows, error } = await GZ.client
+            let query = GZ.client
               .from("records")
               .select("*")
               .order("created_at", { ascending: false })
               .range(from, from + RECORD_PAGE - 1);
+            /* the live field is everything not in Trash */
+            if (softDeleteAvailable) query = query.is("deleted_at", null);
+            const { data: rows, error } = await query;
             if (error) {
+              /* 42703 here means only one thing: migration 008 is not applied.
+                 Falling back is right; showing an empty field would not be. */
+              if (error.code === "42703" && softDeleteAvailable) {
+                softDeleteAvailable = false;
+                return loadRecords();
+              }
               latticeOk = false;
               records = [];
               return;
@@ -2797,7 +2903,158 @@
           }
           latticeOk = true;
           records = gathered.filter((row) => row.kind !== "study_progress");
+          await loadTrash();
         }
+
+        async function loadTrash() {
+          if (!softDeleteAvailable) { trashed = []; return; }
+          const { data, error } = await GZ.client
+            .from("records")
+            .select("*")
+            .not("deleted_at", "is", null)
+            .order("deleted_at", { ascending: false })
+            .limit(200);
+          trashed = error ? [] : (data || []);
+        }
+
+        /* One destroy path for every Destroy button in the app. There were
+           five near-copies of this, three of which wrote `if (!error)` with
+           no else \u2014 so a refused delete was indistinguishable from a
+           successful one and the row simply stayed on screen. */
+        async function destroyRecord(record, label) {
+          const name = label || "record";
+          const hasFile = Boolean(record.meta && record.meta.path);
+
+          if (!softDeleteAvailable) {
+            /* no Trash to catch it: this really is irreversible, so ask */
+            const warning = "Permanently destroy this " + name + "?\n\n\u201c" +
+              record.title + "\u201d" +
+              (hasFile ? "\n\nIts preserved original will be deleted with it." : "") +
+              "\n\nThis cannot be undone.";
+            if (!window.confirm(warning)) return false;
+            const { error } = await GZ.client.from("records").delete().eq("id", record.id);
+            if (error) { toast("Could not destroy: " + error.message); return false; }
+            if (hasFile) {
+              const { error: fileError } =
+                await GZ.client.storage.from("vault").remove([record.meta.path]);
+              if (fileError) toast("Record destroyed, but its file could not be removed.");
+            }
+            records = records.filter((held) => held.id !== record.id);
+            renderAll();
+            toast(name.charAt(0).toUpperCase() + name.slice(1) + " destroyed.");
+            return true;
+          }
+
+          /* recoverable, so it needs no dialog \u2014 that is the whole point */
+          const when = new Date().toISOString();
+          const { error } = await GZ.client.from("records")
+            .update({ deleted_at: when }).eq("id", record.id);
+          if (error) { toast("Could not destroy: " + error.message); return false; }
+          const gone = records.find((held) => held.id === record.id);
+          records = records.filter((held) => held.id !== record.id);
+          if (gone) trashed.unshift({ ...gone, deleted_at: when });
+          renderAll();
+          toast(name.charAt(0).toUpperCase() + name.slice(1) + " moved to Trash.");
+          return true;
+        }
+
+        async function restoreRecord(record) {
+          const { data, error } = await GZ.client.from("records")
+            .update({ deleted_at: null }).eq("id", record.id).select().single();
+          if (error) return toast("Could not restore: " + error.message);
+          trashed = trashed.filter((held) => held.id !== record.id);
+          records.unshift(data || { ...record, deleted_at: null });
+          records.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+          renderAll();
+          toast("Restored to the field.");
+        }
+
+        async function purgeRecord(record) {
+          const hasFile = Boolean(record.meta && record.meta.path);
+          const warning = "Purge \u201c" + record.title + "\u201d from the database?" +
+            (hasFile ? "\n\nIts preserved original will be deleted with it." : "") +
+            "\n\nThis cannot be undone.";
+          if (!window.confirm(warning)) return;
+          const { error } = await GZ.client.from("records").delete().eq("id", record.id);
+          if (error) return toast("Could not purge: " + error.message);
+          if (hasFile) await GZ.client.storage.from("vault").remove([record.meta.path]);
+          trashed = trashed.filter((held) => held.id !== record.id);
+          renderTrash();
+          toast("Purged.");
+        }
+
+        async function emptyTrash() {
+          if (!trashed.length) return;
+          const withFiles = trashed.filter((r) => r.meta && r.meta.path).length;
+          const warning = "Purge all " + trashed.length + " record" +
+            (trashed.length === 1 ? "" : "s") + " in Trash?" +
+            (withFiles ? "\n\n" + withFiles + " preserved original" +
+              (withFiles === 1 ? "" : "s") + " will be deleted too." : "") +
+            "\n\nThis cannot be undone.";
+          if (!window.confirm(warning)) return;
+          const paths = trashed.filter((r) => r.meta && r.meta.path).map((r) => r.meta.path);
+          const ids = trashed.map((r) => r.id);
+          let failed = 0;
+          for (const id of ids) {
+            const { error } = await GZ.client.from("records").delete().eq("id", id);
+            if (error) failed++;
+          }
+          if (paths.length) await GZ.client.storage.from("vault").remove(paths);
+          await loadTrash();
+          renderTrash();
+          toast(failed ? failed + " could not be purged." : "Trash emptied.");
+        }
+
+        function renderTrash() {
+          const list = $("trash-list");
+          const note = $("trash-note");
+          const purgeAll = $("trash-empty");
+          if (!list) return;
+          list.innerHTML = "";
+          if (!softDeleteAvailable) {
+            /* say which mode it is in rather than showing an empty Trash
+               that looks like "nothing has ever been destroyed" */
+            note.textContent =
+              "Trash is not enabled on this database yet \u2014 apply schema/008_soft_delete.sql " +
+              "in Supabase and reload. Until then, Destroy asks for confirmation and removes " +
+              "the record immediately.";
+            purgeAll.hidden = true;
+            return;
+          }
+          note.textContent = trashed.length
+            ? trashed.length + " destroyed record" + (trashed.length === 1 ? "" : "s") +
+              " held. Nothing leaves the database until it is purged."
+            : "Destroying a record moves it here. Nothing is removed from the database until it is purged, and a purge is a separate, deliberate act.";
+          purgeAll.hidden = trashed.length === 0;
+          for (const record of trashed) {
+            const item = document.createElement("li");
+            const head = document.createElement("div");
+            const title = document.createElement("b");
+            title.textContent = record.title;
+            const when = document.createElement("small");
+            when.style.color = "var(--faint)";
+            when.textContent = "destroyed " +
+              (record.deleted_at ? localDay(record.deleted_at) : "\u2014") +
+              (record.meta && record.meta.path ? " \u00b7 has a stored file" : "");
+            head.append(title, document.createElement("br"), when);
+            const actions = document.createElement("div");
+            actions.className = "vault-actions";
+            const back = document.createElement("button");
+            back.type = "button";
+            back.textContent = "Restore";
+            back.addEventListener("click", () => restoreRecord(record));
+            const gone = document.createElement("button");
+            gone.type = "button";
+            gone.className = "is-destroy";
+            gone.textContent = "Purge";
+            gone.addEventListener("click", () => purgeRecord(record));
+            actions.append(back, gone);
+            item.append(head, actions);
+            list.append(item);
+          }
+        }
+
+        if ($("trash-empty")) $("trash-empty").addEventListener("click", emptyTrash);
 
         const isMine = (record) => !record.owner_id || record.owner_id === user.id;
         const isShared = (record) => record.visibility === "shared";
@@ -2834,13 +3091,21 @@
           $("rec-secondary").textContent = "Open the vault ›";
         }
 
+        /* #field-state is the one element renderDirective touches outside
+           view-command, so it is split out and it alone runs on every pass;
+           the six directive elements draw with the rest of the command view. */
+        function renderFieldState() {
+          const action = topDirective();
+          $("field-state").textContent =
+            action ? "Field active" : (records.length === 0 ? "Field clear" : "Field active");
+        }
+
         function renderDirective() {
           const empty = records.length === 0;
           const action = topDirective();
           if (action) {
             $("directive-kicker").textContent = "ACTIVE DIRECTIVE";
             $("directive-state").textContent = dueLabel(action) || "no date";
-            $("field-state").textContent = "Field active";
             $("directive-title").textContent = action.title;
             $("directive-copy").textContent =
               (action.body || "This is the register's most pressing open operation.") +
@@ -2851,7 +3116,6 @@
           }
           $("directive-kicker").textContent = empty ? "CLEAR FIELD" : "ACTIVE FIELD";
           $("directive-state").textContent = empty ? "Field clear" : "Field holding " + records.length;
-          $("field-state").textContent = empty ? "Field clear" : "Field active";
           $("directive-title").textContent = empty
             ? "Capture the next meaningful signal."
             : "Review the latest sealed record.";
@@ -3307,27 +3571,8 @@
               remove.type = "button";
               remove.className = "is-destroy";
               remove.textContent = "Destroy";
-              remove.addEventListener("click", async () => {
-                /* The row goes first. Removing the file first and then
-                   failing on the row left a document listed in the vault
-                   whose file no longer existed \u2014 an entry that opens to
-                   nothing. This order can orphan a file instead, which is
-                   storage wasted rather than a record that lies. */
-                const { error } = await GZ.client.from("records").delete().eq("id", record.id);
-                if (error) return toast("Could not destroy: " + error.message);
-                if (isDoc && record.meta && record.meta.path) {
-                  const { error: fileError } =
-                    await GZ.client.storage.from("vault").remove([record.meta.path]);
-                  if (fileError) {
-                    records = records.filter((held) => held.id !== record.id);
-                    renderAll();
-                    return toast("Record destroyed, but the stored file could not be removed.");
-                  }
-                }
-                records = records.filter((held) => held.id !== record.id);
-                renderAll();
-                toast(isDoc ? "Document and file destroyed." : "Record destroyed.");
-              });
+              remove.addEventListener("click", () =>
+                destroyRecord(record, isDoc ? "document" : "record"));
               actions.append(remove);
             } else {
               const from = document.createElement("button");
@@ -3778,14 +4023,7 @@
             const remove = document.createElement("button");
             remove.type = "button";
             remove.textContent = "Destroy";
-            remove.addEventListener("click", async () => {
-              const { error } = await GZ.client.from("records").delete().eq("id", record.id);
-              if (!error) {
-                records = records.filter((held) => held.id !== record.id);
-                renderAll();
-                toast("Dream record destroyed.");
-              }
-            });
+            remove.addEventListener("click", () => destroyRecord(record, "dream record"));
             item.append(remove);
             dreamList.append(item);
           }
@@ -4322,13 +4560,7 @@
                 remove.type = "button";
                 remove.className = "is-destroy";
                 remove.textContent = "Destroy";
-                remove.addEventListener("click", async () => {
-                  const { error } = await GZ.client.from("records").delete().eq("id", record.id);
-                  if (!error) {
-                    records = records.filter((held) => held.id !== record.id);
-                    renderAll();
-                  }
-                });
+                remove.addEventListener("click", () => destroyRecord(record, "calendar entry"));
                 actions.append(remove);
               } else {
                 const mineAdoption = adoptionsFor(record.id).find((r) => r.owner_id === user.id);
@@ -4351,11 +4583,14 @@
                   undo.type = "button";
                   undo.textContent = "Remove from mine";
                   undo.addEventListener("click", async () => {
-                    const { error } = await GZ.client.from("records").delete().eq("id", mineAdoption.id);
-                    if (!error) {
-                      records = records.filter((held) => held.id !== mineAdoption.id);
-                      renderAll();
-                    }
+                    /* a toggle, not a destruction: this row exists only to
+                       mark adoption and is remade by "Add to my calendar",
+                       so it is deleted outright rather than filling Trash */
+                    const { error } = await GZ.client.from("records")
+                      .delete().eq("id", mineAdoption.id);
+                    if (error) return toast("Could not remove: " + error.message);
+                    records = records.filter((held) => held.id !== mineAdoption.id);
+                    renderAll();
                   });
                   actions.append(undo);
                 }
@@ -6543,16 +6778,7 @@
               remove.type = "button";
               remove.className = "is-destroy";
               remove.textContent = "Destroy";
-              remove.addEventListener("click", async () => {
-                const { error } = await GZ.client.from("records").delete().eq("id", record.id);
-                if (error) return toast("Could not remove: " + error.message);
-                if (record.meta.path) {
-                  await GZ.client.storage.from("vault").remove([record.meta.path]);
-                }
-                records = records.filter((held) => held.id !== record.id);
-                renderAll();
-                toast("Receipt destroyed with its original.");
-              });
+              remove.addEventListener("click", () => destroyRecord(record, "receipt"));
               actions.append(remove);
             }
             item.append(actions);
@@ -7187,13 +7413,7 @@
               remove.type = "button";
               remove.className = "is-destroy";
               remove.textContent = "Destroy";
-              remove.addEventListener("click", async () => {
-                const { error } = await GZ.client.from("records").delete().eq("id", record.id);
-                if (!error) {
-                  records = records.filter((held) => held.id !== record.id);
-                  renderAll();
-                }
-              });
+              remove.addEventListener("click", () => destroyRecord(record, "draft"));
               actions.append(remove);
             }
             item.append(actions);
@@ -7201,40 +7421,74 @@
           }
         }
 
-        function renderAll() {
-          renderStrip();
-          renderRecommendation();
-          renderDirective();
-          renderReadiness();
-          renderPulse();
-          renderIntake();
-          renderChronology();
-          renderAnchorControls();
-          renderOracle();
-          renderStats();
-          renderVaultList();
-          renderIntegrity();
-          renderTimelineView();
-          renderOracleView();
-          renderTempleView();
-          renderConstellations();
-          renderChartMemory();
-          renderOperations();
-          renderAtlas();
-          renderDrafts();
-          renderDebts();
-          renderSentinel();
-          renderCalendar();
-          renderUnit();
-          renderUnitInbox();
-          renderReceipts();
-          renderLedger();
-          if (!bankPanelChecked) {
-            bankPanelChecked = true;
-            renderBankItems();
+        /* Which renderers belong to which view.
+           renderAll used to call all twenty-nine on every change, thirteen of
+           which scan the whole record set, rebuilding the markup of fourteen
+           views nobody was looking at \u2014 measured at 87% of the DOM produced
+           per render. Every renderer was checked against the live DOM and each
+           writes into exactly one view, so scoping them is safe. The single
+           element that lived outside a view, #field-state, was split into
+           renderFieldState, which is the only thing that still runs on
+           every pass. */
+        const VIEW_RENDERERS = {
+          command: [renderStrip, renderRecommendation, renderDirective, renderReadiness,
+                    renderPulse, renderIntake, renderChronology, renderOracle, renderStats,
+                    renderIntegrity, renderUnitInbox, renderIntakeBanner],
+          timeline: [renderTimelineView],
+          sentinel: [renderSentinel],
+          constellations: [renderConstellations, renderUnit],
+          thework: [renderTempleView],
+          aion: [renderAnchorControls, renderChartMemory],
+          operations: [renderOperations],
+          resources: [renderDebts, renderReceipts, renderLedger, renderBankPanelOnce],
+          vault: [renderVaultList, renderTrash],
+          scriptorium: [renderDrafts],
+          atlas: [renderAtlas],
+          oracle: [renderOracleView, renderFieldMemory],
+          calendar: [renderCalendar],
+        };
+
+        let currentView = "command";
+        const viewDirty = new Set();
+
+        /* the bank panel is fetched once per session, when Resources first draws */
+        function renderBankPanelOnce() {
+          if (bankPanelChecked) return;
+          bankPanelChecked = true;
+          renderBankItems();
+        }
+
+        function runRenderers(list) {
+          for (const render of list || []) {
+            try {
+              render();
+            } catch (error) {
+              /* one renderer failing must not take the rest of the view with
+                 it, and must not be silent either */
+              console.error("renderer failed:", render.name, error);
+            }
           }
-          renderFieldMemory();
-          renderIntakeBanner();
+        }
+
+        /* draw what is on screen now; everything else is marked stale and
+           drawn by setView the moment it is actually looked at */
+        function renderAll() {
+          renderFieldState();
+          runRenderers(VIEW_RENDERERS[currentView]);
+          for (const id of Object.keys(VIEW_RENDERERS)) {
+            if (id !== currentView) viewDirty.add(id);
+          }
+        }
+
+        /* for the rare caller that genuinely needs every view current \u2014
+           printing, exporting, or anything that reads the DOM of a view it is
+           not standing in */
+        function renderEveryView() {
+          renderFieldState();
+          for (const id of Object.keys(VIEW_RENDERERS)) {
+            runRenderers(VIEW_RENDERERS[id]);
+            viewDirty.delete(id);
+          }
         }
 
         /* the stamps, read back and counted — evidence tiers, never causes */
@@ -7380,6 +7634,12 @@
           if (id === "watchtower" && !wtLoaded) {
             wtLoaded = true;
             loadBrief(false);
+          }
+          /* draw it before it is looked at, if it went stale while hidden */
+          currentView = id;
+          if (viewDirty.has(id)) {
+            viewDirty.delete(id);
+            runRenderers(VIEW_RENDERERS[id]);
           }
           if (location.hash !== "#/" + id) history.replaceState(null, "", "#/" + id);
           window.scrollTo(0, 0);
@@ -8305,6 +8565,25 @@
         });
         $("pd-edit").addEventListener("click", () => openPersonForm(detailPerson));
         $("pd-delete").addEventListener("click", async () => {
+          /* A person carries birth date, time, place and coordinates \u2014 the
+             input every chart in the system is calculated from, and the one
+             thing here that cannot be re-derived from anything else. There
+             is no Trash for people, so this asks first and says what else
+             depends on the row. */
+          const isAnchor = localStorage.getItem("gz-aion-anchor") === detailPerson.id;
+          const charts = records.filter((record) =>
+            record.meta && (record.meta.person_id === detailPerson.id ||
+              record.meta.subject_id === detailPerson.id)).length;
+          const consequences = [];
+          if (isAnchor) consequences.push("They are the current AION anchor, so transits lose their subject.");
+          if (charts) consequences.push(charts + " stored chart" + (charts === 1 ? "" : "s") +
+            " reference" + (charts === 1 ? "s" : "") + " them.");
+          if (!window.confirm(
+            "Destroy the profile for " + detailPerson.display_name + "?\n\n" +
+            "Their birth data goes with it, and every chart cast from it becomes " +
+            "uncastable." + (consequences.length ? "\n\n" + consequences.join("\n") : "") +
+            "\n\nThis cannot be undone."
+          )) return;
           const { error } = await GZ.client.from("people").delete().eq("id", detailPerson.id);
           if (error) {
             toast("Could not destroy profile: " + error.message);
@@ -8412,25 +8691,85 @@
             counter.textContent = total + " PRIVATE PIN" + (total === 1 ? "" : "S") +
               (receiptPins ? " \u00b7 " + receiptPins + " FROM THE LEDGER" : "");
           }
-          const pinned = people
-            .map((person) => ({ person, place: personPlace(person) }))
-            .filter((entry) => entry.place);
-          $("atlas-pin-count").textContent = pinned.length + " PIN" + (pinned.length === 1 ? "" : "S");
-          $("atlas-pins-empty").hidden = pinned.length > 0;
-          for (const { person, place } of pinned) {
+          /* Ledger places were counted for the badge and then never listed:
+             a receipt with a printed address showed on the map as a dot with
+             no way to enumerate, filter, or reach it from the panel. People
+             and ledger places are one list now, and the filter box above the
+             map — which shipped permanently disabled — narrows it. */
+          const query = ($("atlas-q") ? $("atlas-q").value : "").trim().toLowerCase();
+          const cards = [];
+          for (const person of people) {
+            const place = personPlace(person);
+            if (!place) continue;
+            cards.push({
+              kind: place.kind.toUpperCase() + (isShared(person) ? " · SHARED" : ""),
+              name: person.display_name + (person.relation ? " · " + person.relation : ""),
+              label: place.label,
+              open: () => openAtlasPin(person, place),
+            });
+          }
+          for (const record of records) {
+            const meta = record.meta || {};
+            if (meta.kind !== "receipt" && meta.kind !== "transaction") continue;
+            if (!meta.geo || !Number.isFinite(meta.geo.lat)) continue;
+            const receipt = meta.receipt || {};
+            const txn = meta.txn || {};
+            cards.push({
+              kind: (meta.kind === "receipt" ? "RECEIPT" : "TRANSACTION") +
+                ((meta.kind === "receipt" ? receipt.date : txn.date)
+                  ? " · " + (meta.kind === "receipt" ? receipt.date : txn.date) : ""),
+              name: receipt.merchant || txn.description || record.title,
+              label: receipt.address || txn.address || meta.geo.resolved || "",
+              open: () => openLedgerPin(record),
+            });
+          }
+
+          const shown = query
+            ? cards.filter((card) =>
+                (card.name + " " + card.label + " " + card.kind).toLowerCase().includes(query))
+            : cards;
+
+          /* the badge above counts the whole Atlas; this counts the list
+             directly beneath it, and says so when a filter is narrowing it */
+          $("atlas-place-count").textContent = query && shown.length !== cards.length
+            ? shown.length + " OF " + cards.length
+            : shown.length + " PIN" + (shown.length === 1 ? "" : "S");
+          $("atlas-pins-empty").hidden = shown.length > 0 || Boolean(query);
+
+          if (query && !shown.length) {
+            const none = document.createElement("p");
+            none.className = "panel-sub";
+            none.style.padding = "18px 2px";
+            none.textContent = "No place matches “" + query + "”.";
+            holder.append(none);
+          }
+
+          for (const card of shown) {
             const pin = document.createElement("div");
             pin.className = "tmpl";
             pin.style.cursor = "pointer";
             const kicker = document.createElement("small");
-            kicker.textContent = place.kind.toUpperCase() + (isShared(person) ? " · SHARED" : "");
+            kicker.textContent = card.kind;
             const name = document.createElement("b");
-            name.textContent = person.display_name + (person.relation ? " · " + person.relation : "");
+            name.textContent = card.name;
             const label = document.createElement("span");
-            label.textContent = place.label;
+            label.textContent = card.label;
             pin.append(kicker, name, label);
-            pin.addEventListener("click", () => openAtlasPin(person, place));
+            pin.addEventListener("click", card.open);
             holder.append(pin);
           }
+        }
+
+        /* a ledger pin already knows exactly where it is — the coordinates
+           came from the receipt or the live feed — so nothing is geocoded */
+        function openLedgerPin(record) {
+          const geo = record.meta.geo;
+          ensureAtlasMap();
+          if (!atlasMap) return toast("The map could not be opened.");
+          refreshAtlasMarkers();
+          atlasMap.setView([geo.lat, geo.lon], 15);
+          const marker = atlasMarkers["receipt-" + record.id];
+          if (marker) marker.openPopup();
         }
 
         async function openAtlasPin(person, place) {
@@ -8569,6 +8908,7 @@
             : "No pins located yet — select a person to geocode their place.";
         }
         $("atlas-open-map").addEventListener("click", openAtlasField);
+        if ($("atlas-q")) $("atlas-q").addEventListener("input", renderAtlas);
 
         /* ---------- operations engine ---------- */
         let opsShowDone = false;
@@ -8796,14 +9136,7 @@
               remove.type = "button";
               remove.className = "is-destroy";
               remove.textContent = "Destroy";
-              remove.addEventListener("click", async () => {
-                const { error } = await GZ.client.from("records").delete().eq("id", record.id);
-                if (!error) {
-                  records = records.filter((held) => held.id !== record.id);
-                  renderAll();
-                  toast("Operation destroyed.");
-                }
-              });
+              remove.addEventListener("click", () => destroyRecord(record, "operation"));
               actions.append(remove);
             }
             item.append(actions);
@@ -12958,6 +13291,97 @@
         const search = $("cmd-search");
         const drop = $("search-drop");
 
+        /* Everything a record can be found by.
+           The palette read title and body alone. A bank transaction keeps its
+           merchant, category, account and address in meta under a title that
+           is just the merchant, so it was findable by one word and no other;
+           a receipt's line items were not findable at all; a legal matter's
+           dated labels were not findable; and no person was findable by any
+           means, since people are a separate table the search never touched.
+           Field names here were read off the code that writes them, not
+           guessed \u2014 see RECEIPT_FIELDS and the Plaid shape() in syncBank. */
+        function searchableMeta(record) {
+          const meta = record.meta || {};
+          const out = [];
+          const add = (value) => { if (value || value === 0) out.push(String(value)); };
+
+          const txn = meta.txn || {};
+          add(txn.description); add(txn.category); add(txn.address); add(txn.ref);
+
+          const receipt = meta.receipt || {};
+          add(receipt.merchant); add(receipt.category); add(receipt.address);
+          add(receipt.payment_method);
+          if (Array.isArray(receipt.items)) {
+            for (const item of receipt.items) add(item && item.description);
+          }
+
+          add(meta.account); add(meta.institution); add(meta.folder); add(meta.category);
+          if (meta.geo) add(meta.geo.resolved);
+          if (meta.event) { add(meta.event.place); add(meta.event.date); }
+          if (meta.matter) add(SEN_TYPES[meta.matter]);
+          if (Array.isArray(meta.dates)) {
+            for (const dated of meta.dates) add(dated && dated.label);
+          }
+          if (Array.isArray(meta.files)) {
+            for (const file of meta.files) add(file && file.name);
+          }
+          return out.join(" \u00b7 ");
+        }
+
+        function escapeForRegExp(text) {
+          return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+
+        /* Ranked, so a title match is not buried under forty body matches.
+           Returns the total as well as the page, because showing five of
+           forty-one without saying so is its own small dishonesty. */
+        function searchField(query, limit) {
+          const q = (query || "").trim().toLowerCase();
+          if (q.length < 2) return { hits: [], total: 0 };
+          const word = new RegExp("\\b" + escapeForRegExp(q));
+          const scored = [];
+
+          for (const record of records) {
+            const title = (record.title || "").toLowerCase();
+            let score = 0;
+            let where = "title";
+            if (title === q) score = 120;
+            else if (word.test(title)) score = 90;
+            else if (title.includes(q)) score = 70;
+            if (!score) {
+              const metaText = searchableMeta(record).toLowerCase();
+              if (metaText.includes(q)) { score = 45; where = "meta"; }
+            }
+            if (!score) {
+              const body = (record.body || "").toLowerCase();
+              if (body.includes(q)) { score = 25; where = "body"; }
+            }
+            if (score) scored.push({ type: "record", record, score, where });
+          }
+
+          for (const person of people) {
+            const name = (person.display_name || "").toLowerCase();
+            const rest = [person.relation, person.birth_place,
+              person.meta && person.meta.geo && person.meta.geo.resolved]
+              .filter(Boolean).join(" ").toLowerCase();
+            let score = 0;
+            let where = "name";
+            if (name === q) score = 125;
+            else if (word.test(name)) score = 95;
+            else if (name.includes(q)) score = 75;
+            else if (rest.includes(q)) { score = 40; where = "detail"; }
+            if (score) scored.push({ type: "person", person, score, where });
+          }
+
+          scored.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            const at = (a.record || a.person).created_at || "";
+            const bt = (b.record || b.person).created_at || "";
+            return bt.localeCompare(at);
+          });
+          return { hits: scored.slice(0, limit || 8), total: scored.length };
+        }
+
         function renderSearch() {
           const query = search.value.trim().toLowerCase();
           drop.innerHTML = "";
@@ -12968,12 +13392,8 @@
           const hits = Object.entries(MODULES).filter(([, module]) =>
             (module.name + " " + module.desc).toLowerCase().includes(query)
           );
-          /* the field itself: titles and bodies of every loaded record */
-          const recordHits = query.length >= 2 ? records.filter((record) => {
-            const haystack = (record.title + " " + (record.body || "")).toLowerCase();
-            return haystack.includes(query);
-          }).slice(0, 5) : [];
-          if (!hits.length && !recordHits.length) {
+          const found = searchField(query, 12);
+          if (!hits.length && !found.total) {
             drop.hidden = true;
             return;
           }
@@ -12997,34 +13417,69 @@
             });
             drop.append(item);
           });
-          recordHits.forEach((record) => {
-            const home = recordHome(record);
+          /* the excerpt is taken from whichever field actually matched, so a
+             transaction found by its category does not show a body snippet
+             that never mentions the word */
+          const excerpt = (text) => {
+            const at = (text || "").toLowerCase().indexOf(query);
+            if (at < 0) return null;
+            return (at > 30 ? "\u2026" : "") +
+              text.slice(Math.max(0, at - 30), at + query.length + 40).trim() +
+              (at + query.length + 40 < text.length ? "\u2026" : "");
+          };
+
+          for (const hit of found.hits) {
             const item = document.createElement("button");
             item.type = "button";
             const num = document.createElement("small");
-            num.textContent = "\u29be";
             const name = document.createElement("b");
-            name.textContent = record.title;
             const desc = document.createElement("span");
-            let snippet = home ? home.label : "record";
-            const body = (record.body || "");
-            const at = body.toLowerCase().indexOf(query);
-            if (at > -1) {
-              snippet = (at > 30 ? "\u2026" : "") +
-                body.slice(Math.max(0, at - 30), at + query.length + 40).trim() +
-                (at + query.length + 40 < body.length ? "\u2026" : "");
+
+            if (hit.type === "person") {
+              num.textContent = "\u263f";
+              name.textContent = hit.person.display_name;
+              desc.textContent = [hit.person.relation, hit.person.birth_place]
+                .filter(Boolean).join(" \u00b7 ") || "person";
+              item.addEventListener("mousedown", (event) => {
+                event.preventDefault();
+                setView("constellations");
+                search.value = "";
+                drop.hidden = true;
+                search.blur();
+                openPersonDetail(hit.person);
+              });
+            } else {
+              const record = hit.record;
+              const home = recordHome(record);
+              num.textContent = "\u29be";
+              name.textContent = record.title;
+              const label = home ? home.label : "record";
+              const snippet = hit.where === "body"
+                ? excerpt(record.body || "")
+                : hit.where === "meta"
+                  ? excerpt(searchableMeta(record))
+                  : null;
+              desc.textContent = snippet ? label + " \u00b7 " + snippet : label;
+              item.addEventListener("mousedown", (event) => {
+                event.preventDefault();
+                if (home) setView(home.view);
+                search.value = "";
+                drop.hidden = true;
+                search.blur();
+              });
             }
-            desc.textContent = snippet;
             item.append(num, name, desc);
-            item.addEventListener("mousedown", (event) => {
-              event.preventDefault();
-              if (home) setView(home.view);
-              search.value = "";
-              drop.hidden = true;
-              search.blur();
-            });
             drop.append(item);
-          });
+          }
+
+          /* say how many were not shown rather than silently truncating */
+          if (found.total > found.hits.length) {
+            const more = document.createElement("small");
+            more.className = "search-more";
+            more.textContent = "showing " + found.hits.length + " of " + found.total +
+              " matches \u2014 narrow the search to see the rest";
+            drop.append(more);
+          }
           drop.hidden = false;
         }
 
