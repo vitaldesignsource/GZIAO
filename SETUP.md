@@ -40,6 +40,7 @@ project is harmless.
 | `004_plaid.sql` | `plaid_items`, one row per linked bank |
 | `006_seal_tokens.sql` | withdraws browser SELECT on the Plaid access token, and stops a sender approving their own offer |
 | `007_share_scope.sql` | narrows a recipient's UPDATE to the status column, and stops a record claiming a file it does not own |
+| `008_soft_delete.sql` | adds `deleted_at` so Destroy is recoverable, and withdraws destroyed records from everyone they were shared with |
 
 There is no `005`. It was reserved for the field index (full-text and
 semantic retrieval) and that work is not finished; the number is left free
@@ -49,6 +50,12 @@ rather than reused, so a later 005 can land where it belongs.
 before it opened, and 004's own comment now says so. A project running
 001–004 without them lets any signed-in session read its own bank access
 token and lets a share recipient reach records never offered to them.
+
+**008 changes what Destroy means.** With it applied, Destroy moves a record
+to Trash in the Vault, where it can be restored or deliberately purged.
+Without it the app detects the missing column, falls back to deleting
+immediately, asks for confirmation first, and says so in the Trash panel —
+so applying it late is safe and loses nothing.
 
 `001_foundation.sql` creates:
 
