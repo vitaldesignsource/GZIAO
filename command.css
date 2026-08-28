@@ -535,7 +535,11 @@ body.command-body {
   width: 100%;
   max-width: 1560px;
   margin: 0 auto;
-  padding: 26px 26px 60px;
+  /* 60px here read as a void once the doubled section gaps above were
+     removed; 36 still lets the last panel breathe without the page looking
+     like it stopped early. The larger values further down are clearance for
+     the fixed mobile tab bar and are load-bearing. */
+  padding: 26px 26px 36px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -3332,7 +3336,7 @@ body.command-body {
   }
 
   .content {
-    padding: 18px 16px 50px;
+    padding: 18px 16px 30px;
   }
 
   .strip,
@@ -7067,14 +7071,12 @@ html[data-theme="light"] .hero {
 }
 
 /* ---- rhythm ----
-   Section gaps were set per-section and drifted. One value, so the
-   page has a pulse instead of an accumulation of decisions. */
-.content > section + section,
-.content > .chrono-row + section,
-.content > section + .chrono-row,
-.content > .chrono-row + .chrono-row {
-  margin-top: 18px;
-}
+   This block used to add `margin-top: 18px` to sections here. .content is
+   a flex column that already carries `gap`, and in flex a margin ADDS to
+   the gap rather than replacing it, so every section it matched sat 38-40px
+   from its neighbour instead of 20 — and because the selector only caught
+   some sibling combinations, the page ran 17, 38, 40, 38, 36, 23. Both
+   looser and less even than what it replaced. The gap alone is the rhythm. */
 
 /* ---- focus that looks deliberate rather than like a browser default ---- */
 .content button:focus-visible,
