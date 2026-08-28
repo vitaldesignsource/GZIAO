@@ -1284,7 +1284,13 @@ body.command-body {
   font-weight: 600;
 }
 
-.chrono-list span {
+/* :not(.chrono-time) is load-bearing. This rule is meant for the second
+   span in the row — the "Vault · 10:37 PM" subtitle under the title — but
+   `.chrono-list span` (0,1,1) outranks `.chrono-time` (0,1,0), so it was
+   also dragging the date out of column 1 and stacking it directly on top
+   of the record title in the same grid cell. Every row in Timeline and in
+   the Command chronology rendered its date printed over its own title. */
+.chrono-list span:not(.chrono-time) {
   color: var(--faint);
   grid-column: 3;
   font-size: 10px;
@@ -2145,10 +2151,15 @@ body.command-body {
   outline: none;
 }
 
+/* These four suggestions total 788px and the column they sit in is 315px.
+   With overflow-x:auto and no scroll affordance, three of the four were
+   simply invisible — the browser confirms it does not paint them at their
+   own centres — so three quarters of the feature was undiscoverable. They
+   wrap now: a set of choices should be seen, not scrolled past blindly. */
 .ask-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
   padding: 10px 2px 2px;
 }
 
