@@ -6612,3 +6612,14 @@ small.ritual-note {
     min-height: 340px;
   }
 }
+
+/* ---------- tune-up · a visible focus ring on the upload zones ----------
+   These are div elements carrying role="button", so nothing draws a focus
+   ring for them by default. A keyboard user needs to see where they are. */
+.doc-drop:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 3px;
+}
+.doc-drop:focus:not(:focus-visible) {
+  outline: none;
+}

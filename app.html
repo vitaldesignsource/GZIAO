@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.plaid.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.plaid.com https://*.supabase.co; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://generativelanguage.googleapis.com https://nominatim.openstreetmap.org https://timeapi.io https://api.crossref.org https://api.openalex.org https://*.plaid.com; frame-src https://*.plaid.com; form-action 'self' https://*.plaid.com; worker-src 'self'; manifest-src 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.plaid.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.plaid.com https://*.supabase.co; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://generativelanguage.googleapis.com https://nominatim.openstreetmap.org https://timeapi.io https://api.crossref.org https://api.openalex.org https://*.plaid.com; frame-src https://*.plaid.com https://*.supabase.co; form-action 'self' https://*.plaid.com; worker-src 'self'; manifest-src 'self'" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Command — Gimel Zayin IAO</title>
     <meta name="theme-color" content="#151719" media="(prefers-color-scheme: dark)" />
@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=5" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=65" />
+    <link rel="stylesheet" href="command.css?v=66" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -512,7 +512,7 @@
               <label style="color: var(--faint); font-size: 9px; letter-spacing: 0.14em; display: flex; flex-direction: column; gap: 6px; margin-top: 10px">INTO FOLDER
                 <select id="doc-folder" style="border: 1px solid var(--line); background: var(--panel-solid); color: var(--paper); height: 38px; padding: 0 10px; font: 400 12px Georgia, serif"></select>
               </label>
-              <div class="doc-drop" id="doc-drop">
+              <div class="doc-drop" role="button" tabindex="0" id="doc-drop">
                 <input type="file" id="doc-file" multiple hidden />
                 <b>Drop files here or click to choose</b>
                 <span>PDF, images, and documents up to 50&nbsp;MB each &mdash; as many at once as you like. Stored encrypted in your private vault; downloadable any time.</span>
@@ -882,8 +882,8 @@
               <p class="panel-sub">Select an item in the temporal field to inspect its source and metadata.</p>
               <span class="kicker" style="margin-top: 22px; display: block; color: var(--faint)">FIELD COMPOSITION</span>
               <div class="bar-row"><small>Records</small><div class="bar-track"><div class="bar-fill" id="fc-records-bar" style="--bar-pct: 4"></div></div><b id="fc-records">0</b></div>
-              <div class="bar-row"><small>Operations</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2; --bar-color: var(--violet)"></div></div><b>0</b></div>
-              <div class="bar-row"><small>Resources</small><div class="bar-track"><div class="bar-fill" style="--bar-pct: 2; --bar-color: var(--amber)"></div></div><b>0</b></div>
+              <div class="bar-row"><small>Operations</small><div class="bar-track"><div class="bar-fill" id="fc-ops-bar" style="--bar-pct: 2; --bar-color: var(--violet)"></div></div><b id="fc-ops">0</b></div>
+              <div class="bar-row"><small>Resources</small><div class="bar-track"><div class="bar-fill" id="fc-res-bar" style="--bar-pct: 2; --bar-color: var(--amber)"></div></div><b id="fc-res">0</b></div>
               <div class="bar-row"><small>Vault</small><div class="bar-track"><div class="bar-fill" id="fc-vault-bar" style="--bar-pct: 4; --bar-color: #e08baf"></div></div><b id="fc-vault">0</b></div>
               <div class="privacy-row" style="justify-content: flex-start"><span><i></i>Owner-isolated data &middot; live index</span></div>
             </div>
@@ -1160,11 +1160,11 @@
                 <button class="ghost-btn scr-ins" type="button">+ Recommended actions</button>
               </div>
               <span class="kicker" style="color: var(--faint); display: block; margin-top: 18px">REVIEW READINESS</span>
-              <ul class="check-list">
-                <li class="is-done"><i></i>Document identified</li>
-                <li><i></i>Substantive content</li>
-                <li class="is-done"><i></i>Placeholders resolved</li>
-                <li><i></i>Review status advanced</li>
+              <ul class="check-list" id="scr-ready">
+                <li id="scr-rd-title"><i></i>Document identified</li>
+                <li id="scr-rd-body"><i></i>Substantive content</li>
+                <li id="scr-rd-holes"><i></i>Placeholders resolved</li>
+                <li id="scr-rd-saved"><i></i>Preserved to the vault</li>
               </ul>
               <div class="warn-note">This studio supports drafting and organization. Court rules, factual claims, citations, signatures, and filing requirements require human review.</div>
             </div>
@@ -1344,7 +1344,7 @@
                 </p>
               </div>
             </details>
-            <div class="doc-drop" id="stmt-drop" style="margin-top: 14px">
+            <div class="doc-drop" role="button" tabindex="0" id="stmt-drop" style="margin-top: 14px">
               <input type="file" id="stmt-file" accept=".csv,.qfx,.ofx,.qbo,.txt" multiple hidden />
               <b>Drop statements here or click to choose</b>
               <span>CSV, QFX, OFX &mdash; checking, savings, or credit card. Re-importing an overlapping period is safe: transactions already held are recognised and skipped.</span>
@@ -1462,7 +1462,7 @@
               merchant, date and time, totals, tax, payment method, and the address if one is shown.
               The printed date and time place it on the timeline; a printed address pins it on the Atlas.
             </p>
-            <div class="doc-drop" id="receipt-drop" style="margin-top: 14px">
+            <div class="doc-drop" role="button" tabindex="0" id="receipt-drop" style="margin-top: 14px">
               <input type="file" id="receipt-file" accept="image/*,.pdf" multiple hidden />
               <b>Drop receipts here or click to choose</b>
               <span>Nothing is invented &mdash; only what the receipt itself carries is recorded, and every figure stays editable.</span>
@@ -1717,13 +1717,13 @@
             <div class="mp-actions"><div class="pill-status"><i></i><span id="or-indexed">0 PRIVATE SIGNALS INDEXED</span></div></div>
           </div>
           <section class="mod-index">
-            <div><b>Operations</b><span>0 indexed</span></div>
+            <div><b>Operations</b><span id="or-mi-ops">0 indexed</span></div>
             <div><b>Chronology</b><span id="or-mi-chrono">0 indexed</span></div>
-            <div><b>Resources</b><span>0 indexed</span></div>
+            <div><b>Resources</b><span id="or-mi-res">0 indexed</span></div>
             <div><b>Vault</b><span id="or-mi-vault">0 indexed</span></div>
             <div><b>Scriptorium</b><span id="or-mi-script">0 indexed</span></div>
-            <div><b>Constellations</b><span>0 indexed</span></div>
-            <div><b>Sentinel</b><span>0 indexed</span></div>
+            <div><b>Constellations</b><span id="or-mi-const">0 indexed</span></div>
+            <div><b>Sentinel</b><span id="or-mi-sen">0 indexed</span></div>
           </section>
           <section class="panel">
             <span class="kicker is-violet" style="display: flex; justify-content: space-between">
@@ -2422,10 +2422,10 @@
                 id: "cal-shared-demo", owner_id: "mock-partner", kind: "record", visibility: "shared",
                 household_id: "mock-household", grade: null,
                 title: "Equinox dinner", body: "Brought in by the other member of the household.",
-                occurred_at: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10) + "T19:00:00Z",
+                occurred_at: localDay(Date.now() + 3 * 86400000) + "T19:00:00Z",
                 created_at: new Date().toISOString(),
                 meta: { module: "calendar", event: {
-                  date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
+                  date: localDay(Date.now() + 3 * 86400000),
                   time: "19:00", place: null,
                 } },
               },
@@ -2482,13 +2482,44 @@
               const rows = store[table] || (store[table] = []);
               return {
                 select: () => {
+                  /* A mock that accepts calls the real client refuses is
+                     worse than no mock at all. This one used to answer a
+                     bare .order() happily, so "order=undefined.asc" \u2014 a
+                     400 against real Postgres that killed the entire
+                     sharing layer \u2014 passed every local test for weeks.
+                     The chain now fails where PostgREST fails. */
+                  let view = rows.slice();
+                  let failure = null;
+                  const missingColumn = (column) => ({
+                    code: "42703",
+                    message: 'column ' + table + "." + column + " does not exist",
+                  });
                   const chain = {
-                    order: async () => ({ data: rows.slice(), error: null }),
+                    order: (column, options) => {
+                      if (typeof column !== "string" || !column) {
+                        failure = failure || missingColumn("undefined");
+                        return chain;
+                      }
+                      if (rows.length && !(column in rows[0])) {
+                        failure = failure || missingColumn(column);
+                        return chain;
+                      }
+                      const dir = !options || options.ascending !== false ? 1 : -1;
+                      view.sort((a, b) =>
+                        dir * String(a[column] ?? "").localeCompare(String(b[column] ?? "")));
+                      return chain;
+                    },
+                    range: (from, to) => { view = view.slice(from, to + 1); return chain; },
+                    limit: (n) => { view = view.slice(0, n); return chain; },
                     eq: () => chain,
+                    single: async () => ({ data: failure ? null : view[0] || null, error: failure }),
                     maybeSingle: async () =>
                       table === "profiles"
                         ? { data: { display_name: "operator", household_id: "mock-household", access: location.search.includes("restrict=1") ? "practicus" : "full" }, error: null }
-                        : { data: null, error: null },
+                        : { data: null, error: failure },
+                    then: (resolve, reject) =>
+                      Promise.resolve({ data: failure ? null : view, error: failure })
+                        .then(resolve, reject),
                   };
                   return chain;
                 },
@@ -2552,6 +2583,18 @@
         /* ---------- helpers ---------- */
         const $ = (id) => document.getElementById(id);
         const dayMs = 86400000;
+
+        /* What calendar day is it HERE. toISOString reads the date back in
+           UTC, so west of Greenwich it rolls over early: in Phoenix from
+           17:00 onward "today" came back as tomorrow, and anything due today
+           was filed as a day overdue while it was still light out. Every
+           date the user is shown or filtered by is a local calendar date. */
+        function localDay(when) {
+          const d = when ? new Date(when) : new Date();
+          return d.getFullYear() + "-" +
+            String(d.getMonth() + 1).padStart(2, "0") + "-" +
+            String(d.getDate()).padStart(2, "0");
+        }
         let toastTimer;
 
         function toast(message) {
@@ -2722,18 +2765,38 @@
         let latticeOk = true;
         let people = [];
 
+        /* PostgREST caps a response at 1000 rows and says nothing about it.
+           A single unpaged select therefore stops being the field and starts
+           being the first thousand rows of it, with no way to tell the two
+           apart \u2014 the ledger would quietly under-report and the record
+           count would state a number that was simply wrong. Pages until a
+           short page comes back, which is the only proof of the end. */
+        const RECORD_PAGE = 1000;
+
         async function loadRecords() {
-          const { data: rows, error } = await GZ.client
-            .from("records")
-            .select("*")
-            .order("created_at", { ascending: false });
-          if (error) {
-            latticeOk = false;
-            records = [];
-          } else {
-            latticeOk = true;
-            records = (rows || []).filter((row) => row.kind !== "study_progress");
+          const gathered = [];
+          let from = 0;
+          while (true) {
+            const { data: rows, error } = await GZ.client
+              .from("records")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .range(from, from + RECORD_PAGE - 1);
+            if (error) {
+              latticeOk = false;
+              records = [];
+              return;
+            }
+            const page = rows || [];
+            gathered.push(...page);
+            if (page.length < RECORD_PAGE) break;
+            from += RECORD_PAGE;
+            /* a runaway guard: 50k records is far past anything real here,
+               and looping forever would be worse than stopping short */
+            if (from >= 50000) break;
           }
+          latticeOk = true;
+          records = gathered.filter((row) => row.kind !== "study_progress");
         }
 
         const isMine = (record) => !record.owner_id || record.owner_id === user.id;
@@ -2806,7 +2869,7 @@
           const holder = $("ready-live");
           if (!holder) return;
           holder.innerHTML = "";
-          const today = new Date().toISOString().slice(0, 10);
+          const today = localDay();
           const lines = [];
           /* next calendar event, own or adopted-shared */
           const futureEvents = calendarEvents()
@@ -3033,7 +3096,12 @@
             img.alt = record.title;
             body.append(img);
           } else if (type === "application/pdf" || /\.pdf$/.test(name)) {
-            body.innerHTML = '<iframe class="doc-viewer-frame" src="' + url + '" title="document"></iframe>';
+            body.innerHTML = "";
+            const frame = document.createElement("iframe");
+            frame.className = "doc-viewer-frame";
+            frame.title = "document";
+            frame.src = url;
+            body.append(frame);
           } else if (type.startsWith("text/") || /\.(txt|md|csv|json|log)$/.test(name)) {
             try {
               const text = await (await fetch(url)).text();
@@ -3240,15 +3308,25 @@
               remove.className = "is-destroy";
               remove.textContent = "Destroy";
               remove.addEventListener("click", async () => {
-                if (isDoc && record.meta && record.meta.path) {
-                  await GZ.client.storage.from("vault").remove([record.meta.path]);
-                }
+                /* The row goes first. Removing the file first and then
+                   failing on the row left a document listed in the vault
+                   whose file no longer existed \u2014 an entry that opens to
+                   nothing. This order can orphan a file instead, which is
+                   storage wasted rather than a record that lies. */
                 const { error } = await GZ.client.from("records").delete().eq("id", record.id);
-                if (!error) {
-                  records = records.filter((held) => held.id !== record.id);
-                  renderAll();
-                  toast(isDoc ? "Document and file destroyed." : "Record destroyed.");
+                if (error) return toast("Could not destroy: " + error.message);
+                if (isDoc && record.meta && record.meta.path) {
+                  const { error: fileError } =
+                    await GZ.client.storage.from("vault").remove([record.meta.path]);
+                  if (fileError) {
+                    records = records.filter((held) => held.id !== record.id);
+                    renderAll();
+                    return toast("Record destroyed, but the stored file could not be removed.");
+                  }
                 }
+                records = records.filter((held) => held.id !== record.id);
+                renderAll();
+                toast(isDoc ? "Document and file destroyed." : "Record destroyed.");
               });
               actions.append(remove);
             } else {
@@ -3305,6 +3383,18 @@
           const pct = Math.min(100, records.length * 12) || 4;
           $("fc-records-bar").style.setProperty("--bar-pct", pct);
           $("fc-vault-bar").style.setProperty("--bar-pct", pct);
+          /* these two rows sat at a literal 0 under a caption reading
+             "live index" while the two beside them were real. Each bar is
+             scaled against the largest of the four so the widths compare
+             with each other rather than against nothing. */
+          const opsCount = actionsOpen().length;
+          const resCount = records.filter((record) =>
+            record.meta && record.meta.module === "resources").length;
+          const widest = Math.max(records.length, opsCount, resCount, 1);
+          $("fc-ops").textContent = opsCount;
+          $("fc-res").textContent = resCount;
+          $("fc-ops-bar").style.setProperty("--bar-pct", Math.max(2, Math.round(opsCount / widest * 100)));
+          $("fc-res-bar").style.setProperty("--bar-pct", Math.max(2, Math.round(resCount / widest * 100)));
           const list = $("tl-list");
           list.innerHTML = "";
           $("tl-empty").hidden = records.length > 0;
@@ -3338,7 +3428,7 @@
             if (!anchorId) return [];
             const anchor = people.find((p) => p.id === anchorId && p.birth_date);
             if (!anchor) return [];
-            const today = new Date().toISOString().slice(0, 10);
+            const today = localDay();
             if (transitCache && transitCache.key === anchorId + "|" + today) return transitCache.hits;
             const natal = chartForPerson(anchor);
             const hits = window.GZ_ASTRO
@@ -3447,6 +3537,15 @@
           $("or-mi-chrono").textContent = todays + " indexed";
           $("or-mi-vault").textContent = records.length + " indexed";
           $("or-mi-script").textContent = journals + " indexed";
+          /* these four used to be static "0 indexed" beside three live
+             siblings, under a badge reading LIVE INDEX. A count nobody
+             computes is not an index, and printing it next to real ones
+             makes the real ones untrustworthy too. */
+          $("or-mi-ops").textContent = actionsOpen().length + " indexed";
+          $("or-mi-res").textContent = records.filter((record) =>
+            record.meta && record.meta.module === "resources").length + " indexed";
+          $("or-mi-const").textContent = people.length + " indexed";
+          $("or-mi-sen").textContent = sentinelAll().length + " indexed";
           $("o2-read").textContent = empty
             ? "The field is stable and ready for deliberate action."
             : "The field holds " + records.length + " sealed record" + (records.length === 1 ? "" : "s") + ".";
@@ -3737,11 +3836,30 @@
         let recordShares = [];
         let unitsAvailable = true;
 
+        /* Why the failure is recorded rather than collapsed: this loader used
+           to report every error as "migration 003 is missing", which is only
+           one of the reasons it can fail. That hid a real bug \u2014 a bare
+           .order() sent "order=undefined.asc", Postgres answered 42703, and
+           the app told Sky to apply a migration he had already applied. Only
+           42P01 (undefined_table) actually means the migration is missing;
+           every other error is now shown as itself. */
+        let unitsProblem = "";
+
         async function loadUnits() {
+          unitsProblem = "";
           try {
-            const links = await GZ.client.from("unit_links").select().order();
-            const shares = await GZ.client.from("record_shares").select().order();
-            if (links.error || shares.error) throw new Error((links.error || shares.error).message);
+            const links = await GZ.client.from("unit_links")
+              .select().order("created_at", { ascending: false });
+            const shares = await GZ.client.from("record_shares")
+              .select().order("created_at", { ascending: false });
+            const failure = links.error || shares.error;
+            if (failure) {
+              unitsProblem = failure.code === "42P01"
+                ? "Units are not enabled on the database yet \u2014 apply schema/003_units.sql in Supabase and reload."
+                : "Units could not be read: " + (failure.message || "unknown error") +
+                  (failure.code ? " (" + failure.code + ")" : "");
+              throw new Error(unitsProblem);
+            }
             unitLinks = links.data || [];
             recordShares = shares.data || [];
             unitsAvailable = true;
@@ -3749,6 +3867,7 @@
             unitsAvailable = false;
             unitLinks = [];
             recordShares = [];
+            if (!unitsProblem) unitsProblem = "Units could not be read: " + (error.message || "unknown error");
           }
         }
 
@@ -3772,7 +3891,7 @@
         }
 
         async function sendUnitInvite() {
-          if (!unitsAvailable) return toast("Units need migration 003 applied to the database first.");
+          if (!unitsAvailable) return toast(unitsProblem || "Units are unavailable.");
           const email = window.prompt("Link request — their GZIAO sign-in email:");
           if (!email || !email.trim()) return;
           const target = email.trim().toLowerCase();
@@ -3797,8 +3916,7 @@
           if (!holder) return;
           holder.innerHTML = "";
           if (!unitsAvailable) {
-            $("unit-note").textContent =
-              "Units are not enabled on the database yet — apply schema/003_units.sql in Supabase and reload.";
+            $("unit-note").textContent = unitsProblem || "Units are unavailable.";
             return;
           }
           const members = unitMembers();
@@ -4030,7 +4148,7 @@
 
         /* ---------- calendar: shared time ---------- */
         let calMonth = null;   // Date at the first of the shown month
-        let calSelected = new Date().toISOString().slice(0, 10);
+        let calSelected = localDay();
         let calEditingId = null;
 
         function calendarEvents() {
@@ -4963,6 +5081,24 @@
               records = records.filter((held2) => held2.id !== record.id);
               dropped++;
             }
+            /* Everything Plaid handed over is now sealed, so the cursor may
+               move. Until this call the server still holds the old one, and a
+               failure anywhere above simply means the next Sync fetches the
+               same page again \u2014 which the fingerprint check absorbs.
+               A connector that predates the two-phase handshake returns no
+               cursors at all and still advances its own; the guard below lets
+               either version work, in either deploy order. */
+            let ackFailed = false;
+            if (result.cursors && result.cursors.length) {
+              try {
+                await plaidCall("ack", { cursors: result.cursors });
+              } catch (ackError) {
+                /* the rows ARE stored; only the bookmark did not move. Saying
+                   "sync failed" here would be false, and would invite a
+                   re-import the user does not need. */
+                ackFailed = true;
+              }
+            }
             if (imported || updated || dropped) {
               await flagCrossSourceDuplicates();
               await matchReceiptsToTransactions();
@@ -4976,6 +5112,10 @@
             bankNote(parts.length
               ? "Synced: " + parts.join(", ") + "."
               : "Synced — nothing new since the last pull.");
+            if (ackFailed) {
+              bankNote("Stored, but the sync bookmark did not move — the next " +
+                "pull will re-read this period and skip what is already held.", true);
+            }
             if (result.problems) bankNote("Synced with problems: " + result.problems.join(" · "), true);
           } catch (error) {
             bankNote("Sync failed: " + error.message, true);
@@ -5109,12 +5249,23 @@
           for (let i = 0; i < Math.min(lines.length, 40); i++) {
             const cells = splitCsvLine(lines[i]).map((cell) => cell.toLowerCase());
             const dateAt = cells.findIndex((cell) => /(^|\b)(posted date|post date|transaction date|date)(\b|$)/.test(cell));
-            const amountAt = cells.findIndex((cell) => /^(amount|debit|credit|amt)/.test(cell));
-            if (dateAt > -1 && amountAt > -1) {
+            /* Two shapes exist and they are not interchangeable. Most banks
+               give one signed Amount column. Capital One and most credit
+               unions give unsigned Debit and Credit columns instead, where
+               the column carries the sign the number does not. Binding the
+               first of these three to "amount" read every purchase as
+               income and dropped every payment on the floor. */
+            const amountAt = cells.findIndex((cell) => /^(amount|amt|transaction amount)/.test(cell));
+            const debitAt = cells.findIndex((cell) => /^(debit|withdrawal|money out|paid out)/.test(cell));
+            const creditAt = cells.findIndex((cell) => /^(credit|deposit|money in|paid in)/.test(cell));
+            const hasAmount = amountAt > -1 || (debitAt > -1 && creditAt > -1);
+            if (dateAt > -1 && hasAmount) {
               headerIndex = i;
               columns = {
                 date: dateAt,
                 amount: amountAt,
+                debit: amountAt > -1 ? -1 : debitAt,
+                credit: amountAt > -1 ? -1 : creditAt,
                 description: cells.findIndex((cell) => /(description|payee|merchant|name|memo)/.test(cell)),
                 balance: cells.findIndex((cell) => /(running bal|balance)/.test(cell)),
                 ref: cells.findIndex((cell) => /(reference|ref no|transaction id)/.test(cell)),
@@ -5128,7 +5279,18 @@
             const cells = splitCsvLine(lines[i]);
             if (cells.length < 2) continue;
             const date = parseStatementDate(cells[columns.date]);
-            const amount = parseMoney(cells[columns.amount]);
+            let amount;
+            if (columns.amount > -1) {
+              amount = parseMoney(cells[columns.amount]);
+            } else {
+              /* the column is the sign, so the printed magnitude is used and
+                 the row is only skipped when NEITHER side parses */
+              const out = parseMoney(cells[columns.debit]);
+              const inn = parseMoney(cells[columns.credit]);
+              amount = out === null && inn === null
+                ? null
+                : Math.abs(inn || 0) - Math.abs(out || 0);
+            }
             if (!date || amount === null) continue;
             const description = columns.description > -1
               ? cells[columns.description] : "transaction";
@@ -5366,7 +5528,7 @@
         /* the window a date preset covers, as YYYY-MM-DD bounds */
         function ledgerWindow() {
           const today = new Date();
-          const iso = (d) => d.toISOString().slice(0, 10);
+          const iso = (d) => localDay(d);
           const back = (days) => iso(new Date(today.getTime() - days * 86400000));
           switch (ledgerFilter.when) {
             case "7": return [back(7), iso(today)];
@@ -5460,11 +5622,19 @@
           return CAT_COLOURS[index % CAT_COLOURS.length];
         }
 
+        /* One rule for what counts, used by the headline totals, the
+           cashflow chart and the category ring alike. They disagreed before:
+           the totals excluded pending authorisations while the visuals
+           included them, so the bars never summed to the figure above. */
+        function countableTxn(record) {
+          return !record.meta.superseded_by && !record.meta.pending;
+        }
+
         /* daily totals across the range actually on screen */
         function dailyFlow(rows) {
           const byDay = new Map();
           for (const record of rows) {
-            if (record.meta.superseded_by) continue;
+            if (!countableTxn(record)) continue;
             const day = record.meta.txn.date;
             const cell = byDay.get(day) || { day, in: 0, out: 0 };
             const amount = record.meta.txn.amount;
@@ -5528,16 +5698,23 @@
               (outV ? '<span class="t-out">\u2212$' + outV.toFixed(2) + "</span>" : "") +
               (!inV && !outV ? "nothing moved" : "");
           };
-          svg.addEventListener("mousemove", show);
-          svg.addEventListener("touchstart", show, { passive: true });
-          svg.addEventListener("mouseleave", () => { readout.textContent = ""; });
+          /* #fin-chart persists across renders, so binding here each time
+             stacked a fresh set of handlers on every ledger filter change.
+             Bound once, like wireLedgerFilters does \u2014 the handler reads the
+             DOM it is given, so it needs no closure over this render. */
+          if (!svg.dataset.wired) {
+            svg.dataset.wired = "1";
+            svg.addEventListener("mousemove", show);
+            svg.addEventListener("touchstart", show, { passive: true });
+            svg.addEventListener("mouseleave", () => { readout.textContent = ""; });
+          }
         }
 
         function renderCategoryRing(rows) {
           const donut = $("fin-donut");
           const list = $("fin-cats");
           if (!donut || !list) return;
-          const outgoing = rows.filter((r) => !r.meta.superseded_by && r.meta.txn.amount < 0);
+          const outgoing = rows.filter((r) => countableTxn(r) && r.meta.txn.amount < 0);
           /* the live feed carries categories; an imported statement does not.
              Rather than one meaningless "uncategorised" blob, fall back to
              grouping by merchant — still a fact the data states, not a guess. */
@@ -5728,7 +5905,7 @@
             dates.push(record.meta.txn.date);
             /* a superseded import and a pending posting are both held and
                shown, but neither is counted: one would double, one may change */
-            if (record.meta.superseded_by || record.meta.pending) continue;
+            if (!countableTxn(record)) continue;
             const amount = record.meta.txn.amount;
             if (amount >= 0) inflow += amount; else outflow += Math.abs(amount);
           }
@@ -6235,7 +6412,9 @@
               }
             }
           }
-          if (sealed) renderAll();
+          /* a receipt can arrive after the transaction it belongs to, so the
+             match has to run on this side too, not only on import */
+          if (sealed) { await matchReceiptsToTransactions(); renderAll(); }
           $("receipt-run").disabled = false;
           $("receipt-clear").disabled = false;
           receiptFiles = failed.map((entry) => entry.file);
@@ -6523,7 +6702,7 @@
             const blob = buildZip(entries);
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
-            a.download = "gziao-archive-" + new Date().toISOString().slice(0, 10) + ".zip";
+            a.download = "gziao-archive-" + localDay() + ".zip";
             document.body.append(a);
             a.click();
             a.remove();
@@ -6751,13 +6930,18 @@
         function senAllEvents(all) {
           const events = [];
           for (const record of all || sentinelAll()) {
+            /* Keyed on date AND label: a hearing and a filing deadline can
+               fall on the same day, and dropping the second one hid a real
+               obligation from the chronology. */
             const seen = new Set();
             for (const d of record.meta.dates || []) {
-              if (seen.has(d.date)) continue;
-              seen.add(d.date);
+              const key = d.date + "|" + (d.label || "");
+              if (seen.has(key)) continue;
+              seen.add(key);
               events.push({ date: d.date, label: d.label, record });
             }
-            if (record.meta.key_date && !seen.has(record.meta.key_date)) {
+            if (record.meta.key_date &&
+                !(record.meta.dates || []).some((x) => x.date === record.meta.key_date)) {
               events.push({ date: record.meta.key_date, label: "key date", record });
             }
           }
@@ -6782,13 +6966,13 @@
 
           /* the authoritative timeline: every date from every matter */
           const events = senAllEvents(all);
-          const upcoming = events.filter((e) => e.date >= new Date().toISOString().slice(0, 10));
+          const upcoming = events.filter((e) => e.date >= localDay());
           $("sen-next").textContent = upcoming.length ? upcoming[0].date : "Clear";
           $("sen-next-sub").textContent = upcoming.length ? upcoming[0].label + " · " + upcoming[0].record.title.slice(0, 30) : "No dated items";
           const tl = $("sen-timeline");
           tl.innerHTML = "";
           $("sen-timeline-empty").hidden = events.length > 0;
-          const today = new Date().toISOString().slice(0, 10);
+          const today = localDay();
           for (const eventItem of events) {
             const li = document.createElement("li");
             const time = document.createElement("time");
@@ -7596,6 +7780,18 @@
           return (bytes / 1048576).toFixed(1) + " MB";
         }
 
+        /* The file inputs inside these zones are `hidden`, so they are not
+           in the tab order and never receive a keypress. Without this the
+           only way into the vault, the statement importer or the receipt
+           reader is a mouse. The zone itself carries the affordance, so the
+           zone is what takes focus. */
+        document.querySelectorAll(".doc-drop").forEach((zone) => {
+          zone.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            zone.click();
+          });
+        });
         $("doc-drop").addEventListener("click", () => $("doc-file").click());
         $("doc-drop").addEventListener("dragover", (event) => {
           event.preventDefault();
@@ -9334,6 +9530,23 @@
           $("scr-count").textContent = words + (words === 1 ? " word" : " words");
           if (stateText) $("scr-state").textContent = stateText;
           $("scr-mode").textContent = editingDraftId ? "EDITING DRAFT" : "NEW COMPOSITION";
+          /* Two of these four were ticked in the markup and never moved,
+             so the list reported a document it had never looked at. Each
+             now states something checkable about what is actually typed. */
+          const title = $("scr-title").value.trim();
+          const body = $("scr-body").value;
+          const setReady = (id, met) => {
+            const li = $(id);
+            if (li) li.className = met ? "is-done" : "";
+          };
+          setReady("scr-rd-title", title.length > 0);
+          setReady("scr-rd-body", words >= 50);
+          /* an unfilled template section, or a bracketed placeholder left
+             where a fact belongs */
+          setReady("scr-rd-holes", body.trim().length > 0 &&
+            !/\[[^\]]{0,60}\]|\{\{|TK\b|TBD\b|XXX/i.test(body));
+          setReady("scr-rd-saved", Boolean(editingDraftId));
+
           const readout = $("scr-readtime");
           if (readout) {
             /* 200 words a minute is the usual reading estimate; below a
@@ -9523,27 +9736,109 @@
           });
         });
 
-        /* ---------- oracle intelligence ---------- */
+        /* ---------- oracle intelligence ----------
+           Every branch below counts something actually in the field. The
+           canned strings these replaced said "Nothing is overdue" and "the
+           Resources ledger holds $0 across all scopes" no matter what was
+           stored \u2014 false the day the bank connected, and false about
+           overdue actions long before that. An answer that never reads the
+           data is not a synthesis of it, and this panel claims to be one. */
         function analyzeField(question) {
           const q = (question || "").toLowerCase();
           let answer;
-          if (q.includes("overdue") || q.includes("time")) {
-            answer = "Nothing is overdue. No dated obligations exist in the field.";
-          } else if (q.includes("financ") || q.includes("constraint")) {
-            answer = "No financial constraints are recorded. The Resources ledger holds $0 across all scopes.";
+          if (q.includes("overdue") || q.includes("time") || q.includes("deadline")) {
+            const dated = actionsOpen()
+              .map((record) => ({ record, days: daysUntil(actionDue(record)) }))
+              .filter((entry) => entry.days !== null)
+              .sort((a, b) => a.days - b.days);
+            const overdue = dated.filter((entry) => entry.days < 0);
+            const soon = dated.filter((entry) => entry.days >= 0 && entry.days <= 7);
+            const legal = senAllEvents().filter((event) => event.date >= localDay())
+              .sort((a, b) => a.date.localeCompare(b.date));
+            const open = actionsOpen().length;
+            if (!dated.length && !legal.length) {
+              answer = open
+                ? open + " open action" + (open === 1 ? " carries" : "s carry") +
+                  " no due date, so nothing can be called overdue."
+                : "No dated obligations are stored.";
+            } else {
+              const parts = [];
+              if (overdue.length) {
+                parts.push(overdue.length + " overdue, the oldest \u201c" + overdue[0].record.title +
+                  "\u201d by " + Math.abs(overdue[0].days) + " day" +
+                  (Math.abs(overdue[0].days) === 1 ? "" : "s"));
+              }
+              if (soon.length) parts.push(soon.length + " due within seven days");
+              if (legal.length) parts.push("next dated matter " + legal[0].date + " (" + legal[0].label + ")");
+              answer = parts.length
+                ? parts.join("; ") + "."
+                : "Nothing dated falls inside the next seven days.";
+            }
+          } else if (q.includes("financ") || q.includes("constraint") || q.includes("money") || q.includes("spend")) {
+            const txns = records.filter((record) =>
+              record.meta && record.meta.module === "resources" &&
+              record.meta.kind === "transaction" && countableTxn(record));
+            if (!txns.length) {
+              answer = "No transactions are held, so no ledger figure can be stated.";
+            } else {
+              let inflow = 0, outflow = 0, earliest = null, latest = null;
+              for (const record of txns) {
+                const amount = record.meta.txn.amount;
+                if (amount >= 0) inflow += amount; else outflow += Math.abs(amount);
+                const day = record.meta.txn.date;
+                if (!earliest || day < earliest) earliest = day;
+                if (!latest || day > latest) latest = day;
+              }
+              const net = inflow - outflow;
+              answer = txns.length + " transaction" + (txns.length === 1 ? "" : "s") +
+                " from " + earliest + " to " + latest + ": $" + inflow.toFixed(2) + " in, $" +
+                outflow.toFixed(2) + " out, net " + (net < 0 ? "\u2212$" : "$") + Math.abs(net).toFixed(2) + ".";
+            }
           } else if (q.includes("document") || q.includes("review")) {
-            answer = records.length
-              ? records.length + " vault record" + (records.length === 1 ? " is" : "s are") + " held; none are flagged for review."
-              : "No documents are held yet. The vault field is clear.";
+            const docs = records.filter((record) => record.kind === "document");
+            const drafts = records.filter((record) => record.kind === "draft");
+            const bodyless = drafts.filter((record) => !record.body || !record.body.trim()).length;
+            answer = docs.length + " document" + (docs.length === 1 ? "" : "s") + " and " +
+              drafts.length + " draft" + (drafts.length === 1 ? "" : "s") + " held" +
+              (bodyless
+                ? "; " + bodyless + " draft" + (bodyless === 1 ? " has" : "s have") + " no body written yet."
+                : ".");
           } else if (q.includes("uncertain")) {
-            answer = "0 uncertainties identified. Observation remains separated from inference.";
+            /* what the field cannot answer about itself, stated plainly */
+            const gaps = [];
+            const noTime = people.filter((person) => person.birth_date && !person.birth_time_known).length;
+            if (noTime) {
+              gaps.push(noTime + " chart" + (noTime === 1 ? " has" : "s have") +
+                " no known birth time, so houses and angles are not calculable for " +
+                (noTime === 1 ? "it" : "them"));
+            }
+            const undated = actionsOpen().filter((record) => !actionDue(record)).length;
+            if (undated) gaps.push(undated + " open action" + (undated === 1 ? " has" : "s have") + " no due date");
+            /* countableTxn here too, so this figure reconciles with the one
+               the money branch reports rather than counting against a
+               different set of rows */
+            const uncategorised = records.filter((record) =>
+              record.meta && record.meta.kind === "transaction" &&
+              record.meta.txn && !record.meta.txn.category && countableTxn(record)).length;
+            if (uncategorised) {
+              gaps.push(uncategorised + " transaction" +
+                (uncategorised === 1 ? " carries" : "s carry") + " no category from the source");
+            }
+            answer = gaps.length
+              ? "Known gaps: " + gaps.join("; ") + "."
+              : "No structural gaps in what is stored. That is not the same as certainty about what it means.";
           } else {
-            answer = records.length
-              ? "The newest stored fact is “" + records[0].title + "”. No high-consequence condition dominates beyond it."
-              : "The field is stable. No high-consequence metadata condition is currently dominant.";
+            const findings = generateFindings();
+            answer = findings.length
+              ? findings[0].title + " \u2014 " + findings.length + " signal" +
+                (findings.length === 1 ? "" : "s") + " ranked from stored data."
+              : records.length
+                ? "The newest stored fact is \u201c" + records[0].title +
+                  "\u201d. Nothing in the field ranks above it."
+                : "Nothing is stored yet, so there is nothing to synthesise.";
           }
           $("or-detail").textContent = answer;
-          toast("Field analyzed · private metadata only");
+          toast("Field analyzed \u00b7 private metadata only");
         }
         $("or-analyze").addEventListener("click", () => analyzeField($("or-ask").value));
         $("or-ask").addEventListener("keydown", (event) => {
@@ -9789,7 +10084,7 @@
         function srsToday(plusDays) {
           const d = new Date();
           d.setDate(d.getDate() + (plusDays || 0));
-          return d.toISOString().slice(0, 10);
+          return localDay(d);
         }
 
         function srsCatMatch(data, index) {
@@ -10676,8 +10971,8 @@
         const localIso = new Date(bootNow.getTime() - bootNow.getTimezoneOffset() * 60000).toISOString();
         $("dr-when").value = localIso.slice(0, 16);
         refreshDreamLayer();
-        $("aion-date").value = bootNow.toISOString().slice(0, 10);
-        $("aion-scan").value = bootNow.toISOString().slice(0, 10);
+        $("aion-date").value = localDay(bootNow);
+        $("aion-scan").value = localDay(bootNow);
         $("aion-time").value = bootNow.toTimeString().slice(0, 5);
         $("aion-utc").value = (bootNow.getTimezoneOffset() > 0 ? "-" : "+") + Math.abs(bootNow.getTimezoneOffset() / 60);
 
@@ -11758,7 +12053,7 @@
         function renderRungs() {
           const person = peopleWithBirth().find((p) => p.id === $("aion-anchor").value);
           $("rungs-anchor-note").textContent = person ? "FOR " + person.display_name.toUpperCase() : "";
-          if (!$("prog-date").value) $("prog-date").value = new Date().toISOString().slice(0, 10);
+          if (!$("prog-date").value) $("prog-date").value = localDay();
           if (!$("sr-year").value) $("sr-year").value = String(new Date().getFullYear());
           if (!$("rung-lunar").hidden) renderLunarReturns();
           if (!$("rung-dasha").hidden) renderDashas();
@@ -12320,7 +12615,7 @@
         function scribeSystemPrompt() {
           const names = people.map((person) => person.display_name).join(", ") || "none yet";
           return "You are the Scribe of a private personal intelligence system. Today is " +
-            new Date().toISOString().slice(0, 10) + ". Existing people: " + names + ". " +
+            localDay() + ". Existing people: " + names + ". " +
             "Turn the user's instruction (and any attached document) into entry proposals via commit_intents. " +
             "Rules: never invent facts — omit any field the material does not state; birth data especially is " +
             "never guessed. Use update_person (with match_name) when the person already exists. When a document " +
@@ -12543,6 +12838,10 @@
           const done = [];
           const failed = [];
           for (const intent of scribeProposals.intents) {
+            /* files this intent put in the vault, so a later failure can take
+               them back out again \u2014 an upload that no record points at is
+               invisible storage nobody can reach or delete */
+            const uploaded = [];
             try {
               if (intent.action === "create_person" || intent.action === "update_person") {
                 const fields = intent.person || {};
@@ -12597,6 +12896,7 @@
                       .from("vault")
                       .upload(path, file, { contentType: file.type || "application/octet-stream" });
                     if (uploadError) throw new Error("upload: " + uploadError.message);
+                    uploaded.push(path);
                     meta.files.push({ path, name: file.name, size: file.size, type: file.type || "file" });
                   }
                   const primary = meta.files[0];
@@ -12613,6 +12913,9 @@
                 done.push((fields.kind || "record") + " “" + fields.title + "”");
               }
             } catch (error) {
+              if (uploaded.length) {
+                await GZ.client.storage.from("vault").remove(uploaded).catch(() => {});
+              }
               failed.push((intent.reason || intent.action) + " — " + error.message);
             }
           }

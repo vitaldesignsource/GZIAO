@@ -28,7 +28,29 @@ security (next step), not from hiding the key.
 
 ## 3. Schema
 
-The live schema is `schema/001_foundation.sql` — run it in **SQL Editor**. It creates:
+Run every file in `schema/` in numerical order in the **SQL Editor**. All of
+them are written to be safe to re-run, so applying them again on an existing
+project is harmless.
+
+| file | what it adds |
+|---|---|
+| `001_foundation.sql` | households, profiles, records, people — the base tables and their RLS |
+| `002_documents.sql` | the private `vault` storage bucket and its access policies |
+| `003_units.sql` | `unit_links` and `record_shares` — two identities linking, and offering single records to each other |
+| `004_plaid.sql` | `plaid_items`, one row per linked bank |
+| `006_seal_tokens.sql` | withdraws browser SELECT on the Plaid access token, and stops a sender approving their own offer |
+| `007_share_scope.sql` | narrows a recipient's UPDATE to the status column, and stops a record claiming a file it does not own |
+
+There is no `005`. It was reserved for the field index (full-text and
+semantic retrieval) and that work is not finished; the number is left free
+rather than reused, so a later 005 can land where it belongs.
+
+**006 and 007 are not optional.** Each closes a hole that the migration
+before it opened, and 004's own comment now says so. A project running
+001–004 without them lets any signed-in session read its own bank access
+token and lets a share recipient reach records never offered to them.
+
+`001_foundation.sql` creates:
 
 - `households` — the shared relationship field
 - `profiles` — one per identity, auto-created on signup, linked to a household

@@ -233,6 +233,15 @@ Deno.serve(async (req: Request) => {
       const modified: Record<string, unknown>[] = [];
       const removed: string[] = [];
       const problems: string[] = [];
+      /* Where each item's cursor would land IF the browser manages to store
+         what this page returned. It is not written here: /transactions/sync
+         never re-sends a page once its next_cursor has been consumed, so
+         advancing on the read means a browser that dies mid-write loses
+         those transactions permanently, with no way to ask for them again.
+         The client calls "ack" once the rows are sealed. Replaying a page is
+         harmless \u2014 the client dedupes on meta.fingerprint \u2014 and losing one
+         is not, so the risk is taken in the recoverable direction. */
+      const cursors: { item_id: string; cursor: string }[] = [];
 
       for (const item of items) {
         const accountNames: Record<string, string> = {};
@@ -282,10 +291,7 @@ Deno.serve(async (req: Request) => {
             cursor = page.next_cursor as string;
             hasMore = Boolean(page.has_more);
           }
-          await vault.from("plaid_items")
-            .update({ cursor, last_synced_at: new Date().toISOString() })
-            .eq("owner_id", user.id)
-            .eq("item_id", item.item_id);
+          if (cursor) cursors.push({ item_id: item.item_id, cursor });
         } catch (itemError) {
           const message = itemError instanceof Error ? itemError.message : String(itemError);
           problems.push((item.institution_name ?? "a connection") + ": " + message);
@@ -297,8 +303,29 @@ Deno.serve(async (req: Request) => {
       }
       return reply(req, 200, {
         ok: true, added, modified, removed, items: items.length,
+        cursors,
         problems: problems.length ? problems : undefined,
       });
+    }
+
+    /* ---- 4b. the browser confirms it stored the page it was given ---- */
+    if (action === "ack") {
+      const offered = Array.isArray(body.cursors) ? body.cursors : [];
+      let stamped = 0;
+      const when = new Date().toISOString();
+      for (const entry of offered as { item_id?: unknown; cursor?: unknown }[]) {
+        const itemId = String(entry?.item_id ?? "");
+        const cursor = String(entry?.cursor ?? "");
+        if (!itemId || !cursor) continue;
+        /* owner_id comes from the verified JWT, never the body, so an ack
+           can only ever move a cursor on the caller's own connection */
+        const { error } = await vault.from("plaid_items")
+          .update({ cursor, last_synced_at: when })
+          .eq("owner_id", user.id)
+          .eq("item_id", itemId);
+        if (!error) stamped++;
+      }
+      return reply(req, 200, { ok: true, stamped });
     }
 
     /* ---- 5. cut a connection loose, at Plaid and here ---- */
