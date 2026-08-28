@@ -25,11 +25,14 @@ html[data-theme="light"] {
   --line-bright: #24766a59;
   --gold: #176f66;
   --gold-soft: #27857b;
-  --amber: #8a6a2f;
+  /* was #8a6a2f, which measured 4.20:1 against the light shell — the
+     PROTECT accent labels small text as well as drawing rules, so it has
+     to clear 4.5:1 rather than only the 3:1 large-text threshold */
+  --amber: #7d5e26;
   --violet: #6a54c9;
   --violet-soft: #6a54c9;
-  --m1: #8a6a2f;
-  --m2: #8f7a2e;
+  --m1: #7d5e26;
+  --m2: #7f6c26;
   --m3: #2f6cb0;
   --m4: #6a54c9;
 }

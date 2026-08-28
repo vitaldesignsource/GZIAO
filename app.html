@@ -19,9 +19,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=5" />
+    <link rel="stylesheet" href="styles.css?v=6" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=69" />
+    <link rel="stylesheet" href="command.css?v=77" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -320,7 +320,7 @@
                 <span class="kicker">LIVING NOW</span>
                 <div class="ring-wrap" style="width: 132px; height: 132px; margin: 16px 0 0">
                   <div class="ring" style="--ring-color: var(--green)" id="pulse-ring">
-                    <div class="ring-value"><b id="pulse-value">100</b><small>FIELD PULSE</small></div>
+                    <div class="ring-value"><b id="pulse-value">\u2014</b><small>DIGEST-SEALED</small></div>
                   </div>
                 </div>
               </div>
@@ -328,8 +328,8 @@
                 <h2 id="pulse-title" style="margin: 0">The field is coherent.</h2>
                 <p class="panel-sub" id="pulse-sub"></p>
                 <div class="pulse-stat"><b id="pulse-groups">0</b><span>source groups</span></div>
-                <div class="pulse-stat"><b id="pulse-files">0</b><span>preserved records</span></div>
-                <div class="pulse-stat"><b id="pulse-review">0</b><span>awaiting review</span></div>
+                <div class="pulse-stat"><b id="pulse-files">0</b><span>originals preserved</span></div>
+                <div class="pulse-stat"><b id="pulse-review">0</b><span>drafts unwritten</span></div>
               </div>
             </div>
             <button class="panel intake-banner" id="intake-banner" hidden type="button">
@@ -376,7 +376,7 @@
               <div class="oracle-facts">
                 <div><small>FINDING</small><b id="oracle-finding"></b></div>
                 <div><small>BASIS</small><b id="oracle-basis"></b></div>
-                <div><small>CONFIDENCE</small><b id="oracle-confidence"></b></div>
+                <div><small>EVIDENCE TIER</small><b id="oracle-confidence"></b></div>
               </div>
             </div>
           </section>
@@ -465,9 +465,9 @@
             <h2>Document readiness</h2>
             <div class="strip" style="margin-top: 14px">
               <div class="strip-cell"><div><small>TOTAL RECORDS</small><b id="vi-total">0</b></div></div>
-              <div class="strip-cell"><div><small>VERIFIED</small><b id="vi-verified">0</b></div></div>
-              <div class="strip-cell"><div><small>IN REVIEW</small><b>0</b></div></div>
-              <div class="strip-cell"><div><small>INTEGRITY</small><b>Original preserved</b></div></div>
+              <div class="strip-cell"><div><small>DIGEST-SEALED</small><b id="vi-verified">0</b></div></div>
+              <div class="strip-cell"><div><small>ORIGINALS HELD</small><b id="vi-originals">0</b></div></div>
+              <div class="strip-cell"><div><small>ENTRIES ONLY</small><b id="vi-entries">0</b></div></div>
             </div>
             <div id="vi-rows"></div>
           </section>
@@ -1764,7 +1764,7 @@
               <p class="panel-sub">Oracle weighs deadlines, stated priority, financial status, record certainty, document classification, and draft readiness.</p>
               <div class="ring-wrap" style="margin-top: 20px">
                 <div class="ring" id="or-conf-ring" style="--ring-color: var(--violet); --ring-pct: 60">
-                  <div class="ring-value"><b id="or-conf">60%</b><small>CONFIDENCE</small></div>
+                  <div class="ring-value"><b id="or-conf">\u2014</b><small>EVIDENCE TIER</small></div>
                 </div>
               </div>
               <ul class="lens-legend">
@@ -1792,7 +1792,7 @@
                 <div class="oracle-facts" style="margin-top: 16px; flex-direction: row; flex-wrap: wrap; gap: 26px">
                   <div><small>LENS</small><b>Whole field</b></div>
                   <div><small>BASIS</small><b id="o2-basis"></b></div>
-                  <div><small>CONFIDENCE</small><b id="or-conf2">60%</b></div>
+                  <div><small>EVIDENCE TIER</small><b id="or-conf2">\u2014</b></div>
                   <div><small>ACTIONS</small><b>1</b></div>
                 </div>
                 <div class="privacy-row" style="margin-top: 18px"><span>RECOMMENDED ACTION PATH</span><span>HUMAN-CONTROLLED</span></div>
@@ -2441,6 +2441,8 @@
                 occurred_at: localDay() + "T16:20:00Z",
                 meta: {
                   module: "resources", kind: "receipt",
+                  path: "mock-user/1756300000_ironwood.jpg", type: "image/jpeg", size: 218_442,
+                  sha256: "9f2c41b8ad0e77c3b1e5d9084a6f2c1b73de55901aa4c8e2f6b0d3719c84ae52",
                   geo: { lat: 33.4936, lon: -111.9261, resolved: "Scottsdale, AZ" },
                   receipt: {
                     merchant: "IRONWOOD HARDWARE", date: localDay(), time: "16:20",
@@ -3056,6 +3058,16 @@
 
         if ($("trash-empty")) $("trash-empty").addEventListener("click", emptyTrash);
 
+        /* A record is preserved when an original file was stored for it, and
+           sealed when a SHA-256 digest was taken of that file at intake. Both
+           are facts the row states about itself. Several panels were printing
+           records.length under labels like VERIFIED and "preserved records",
+           which asserted a verification this system has never performed. */
+        const hasOriginal = (record) => Boolean(record.meta && record.meta.path);
+        const isSealed = (record) => Boolean(record.meta && record.meta.sha256);
+        const preservedRecords = () => records.filter(hasOriginal);
+        const sealedRecords = () => records.filter(isSealed);
+
         const isMine = (record) => !record.owner_id || record.owner_id === user.id;
         const isShared = (record) => record.visibility === "shared";
 
@@ -3077,7 +3089,11 @@
           const empty = records.length === 0;
           const count = Math.min(3, records.length);
           $("rec-cat").textContent = empty ? "FIELD · FIRST LIGHT" : "FIELD · INFORMATION HYGIENE";
-          $("rec-pct").textContent = empty ? "100%" : "84%";
+          /* This was a confidence percentage nobody computed: literally 84%
+             whenever anything was stored and 100% when nothing was. The slot
+             now carries the evidence tier, which is a claim the system can
+             actually stand behind. */
+          $("rec-pct").textContent = empty ? "NO BASIS" : "INTERPRETATION";
           $("rec-title").textContent = empty
             ? "Seal the first record into the vault"
             : "Review " + count + " recent source" + (count === 1 ? "" : "s") + " together";
@@ -3129,7 +3145,11 @@
         function renderReadiness() {
           $("ready-count").textContent = records.length;
           $("ready-cap").textContent = records.length + " ready";
-          $("ready-ring").style.setProperty("--ring-pct", records.length ? 100 : 12);
+          /* This is a count, not a proportion \u2014 there is no denominator for
+             "records held" \u2014 so the ring is drawn whole rather than pretending
+             to be a meter that happens to always read 100. */
+          $("ready-ring").style.setProperty("--ring-pct", 100);
+          $("ready-ring").classList.toggle("is-count", true);
           const holder = $("ready-live");
           if (!holder) return;
           holder.innerHTML = "";
@@ -3178,17 +3198,40 @@
         }
 
         function renderPulse() {
-          const pulse = latticeOk ? 100 : 40;
-          $("pulse-value").textContent = pulse;
-          $("pulse-ring").style.setProperty("--ring-pct", pulse);
+          /* This ring read 100 whenever the database was reachable and 40 when
+             it was not — a boolean rendered as a percentage, under the label
+             FIELD PULSE, beside a count of "preserved records" that was really
+             just every record. It now measures one real thing: how much of the
+             field has its original preserved and digest-sealed. */
+          const preserved = preservedRecords().length;
+          const sealed = sealedRecords().length;
+          /* The denominator is records that HAVE a stored original, not every
+             record. A bank transaction has no file to digest and never will,
+             so dividing by the whole field would report a permanent near-zero
+             about a system that is doing exactly what it should. */
+          const coverage = preserved ? Math.round(sealed / preserved * 100) : null;
+          $("pulse-value").textContent =
+            !latticeOk ? "\u2014" : coverage === null ? "\u2014" : coverage + "%";
+          $("pulse-ring").style.setProperty("--ring-pct", latticeOk && coverage !== null ? coverage : 0);
           $("pulse-title").textContent = latticeOk ? "The field is coherent." : "The field is degraded.";
-          const groups = records.length ? 1 : 0;
           $("pulse-sub").textContent = latticeOk
-            ? groups + " source group" + (groups === 1 ? " is" : "s are") + " participating in the private intelligence layer."
+            ? (preserved
+                ? sealed + " of " + preserved + " preserved original" + (preserved === 1 ? "" : "s") +
+                  (preserved === 1 ? " carries" : " carry") + " a digest taken at intake. The other " +
+                  (records.length - preserved) + " record" +
+                  (records.length - preserved === 1 ? " is an entry" : "s are entries") +
+                  " with no file to seal."
+                : records.length
+                  ? "No originals are stored yet, so there is nothing to seal. " +
+                    records.length + " record" + (records.length === 1 ? " is" : "s are") + " held as entries."
+                  : "Nothing is stored yet.")
             : "The record lattice is unreachable. Data returns when the connection is restored.";
-          $("pulse-groups").textContent = groups;
-          $("pulse-files").textContent = records.length;
-          $("pulse-review").textContent = 0;
+          $("pulse-groups").textContent = records.length ? 1 : 0;
+          $("pulse-files").textContent = preserved;
+          /* a draft with no body written is the only thing here that
+             genuinely awaits its author */
+          $("pulse-review").textContent =
+            records.filter((r) => r.kind === "draft" && !(r.body || "").trim()).length;
         }
 
         /* which module a record belongs to — used to route intake clicks */
@@ -3273,7 +3316,8 @@
             : "The field holds " + records.length + " sealed record" + (records.length === 1 ? "" : "s") + ". The newest, “" + records[0].title + "”, is the current center of gravity.";
           $("oracle-finding").textContent = empty ? "Clear field" : "Active field";
           $("oracle-basis").textContent = records.length + " signal" + (records.length === 1 ? "" : "s");
-          $("oracle-confidence").textContent = "100%";
+          /* was a flat "100%" \u2014 a certainty about an inference */
+          $("oracle-confidence").textContent = empty ? "NO BASIS" : "INTERPRETATION";
         }
 
         function renderStats() {
@@ -3588,8 +3632,14 @@
         }
 
         function renderIntegrity() {
+          /* VERIFIED printed records.length, so the panel claimed this system
+             had verified every record. Nothing here verifies anything. What it
+             does do is take a SHA-256 of a stored original at intake, so that
+             is what is counted and that is what the label now says. */
           $("vi-total").textContent = records.length;
-          $("vi-verified").textContent = records.length;
+          $("vi-verified").textContent = sealedRecords().length;
+          $("vi-originals").textContent = preservedRecords().length;
+          $("vi-entries").textContent = records.length - preservedRecords().length;
           $("cmd-footer-mid").textContent =
             "1 PROFILE · " + records.length + " RECORD" + (records.length === 1 ? "" : "S") + " · OWNER-ISOLATED";
           const holder = $("vi-rows");
@@ -3604,12 +3654,18 @@
             const row = document.createElement("tr");
             const name = document.createElement("td");
             name.textContent = record.title;
+            /* every row used to read "User-entered / Original preserved"
+               whatever it actually was */
             const cls = document.createElement("td");
             cls.className = "t-dim";
-            cls.textContent = "User-entered";
+            cls.textContent = hasOriginal(record)
+              ? (record.meta.type || "file")
+              : (record.kind === "draft" ? "Draft" : "User-entered");
             const integ = document.createElement("td");
             integ.className = "t-dim";
-            integ.textContent = "Original preserved";
+            integ.textContent = isSealed(record)
+              ? "Digest sealed \u00b7 " + String(record.meta.sha256).slice(0, 10)
+              : hasOriginal(record) ? "Original held, no digest" : "No stored original";
             const mod = document.createElement("td");
             mod.className = "t-dim";
             mod.textContent = new Date(record.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -3801,10 +3857,15 @@
             ? "01 · Capture the next meaningful event or decision when it enters the field."
             : "01 · Review the newest record, then capture what follows.";
           $("o2-basis").textContent = records.length + " signal" + (records.length === 1 ? "" : "s");
-          const conf = empty ? "60%" : "84%";
-          $("or-conf").textContent = conf;
-          $("or-conf2").textContent = conf;
-          $("or-conf-ring").style.setProperty("--ring-pct", empty ? 60 : 84);
+          /* 60% and 84% were invented. The ring now shows how much of the
+             field this synthesis actually read \u2014 the share of records that
+             produced a ranked finding \u2014 which is a number with a denominator. */
+          const ranked = generateFindings().length;
+          const basis = records.length ? Math.round(Math.min(ranked, records.length) / records.length * 100) : 0;
+          const tier = empty ? "NO BASIS" : "INTERPRETATION";
+          $("or-conf").textContent = tier;
+          $("or-conf2").textContent = tier;
+          $("or-conf-ring").style.setProperty("--ring-pct", basis);
 
           const findings = $("or-findings");
           findings.innerHTML = "";
