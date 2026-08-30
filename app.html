@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=81" />
+    <link rel="stylesheet" href="command.css?v=84" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -71,7 +71,7 @@
 
         <div class="side-sys">
           <b>PRIVATE INTELLIGENCE SYSTEM</b>
-          <span>4 work areas &middot; 13 modules</span>
+          <span>4 work areas &middot; 16 modules</span>
         </div>
 
         <nav id="side-nav">
@@ -85,6 +85,7 @@
           <div class="side-section" data-tone="protect">
             <header><b>PROTECT</b><span>Cases, evidence, and drafts</span></header>
             <button class="side-item" data-view="sentinel"><small>04</small><strong>Sentinel</strong><span>Cases &amp; citations</span></button>
+            <button class="side-item" data-view="hearth"><small>16</small><strong>Hearth</strong><span>A family matter</span></button>
             <button class="side-item" data-view="vault"><small>10</small><strong>The Vault</strong><span>Documents</span></button>
             <button class="side-item" data-view="scriptorium"><small>11</small><strong>Scriptorium</strong><span>Document studio</span></button>
             <button class="side-item" data-view="scribe"><small>14</small><strong>The Scribe</strong><span>AI intake</span></button>
@@ -1813,6 +1814,198 @@
           </section>
           <span hidden id="o2-finding"></span><span hidden id="o2-vault"></span><span hidden id="o2-chrono"></span>
           <span hidden id="o2-vault-bar"></span><span hidden id="o2-chrono-bar"></span>
+        </div>
+
+        <!-- ================= HEARTH ================= -->
+        <div class="content" id="view-hearth" hidden>
+          <div class="mp-head">
+            <div class="mp-head-copy">
+              <span class="kicker">A FAMILY MATTER &middot; PRIVATE TO YOU</span>
+              <h1>Hearth</h1>
+              <p>A contemporaneous record of one situation. What happened, when it happened, and what stands behind it &mdash; kept separate from what it might mean.</p>
+            </div>
+            <div class="mp-actions">
+              <button class="ghost-btn" id="hearth-export" type="button">&#10515; Export the chronology</button>
+            </div>
+          </div>
+
+          <section class="panel" id="hearth-profile-panel">
+            <span class="kicker">WHO THIS FILE CONCERNS</span>
+            <h2 style="font-size: 20px">Names stay here</h2>
+            <p class="panel-sub">This application's source is a public repository. Nothing you type below is ever written into it &mdash; these names live only in your own database and are read back when the page renders. The person with the least say in that is the child, which is why it works this way.</p>
+            <div class="he-row" style="margin-top: 14px">
+              <label>CHILD
+                <input type="text" id="hp-child" placeholder="First name" autocomplete="off" />
+              </label>
+              <label>OTHER PARENT
+                <input type="text" id="hp-other" placeholder="Name" autocomplete="off" />
+              </label>
+              <label>YOU
+                <input type="text" id="hp-self" placeholder="Name" autocomplete="off" />
+              </label>
+              <label>OTHER WITNESS
+                <input type="text" id="hp-witness" placeholder="Name" autocomplete="off" />
+              </label>
+            </div>
+            <button class="ghost-btn" id="hp-save" type="button" style="margin-top: 12px">Save these names</button>
+          </section>
+
+          <section class="panel" id="hearth-capture">
+            <span class="kicker is-signal">RECORD WHAT HAPPENED</span>
+            <h2>Enter it now, while it is fresh</h2>
+            <p class="panel-sub">A note written the same day carries weight a reconstruction cannot. Every entry records both when the event happened and when you wrote it down, and shows the gap.</p>
+            <form class="hearth-form" id="hearth-form">
+              <input type="text" id="he-title" placeholder="What happened, in one plain line" required autocomplete="off" />
+
+              <div class="he-row">
+                <label>DATE IT HAPPENED
+                  <input type="date" id="he-date" required />
+                </label>
+                <label>TIME
+                  <input type="time" id="he-time" />
+                </label>
+                <label>LOCATION
+                  <input type="text" id="he-place" placeholder="School, home, exchange point&hellip;" autocomplete="off" />
+                </label>
+                <label>THREAD
+                  <select id="he-thread"></select>
+                </label>
+              </div>
+
+              <label class="he-field">WHO WAS PRESENT
+                <input type="text" id="he-people" placeholder="Names, separated by commas" autocomplete="off" />
+              </label>
+
+              <label class="he-field">WHAT OCCURRED &middot; OBSERVABLE FACTS ONLY
+                <textarea id="he-body" placeholder="What a camera would have caught. Behaviour rather than character."></textarea>
+              </label>
+
+              <label class="he-field">WHAT THE CHILD SAID &middot; EXACT WORDS WHERE POSSIBLE
+                <textarea id="he-said" placeholder="Quote him. Note what was asked immediately before, and how many times."></textarea>
+              </label>
+
+              <div class="he-conditional" id="he-asked-block" hidden>
+                <p class="he-conditional-why">A child&rsquo;s words cannot be weighed without the question that produced them. Recording what was asked, and how often, is what separates a quotation from a prompt &mdash; and it is the first thing anyone examining this will want to know.</p>
+                <label class="he-field">WHAT WAS ASKED IMMEDIATELY BEFORE &middot; VERBATIM
+                  <input type="text" id="he-asked" placeholder="The exact question, or &lsquo;nothing &mdash; volunteered&rsquo;" autocomplete="off" />
+                </label>
+                <div class="he-row">
+                  <label>VOLUNTEERED OR PROMPTED?
+                    <select id="he-prompted">
+                      <option value="">Choose</option>
+                      <option value="volunteered">Volunteered &mdash; nothing was asked</option>
+                      <option value="open">Asked an open question</option>
+                      <option value="direct">Asked a direct question</option>
+                      <option value="repeated">Asked more than once</option>
+                    </select>
+                  </label>
+                  <label>HOW MANY TIMES ASKED
+                    <input type="text" id="he-asked-count" placeholder="Once, twice&hellip;" autocomplete="off" />
+                  </label>
+                  <label>QUOTE FIDELITY
+                    <select id="he-fidelity">
+                      <option value="">Choose</option>
+                      <option value="verbatim">His exact words</option>
+                      <option value="gist">The sense of it, not the words</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <label class="he-field">WHAT ADULTS DID IN RESPONSE
+                <textarea id="he-response" placeholder="Including what you did."></textarea>
+              </label>
+
+              <div class="he-row">
+                <label>DOCUMENTED BY A PROFESSIONAL?
+                  <select id="he-documented">
+                    <option value="">Not known</option>
+                    <option value="yes">Yes &mdash; a record exists</option>
+                    <option value="requested">Requested, not yet received</option>
+                    <option value="no">No</option>
+                  </select>
+                </label>
+                <label>WHEN THE OTHER PARENT WAS NOTIFIED
+                  <input type="text" id="he-notified" placeholder="Date/time, or how" autocomplete="off" />
+                </label>
+                <label>EXHIBIT
+                  <select id="he-exhibit"></select>
+                </label>
+              </div>
+
+              <label class="he-field">THE OTHER PARENT&rsquo;S RESPONSE &middot; THEIR WORDS
+                <textarea id="he-other" placeholder="Quote rather than summarise where you can."></textarea>
+              </label>
+
+              <label class="he-field">FOLLOW-UP OR INTERVENTION
+                <input type="text" id="he-followup" placeholder="What was put in place afterwards" autocomplete="off" />
+              </label>
+
+              <label class="he-field">DOES THIS BEAR ON AN EXISTING ALLEGATION?
+                <input type="text" id="he-bears" placeholder="Which one, and whether it cuts for or against" autocomplete="off" />
+              </label>
+
+              <fieldset class="he-tiers">
+                <legend>WHAT STANDS BEHIND THIS &middot; REQUIRED</legend>
+                <div class="he-tier-row" id="he-tiers"></div>
+                <p class="panel-note" id="he-tier-hint">The strongest available basis for this entry, not the strongest you hope to get. An entry filed as a later recollection is worth exactly what it is &mdash; and every entry beside it is more credible because this one was honest.</p>
+              </fieldset>
+
+              <label class="he-field">SUPPORTING SOURCE
+                <input type="text" id="he-source" placeholder="OFW thread, ParentSquare, incident report, photograph, email&hellip;" autocomplete="off" />
+              </label>
+
+              <label class="he-file">ATTACH THE ORIGINAL (OPTIONAL &middot; SEVERAL AT ONCE)
+                <input type="file" id="he-files" multiple />
+              </label>
+              <span class="up-chips" id="he-file-chips"></span>
+
+              <div class="he-cautions" id="he-cautions" hidden></div>
+
+              <button class="prime-btn" id="he-submit" type="submit">Record this entry</button>
+              <p class="panel-note" id="he-status" hidden></p>
+            </form>
+          </section>
+
+          <section class="chrono-row" style="grid-template-columns: 1fr 340px">
+            <div class="panel">
+              <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
+                <span>THE CHRONOLOGY</span>
+                <span id="he-count" style="color: var(--faint)">0 entries</span>
+              </span>
+              <h2>What is on the record</h2>
+              <div class="he-filters" id="he-filters">
+                <input type="search" id="he-q" placeholder="Search the record&hellip;" autocomplete="off" />
+                <select id="he-f-thread"></select>
+                <select id="he-f-tier"></select>
+                <select id="he-f-order">
+                  <option value="asc">Oldest first</option>
+                  <option value="desc">Newest first</option>
+                </select>
+                <button class="ghost-btn" id="he-f-clear" type="button">Clear</button>
+              </div>
+              <ul class="he-list" id="he-list"></ul>
+              <div class="empty-center" id="he-empty">
+                <div class="glyph" style="background: #d0ad6d15; border-color: #d0ad6d55"></div>
+                <b>The record is empty</b>
+                <span>Enter the first event above. Entries can be back-dated, and the file will say when each one was written.</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <span class="kicker">WHAT THE FILE HOLDS</span>
+              <h2 style="font-size: 20px">Its own weight</h2>
+              <p class="panel-sub" id="he-weight-sub">Nothing recorded yet.</p>
+              <div id="he-tier-bars" style="margin-top: 14px"></div>
+              <span class="kicker" style="display: block; margin-top: 22px">BY THREAD</span>
+              <div id="he-thread-bars" style="margin-top: 10px"></div>
+              <span class="kicker" style="display: block; margin-top: 22px">CONTEMPORANEITY</span>
+              <p class="panel-note" id="he-lag">&mdash;</p>
+              <span class="kicker" style="display: block; margin-top: 22px">PRIMARY SOURCES</span>
+              <p class="panel-note" id="he-gap">&mdash;</p>
+              <div class="privacy-row" style="margin-top: 18px"><span><i></i>Private to you &middot; never shared</span></div>
+            </div>
+          </section>
         </div>
 
         <!-- ================= CONSTELLATIONS ================= -->
@@ -7497,6 +7690,7 @@
                     renderIntegrity, renderUnitInbox, renderIntakeBanner],
           timeline: [renderTimelineView],
           sentinel: [renderSentinel],
+          hearth: [wireHearth, renderHearth],
           constellations: [renderConstellations, renderUnit],
           thework: [renderTempleView],
           aion: [renderAnchorControls, renderChartMemory],
@@ -7644,6 +7838,7 @@
           oracle: { num: "13", name: "Oracle", desc: "Analysis" },
           scribe: { num: "14", name: "The Scribe", desc: "AI intake" },
           calendar: { num: "15", name: "Calendar", desc: "Shared time" },
+          hearth: { num: "16", name: "Hearth", desc: "A family matter" },
         };
         const BUILT = {
           command: "view-command",
@@ -7661,11 +7856,13 @@
           oracle: "view-oracle",
           scribe: "view-scribe",
           calendar: "view-calendar",
+          hearth: "view-hearth",
         };
 
         const TONE_BY_VIEW = {
           command: "orient", timeline: "orient", calendar: "orient", watchtower: "orient",
           sentinel: "protect", vault: "protect", scriptorium: "protect", scribe: "protect",
+          hearth: "protect",
           operations: "manage", resources: "manage",
           constellations: "understand", thework: "understand", aion: "understand",
           atlas: "understand", oracle: "understand",
@@ -10129,6 +10326,837 @@
             $("scr-body").value = ($("scr-body").value + "\n\n## " + section + "\n").trimStart();
           });
         });
+
+        /* ================= HEARTH · one family matter =================
+           A contemporaneous record. The whole design rests on one idea: an
+           entry is worth what its basis is worth, so the basis is a required
+           field and it is shown on every row. A file that says plainly which
+           of its entries are documented and which are remembered is more
+           useful than one that quietly blurs them — to its author first, and
+           to anyone he later hands it to.
+
+           Nothing here interprets. The system counts, dates, and arranges;
+           every characterisation on the screen is the operator's own words. */
+
+        /* The evidence hierarchy is the dossier's own (§36), in its own order
+           of strength. Naming them this way matters: an entry filed as a
+           later recollection is not weaker for saying so, it is simply
+           described accurately, and the file's credibility rests on that
+           distinction holding everywhere. */
+        const HEARTH_TIERS = [
+          { id: "institutional", label: "Neutral record", rank: 1,
+            test: "A school, daycare, agency, or official record — or an original recording",
+            colour: "var(--green)" },
+          { id: "contemporaneous", label: "Written at the time", rank: 2,
+            test: "An OFW, ParentSquare, email, or text message sent when it happened",
+            colour: "var(--gold)" },
+          { id: "firsthand", label: "Firsthand", rank: 3,
+            test: "Someone who was actually present is describing what they saw or heard",
+            colour: "var(--blue)" },
+          { id: "recollection", label: "Later recollection", rank: 4,
+            test: "Remembered and written down afterwards. No record, no other witness",
+            colour: "var(--amber)" },
+          { id: "inference", label: "Inference", rank: 5,
+            test: "What I make of it — motive, meaning, or state of mind. Not the event",
+            colour: "var(--violet)" },
+        ];
+
+        const HEARTH_THREADS = [
+          { id: "behaviour", label: "Behaviour & regulation" },
+          { id: "school", label: "School & daycare" },
+          { id: "developmental", label: "Medical & developmental" },
+          { id: "communication", label: "Co-parent communication" },
+          { id: "allegation", label: "Allegation & response" },
+          { id: "phone", label: "Telephone access" },
+          { id: "agency", label: "DCS / OCWI" },
+          { id: "process", label: "Court & process" },
+          { id: "other", label: "Other" },
+        ];
+
+        /* the proposed exhibit index (§30), so an entry can be pinned to the
+           packet it will travel in */
+        const HEARTH_EXHIBITS = [
+          { id: "", label: "No exhibit yet" },
+          { id: "A", label: "A — controlling orders" },
+          { id: "B", label: "B — Mother's earlier statements / 50-50 proposal" },
+          { id: "C", label: "C — first childcare setting: behaviour & help requests" },
+          { id: "D", label: "D — second setting: assessment communications" },
+          { id: "E", label: "E — childcare incident reports" },
+          { id: "F", label: "F — evaluation request & Prior Written Notice" },
+          { id: "G", label: "G — Aug 12–14, sleep-time clarification, calls" },
+          { id: "H", label: "H — Aug 18–20 suspension & collaboration" },
+          { id: "I", label: "I — Aug 20 message declining the school meeting" },
+          { id: "J", label: "J — school behavioural & support records" },
+          { id: "K", label: "K — telephone-access evidence" },
+          { id: "L", label: "L — product photographs & label" },
+          { id: "M", label: "M — Meg declaration" },
+          { id: "N", label: "N — DCS / OCWI records (reserved)" },
+          { id: "O", label: "O — complete original recordings (reserved)" },
+        ];
+
+        const hearthExhibit = (id) => HEARTH_EXHIBITS.find((e) => e.id === id) || null;
+
+        /* Who this file concerns is data, not code.
+           This repository is public. A name written into the source is
+           published to everyone forever, and the person with the least say
+           in that is the child. So the source ships generic and the names
+           live in one private row in the operator's own database, read at
+           render time. Nothing identifying is ever committed. */
+        let hearthProfile = { child: "", otherParent: "", self: "", witness: "" };
+
+        function loadHearthProfile() {
+          const row = records.find((r) => r.meta && r.meta.module === "hearth" && r.meta.kind === "profile");
+          hearthProfile = Object.assign(
+            { child: "", otherParent: "", self: "", witness: "" },
+            (row && row.meta && row.meta.profile) || {},
+          );
+          return Boolean(row);
+        }
+
+        const childName = () => hearthProfile.child || "the child";
+        const otherParentName = () => hearthProfile.otherParent || "the other parent";
+
+        async function saveHearthProfile(next) {
+          const row = records.find((r) => r.meta && r.meta.module === "hearth" && r.meta.kind === "profile");
+          const profile = Object.assign({}, hearthProfile, next);
+          if (row) {
+            const meta = Object.assign({}, row.meta, { profile });
+            const { data, error } = await GZ.client.from("records")
+              .update({ meta }).eq("id", row.id).select().single();
+            if (error) return toast("Could not save: " + error.message);
+            const at = records.findIndex((r) => r.id === row.id);
+            if (at > -1) records[at] = data;
+          } else {
+            const ok = await seal("Hearth profile", null, {
+              kind: "record", quiet: true,
+              meta: { module: "hearth", kind: "profile", profile },
+            });
+            if (!ok) return toast("Could not save the profile.");
+          }
+          hearthProfile = profile;
+          renderAll();
+          toast("Saved. These names stay in your database and never reach the repository.");
+        }
+
+        /* §33 is a list of things the drafting has already decided not to do.
+           A rule you have to remember is a rule you break at 1am, so the ones
+           that are checkable are checked here. This WARNS and never blocks —
+           sometimes the strong word is the right word, and the tool is not
+           the one who knows. */
+        const HEARTH_CAUTIONS = [
+          { test: /\b(lied|lying|liar|knowingly false|perjur)/i,
+            say: "States that someone lied. The dossier's own guidance is to set the correction beside the record and let the contradiction speak — knowledge and intent are hard to establish and easy to overreach." },
+          { test: /\b(proves|proof that|clearly shows|obviously)\b/i,
+            say: "Asserts what the material proves. Recording what happened and letting the reader draw the conclusion reads stronger than telling them to." },
+          { test: /\b(because of|caused by|due to|as a result of)\b/i,
+            say: "Reads as causation. Temporal sequence can be stated safely; cause usually cannot without evidence that establishes it." },
+          { test: /\b(bipolar|narcissist|borderline|mentally ill|unstable|crazy|psychotic|delusional)\b/i,
+            say: "Diagnostic or characterising language about an adult. §33 rules this out of court documents without competent evidence." },
+          { childTest: true,
+            say: "Describes the child as untruthful. The position on record is developmental \u2014 adult interpretation of a young child's language is unreliable without context \u2014 not that he lies." },
+          { test: /\b(always|never|every time|refuses to ever)\b/i,
+            say: "Categorical. A narrower, dated claim is harder to rebut than an absolute one." },
+          { test: /\bDCS\b[^.]{0,60}\b(cleared|exonerat|closed|unfounded|found no)/i,
+            say: "Treats DCS/OCWI as having reached a finding. Until a written record establishes it, the accurate form is what was reportedly said and what remains to be obtained." },
+        ];
+
+        function hearthCautions(text) {
+          const body = String(text || "");
+          if (!body.trim()) return [];
+          const name = hearthProfile.child;
+          return HEARTH_CAUTIONS.filter((caution) => {
+            if (!caution.childTest) return caution.test.test(body);
+            /* built here rather than written above, so the name never
+               appears in the source of a public repository */
+            if (!name) return false;
+            const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            return new RegExp("\\b" + escaped + "\\b[^.]{0,40}\\b(lied|lying|made (it|that) up|fabricat)", "i").test(body);
+          }).map((c) => c.say);
+        }
+
+        const hearthTier = (id) => HEARTH_TIERS.find((t) => t.id === id) || null;
+        const hearthThread = (id) => HEARTH_THREADS.find((t) => t.id === id) || null;
+
+        function hearthAll() {
+          return records.filter((r) => r.meta && r.meta.module === "hearth");
+        }
+
+        /* the profile row lives in the same module but is not an event */
+        function hearthEntries() {
+          return hearthAll().filter((r) => r.meta.kind !== "profile");
+        }
+
+        /* The instant the event happened, as stored. occurred_at is the event;
+           created_at is when it was written down. Keeping both is the point. */
+        function hearthWhen(record) {
+          return record.occurred_at || record.created_at;
+        }
+
+        /* Days between the event and the moment it was recorded. A record made
+           the same day reads differently from one made five weeks later, and
+           that difference is a fact about the file rather than a judgement. */
+        function hearthLagDays(record) {
+          if (!record.occurred_at || !record.created_at) return null;
+          const happened = new Date(hearthWhen(record));
+          const written = new Date(record.created_at);
+          if (isNaN(happened) || isNaN(written)) return null;
+          return Math.max(0, Math.round((written - happened) / dayMs));
+        }
+
+        function hearthLagLabel(days) {
+          if (days === null) return "";
+          if (days === 0) return "recorded the same day";
+          if (days === 1) return "recorded the next day";
+          if (days < 7) return "recorded " + days + " days later";
+          if (days < 31) return "recorded " + Math.round(days / 7) + " weeks later";
+          return "recorded " + Math.round(days / 30) + " months later";
+        }
+
+        let hearthFiles = [];
+        const hearthFilter = { q: "", thread: "", tier: "", order: "asc" };
+
+        function hearthPopulateSelects() {
+          const thread = $("he-thread");
+          if (thread && !thread.options.length) {
+            for (const t of HEARTH_THREADS) {
+              const o = document.createElement("option");
+              o.value = t.id; o.textContent = t.label;
+              thread.append(o);
+            }
+          }
+          const ft = $("he-f-thread");
+          if (ft && !ft.options.length) {
+            const any = document.createElement("option");
+            any.value = ""; any.textContent = "Every thread";
+            ft.append(any);
+            for (const t of HEARTH_THREADS) {
+              const o = document.createElement("option");
+              o.value = t.id; o.textContent = t.label;
+              ft.append(o);
+            }
+          }
+          const fr = $("he-f-tier");
+          if (fr && !fr.options.length) {
+            const any = document.createElement("option");
+            any.value = ""; any.textContent = "Every basis";
+            fr.append(any);
+            for (const t of HEARTH_TIERS) {
+              const o = document.createElement("option");
+              o.value = t.id; o.textContent = t.label;
+              fr.append(o);
+            }
+          }
+          const ex = $("he-exhibit");
+          if (ex && !ex.options.length) {
+            for (const e of HEARTH_EXHIBITS) {
+              const o = document.createElement("option");
+              o.value = e.id; o.textContent = e.label;
+              ex.append(o);
+            }
+          }
+          const tiers = $("he-tiers");
+          if (tiers && !tiers.children.length) {
+            for (const t of HEARTH_TIERS) {
+              const label = document.createElement("label");
+              label.className = "he-tier";
+              const input = document.createElement("input");
+              input.type = "radio"; input.name = "he-tier"; input.value = t.id;
+              const body = document.createElement("span");
+              const name = document.createElement("b");
+              name.textContent = t.label;
+              const test = document.createElement("small");
+              test.textContent = t.test;
+              body.append(name, test);
+              label.append(input, body);
+              label.style.setProperty("--tier-colour", t.colour);
+              tiers.append(label);
+            }
+          }
+        }
+
+        function hearthMatches(record) {
+          const meta = record.meta || {};
+          if (hearthFilter.thread && meta.thread !== hearthFilter.thread) return false;
+          if (hearthFilter.tier && meta.tier !== hearthFilter.tier) return false;
+          const q = hearthFilter.q.trim().toLowerCase();
+          if (!q) return true;
+          const hay = [record.title, record.body, meta.place,
+            (meta.people || []).join(" "),
+            (hearthThread(meta.thread) || {}).label,
+            (hearthTier(meta.tier) || {}).label].filter(Boolean).join(" ").toLowerCase();
+          return hay.includes(q);
+        }
+
+        /* Numbered by the order they were entered, never renumbered, so a
+           number quoted in a filing keeps pointing at the same entry. */
+        function citeOf(record) {
+          const entries = hearthAll()
+            .filter((r) => r.meta.kind !== "profile")
+            .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+          return entries.findIndex((r) => r.id === record.id) + 1;
+        }
+
+        function renderHearth() {
+          hearthPopulateSelects();
+          loadHearthProfile();
+          /* the form speaks his name where one is set, and stays generic
+             where it is not */
+          const saidLabel = $("he-said") && $("he-said").parentElement;
+          if (saidLabel && saidLabel.firstChild) {
+            saidLabel.firstChild.textContent =
+              "WHAT " + childName().toUpperCase() + " SAID \u00b7 EXACT WORDS WHERE POSSIBLE";
+          }
+          const whyLine = $("he-asked-block") && $("he-asked-block").querySelector(".he-conditional-why");
+          if (whyLine && hearthProfile.child) {
+            whyLine.textContent = hearthProfile.child + "\u2019s words cannot be weighed without the " +
+              "question that produced them. Recording what was asked, and how often, is what " +
+              "separates a quotation from a prompt \u2014 and it is the first thing anyone examining " +
+              "this will want to know.";
+          }
+          for (const [id, key] of [["hp-child","child"],["hp-other","otherParent"],
+                                   ["hp-self","self"],["hp-witness","witness"]]) {
+            if ($(id) && document.activeElement !== $(id)) $(id).value = hearthProfile[key] || "";
+          }
+          const list = $("he-list");
+          if (!list) return;
+          const all = hearthEntries();
+          const shown = all.filter(hearthMatches).sort((a, b) => {
+            const cmp = String(hearthWhen(a)).localeCompare(String(hearthWhen(b)));
+            return hearthFilter.order === "desc" ? -cmp : cmp;
+          });
+
+          $("he-count").textContent = shown.length === all.length
+            ? all.length + " entr" + (all.length === 1 ? "y" : "ies")
+            : shown.length + " of " + all.length;
+          $("he-empty").hidden = all.length > 0;
+
+          list.innerHTML = "";
+          if (all.length && !shown.length) {
+            const none = document.createElement("li");
+            none.className = "he-none";
+            none.textContent = "No entry matches those filters.";
+            list.append(none);
+          }
+
+          let lastDay = null;
+          for (const record of shown) {
+            const meta = record.meta || {};
+            const day = localDay(hearthWhen(record));
+            if (day !== lastDay) {
+              lastDay = day;
+              const head = document.createElement("li");
+              head.className = "he-daymark";
+              head.textContent = new Date(day + "T12:00:00").toLocaleDateString(undefined,
+                { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+              list.append(head);
+            }
+
+            const item = document.createElement("li");
+            item.className = "he-entry";
+            const tier = hearthTier(meta.tier);
+            /* a stable short citation, so a correction can attach to CH-0007
+               rather than to "the third one on that page" */
+            const cite = document.createElement("span");
+            cite.className = "he-cite";
+            cite.textContent = "CH-" + String(citeOf(record)).padStart(4, "0");
+            item.append(cite);
+            if (tier) item.style.setProperty("--tier-colour", tier.colour);
+
+            const top = document.createElement("div");
+            top.className = "he-entry-top";
+            const time = document.createElement("small");
+            time.textContent = meta.time || "";
+            const title = document.createElement("b");
+            title.textContent = record.title;
+            const basis = document.createElement("i");
+            basis.className = "he-basis";
+            basis.textContent = tier ? tier.label : "basis not recorded";
+            top.append(time, title, basis);
+            item.append(top);
+
+            if (record.body) {
+              const body = document.createElement("p");
+              body.textContent = record.body;
+              item.append(body);
+            }
+
+            /* the structured fields are shown labelled rather than run
+               together, because which field a statement came from is part of
+               what that statement is worth */
+            const detail = [
+              [childName() + " said", meta.said],
+              ["Asked before", meta.asked],
+              ["Prompting", meta.prompted && ({
+                volunteered: "volunteered — nothing was asked",
+                open: "an open question was asked",
+                direct: "a direct question was asked",
+                repeated: "asked more than once",
+              })[meta.prompted]],
+              ["Quote fidelity", meta.fidelity && (meta.fidelity === "verbatim"
+                ? "his exact words" : "the sense of it, not the words")],
+              ["Adults did", meta.response],
+              ["Other parent said", meta.otherResponse],
+              ["Notified", meta.notified],
+              ["Follow-up", meta.followup],
+              ["Bears on", meta.bears],
+            ].filter(([, v]) => v);
+            if (detail.length) {
+              const dl = document.createElement("dl");
+              dl.className = "he-detail";
+              for (const [k, v] of detail) {
+                const dt = document.createElement("dt");
+                dt.textContent = k;
+                const dd = document.createElement("dd");
+                dd.textContent = v;
+                dl.append(dt, dd);
+              }
+              item.append(dl);
+            }
+
+            const foot = document.createElement("div");
+            foot.className = "he-entry-foot";
+            const bits = [];
+            const thread = hearthThread(meta.thread);
+            if (thread) bits.push(thread.label);
+            if (meta.people && meta.people.length) bits.push(meta.people.join(", "));
+            if (meta.place) bits.push(meta.place);
+            const lag = hearthLagDays(record);
+            if (lag !== null) bits.push(hearthLagLabel(lag));
+            if (meta.source) bits.push("source: " + meta.source);
+            if (meta.documented === "requested") bits.push("record requested, not yet received");
+            const exhibitOf = hearthExhibit(meta.exhibit);
+            if (exhibitOf && exhibitOf.id) bits.push("Exhibit " + exhibitOf.id);
+            if (meta.files && meta.files.length) {
+              bits.push(meta.files.length + " attachment" + (meta.files.length === 1 ? "" : "s"));
+            }
+            foot.textContent = bits.join("  ·  ");
+            item.append(foot);
+
+            if (meta.files && meta.files.length) {
+              const strip = document.createElement("div");
+              strip.className = "he-attachments";
+              for (const file of meta.files) {
+                const open = document.createElement("button");
+                open.type = "button";
+                open.textContent = "⧉ " + file.name;
+                open.addEventListener("click", () => openStoredFile(file.path, file.name));
+                strip.append(open);
+              }
+              item.append(strip);
+            }
+
+            const tools = document.createElement("div");
+            tools.className = "he-entry-tools";
+            const drop = document.createElement("button");
+            drop.type = "button";
+            drop.className = "is-destroy";
+            drop.textContent = "Destroy";
+            drop.addEventListener("click", () => destroyRecord(record, "entry"));
+            tools.append(drop);
+            item.append(tools);
+
+            list.append(item);
+          }
+
+          renderHearthWeight(all);
+        }
+
+        /* What the file is made of, counted rather than characterised. */
+        function renderHearthWeight(all) {
+          const holder = $("he-tier-bars");
+          const threadHolder = $("he-thread-bars");
+          if (!holder) return;
+          holder.innerHTML = "";
+          threadHolder.innerHTML = "";
+
+          if (!all.length) {
+            $("he-weight-sub").textContent = "Nothing recorded yet.";
+            $("he-lag").textContent = "—";
+            return;
+          }
+
+          const days = all.map((r) => localDay(hearthWhen(r))).sort();
+          $("he-weight-sub").textContent = all.length + " entr" + (all.length === 1 ? "y" : "ies") +
+            " spanning " + days[0] + " to " + days[days.length - 1] + ".";
+
+          const bar = (label, count, colour, total) => {
+            const row = document.createElement("div");
+            row.className = "bar-row";
+            const small = document.createElement("small");
+            small.textContent = label;
+            const track = document.createElement("div");
+            track.className = "bar-track";
+            const fill = document.createElement("div");
+            fill.className = "bar-fill";
+            fill.style.setProperty("--bar-pct", Math.max(2, Math.round(count / total * 100)));
+            if (colour) fill.style.setProperty("--bar-color", colour);
+            track.append(fill);
+            const b = document.createElement("b");
+            b.textContent = count;
+            row.append(small, track, b);
+            return row;
+          };
+
+          for (const tier of HEARTH_TIERS) {
+            const count = all.filter((r) => r.meta.tier === tier.id).length;
+            if (!count) continue;
+            holder.append(bar(tier.label, count, tier.colour, all.length));
+          }
+          const unset = all.filter((r) => !hearthTier(r.meta.tier)).length;
+          if (unset) holder.append(bar("Basis not recorded", unset, "var(--danger)", all.length));
+
+          for (const thread of HEARTH_THREADS) {
+            const count = all.filter((r) => r.meta.thread === thread.id).length;
+            if (!count) continue;
+            threadHolder.append(bar(thread.label, count, null, all.length));
+          }
+
+          /* Entries resting on nothing but their own text. Not a fault — a
+             recollection is a legitimate entry — but it is the list worth
+             chasing a primary source for, and better seen here than
+             discovered later by someone else reading the file. */
+          const unsourced = all.filter((r) => {
+            const m = r.meta || {};
+            return !m.source && !(m.files && m.files.length);
+          });
+          const gapLine = $("he-gap");
+          if (gapLine) {
+            gapLine.textContent = !unsourced.length
+              ? "Every entry names a source or carries an attachment."
+              : unsourced.length + " of " + all.length + " entr" +
+                (unsourced.length === 1 ? "y has" : "ies have") +
+                " no named source and nothing attached.";
+          }
+
+          /* how quickly the file gets written, stated as a median rather than
+             an average so one very late entry does not speak for the rest */
+          const lags = all.map(hearthLagDays).filter((d) => d !== null).sort((a, b) => a - b);
+          if (!lags.length) {
+            $("he-lag").textContent = "No entry carries both an event date and a recording date.";
+          } else {
+            const median = lags[Math.floor(lags.length / 2)];
+            const sameDay = lags.filter((d) => d === 0).length;
+            $("he-lag").textContent =
+              sameDay + " of " + lags.length + " entr" + (lags.length === 1 ? "y was" : "ies were") +
+              " written the day it happened. The middle entry was written " +
+              (median === 0 ? "the same day" : median === 1 ? "the next day" : median + " days later") + ".";
+          }
+        }
+
+        /* open a preserved original from its vault path */
+        async function openStoredFile(path, name) {
+          if (!path) return toast("That entry has no stored file.");
+          const { data, error } = await GZ.client.storage
+            .from("vault").createSignedUrl(path, 300, { download: name || undefined });
+          if (error || !data) return toast("Could not open it: " + ((error && error.message) || "no link returned"));
+          window.open(data.signedUrl, "_blank", "noopener");
+        }
+
+        function renderHearthFiles() {
+          const chips = $("he-file-chips");
+          if (!chips) return;
+          chips.innerHTML = "";
+          hearthFiles.forEach((file, index) => {
+            const chip = document.createElement("span");
+            chip.className = "up-chip";
+            const name = document.createElement("small");
+            name.textContent = file.name;
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.className = "up-kill";
+            kill.textContent = "×";
+            kill.setAttribute("aria-label", "Remove " + file.name);
+            kill.addEventListener("click", () => {
+              hearthFiles.splice(index, 1);
+              renderHearthFiles();
+            });
+            chip.append(name, kill);
+            chips.append(chip);
+          });
+        }
+
+        function hearthNote(message, bad) {
+          const note = $("he-status");
+          if (!note) return;
+          note.hidden = false;
+          note.textContent = message;
+          note.style.color = bad ? "var(--danger)" : "var(--faint)";
+        }
+
+        function wireHearth() {
+          if (!$("he-form-wired")) {
+            const form = $("hearth-form");
+            if (!form || form.dataset.wired) return;
+            form.dataset.wired = "1";
+
+            $("he-date").value = localDay();
+
+            /* the §33 check runs as he writes, on the fields that carry
+               characterisation, and says its piece without stopping anything */
+            const cautionFields = ["he-title", "he-body", "he-said", "he-response",
+                                   "he-other", "he-bears"];
+            const runCautions = () => {
+              const text = cautionFields.map((id) => ($(id) ? $(id).value : "")).join("\n");
+              const hits = hearthCautions(text);
+              const box = $("he-cautions");
+              box.innerHTML = "";
+              box.hidden = hits.length === 0;
+              if (!hits.length) return;
+              const head = document.createElement("b");
+              head.textContent = hits.length === 1
+                ? "One thing to look at before you record this"
+                : hits.length + " things to look at before you record this";
+              box.append(head);
+              for (const hit of hits) {
+                const line = document.createElement("p");
+                line.textContent = hit;
+                box.append(line);
+              }
+              const foot = document.createElement("small");
+              foot.textContent = "These are your own drafting rules, not a block. Record it anyway if the wording is right.";
+              box.append(foot);
+            };
+            for (const id of cautionFields) {
+              if ($(id)) $(id).addEventListener("input", runCautions);
+            }
+
+            /* Quoting the child opens the questions that make the quotation
+               readable. It is not extra bureaucracy: a statement recorded
+               without the prompt that produced it is the exact failure the
+               file is meant to guard against. */
+            const askedBlock = () => {
+              const said = $("he-said").value.trim();
+              $("he-asked-block").hidden = said.length === 0;
+            };
+            $("he-said").addEventListener("input", askedBlock);
+            askedBlock();
+
+            $("he-files").addEventListener("change", () => {
+              hearthFiles = hearthFiles.concat([...$("he-files").files]);
+              $("he-files").value = "";
+              renderHearthFiles();
+            });
+
+            form.addEventListener("submit", async (event) => {
+              event.preventDefault();
+              const title = $("he-title").value.trim();
+              const date = $("he-date").value;
+              const tierInput = form.querySelector('input[name="he-tier"]:checked');
+              if (!title) return hearthNote("Give the entry a plain one-line description.", true);
+              if (!date) return hearthNote("An entry needs the date it happened.", true);
+              /* the basis is not optional: an entry whose basis is unrecorded
+                 quietly weakens every entry beside it */
+              if (!tierInput) return hearthNote("Choose what stands behind this entry.", true);
+              if ($("he-said").value.trim() && !$("he-asked").value.trim()) {
+                return hearthNote(
+                  "This entry quotes " + childName() + ". Record what was asked immediately " +
+                  "before, verbatim \u2014 or write that nothing was asked. The quotation is not " +
+                  "readable without it.", true);
+              }
+
+              $("he-submit").disabled = true;
+              hearthNote("Recording…");
+              const time = $("he-time").value;
+              const val = (id) => ($(id) ? $(id).value.trim() : "") || null;
+              const meta = {
+                module: "hearth",
+                kind: "entry",
+                tier: tierInput.value,
+                thread: $("he-thread").value || "other",
+                time: time || null,
+                place: val("he-place"),
+                people: $("he-people").value.split(",").map((p) => p.trim()).filter(Boolean),
+                /* the twelve fields of the dossier's §35, so a later reader
+                   is not left reconstructing what was asked, who documented
+                   it, and what the other parent actually said */
+                said: val("he-said"),
+                asked: val("he-asked"),
+                prompted: $("he-prompted") ? ($("he-prompted").value || null) : null,
+                askedCount: val("he-asked-count"),
+                fidelity: $("he-fidelity") ? ($("he-fidelity").value || null) : null,
+                response: val("he-response"),
+                documented: $("he-documented").value || null,
+                notified: val("he-notified"),
+                otherResponse: val("he-other"),
+                followup: val("he-followup"),
+                bears: val("he-bears"),
+                source: val("he-source"),
+                exhibit: $("he-exhibit").value || null,
+              };
+
+              const uploaded = [];
+              try {
+                if (hearthFiles.length) {
+                  meta.files = [];
+                  for (let i = 0; i < hearthFiles.length; i++) {
+                    const file = hearthFiles[i];
+                    const safe = file.name.replace(/[^\w.\-]+/g, "_");
+                    const path = user.id + "/hearth_" + Date.now() + "_" + i + "_" + safe;
+                    const { error: upErr } = await GZ.client.storage.from("vault")
+                      .upload(path, file, { contentType: file.type || "application/octet-stream" });
+                    if (upErr) throw new Error("upload: " + upErr.message);
+                    uploaded.push(path);
+                    /* the digest is taken here, at intake, so the file can be
+                       shown later to be the same one that came in */
+                    let sha = null;
+                    try { sha = await sha256Hex(await file.arrayBuffer()); } catch (e) {}
+                    meta.files.push({ path, name: file.name, size: file.size,
+                                      type: file.type || "file", sha256: sha });
+                  }
+                  const primary = meta.files[0];
+                  meta.path = primary.path;
+                  meta.sha256 = primary.sha256;
+                  meta.type = primary.type;
+                  meta.size = primary.size;
+                }
+
+                /* occurred_at is the event; created_at is set by the database
+                   when the row lands. The pair is what makes the file honest
+                   about how contemporaneous it is. */
+                /* An unknown time is a different fact from midday. It is
+                   stored as noon so the row sorts onto the right day, and
+                   meta.timeKnown records that the hour is not evidence. */
+                meta.timeKnown = Boolean(time);
+                const ok = await seal(title, $("he-body").value.trim() || null, {
+                  kind: "record",
+                  occurredAt: date + "T" + (time || "12:00") + ":00",
+                  meta,
+                  quiet: true,
+                  throwOnError: true,
+                });
+                if (!ok) throw new Error("the entry was refused");
+
+                for (const id of ["he-title","he-body","he-time","he-place","he-people",
+                                  "he-said","he-response","he-notified","he-other",
+                                  "he-followup","he-bears","he-source","he-asked",
+                                  "he-asked-count"]) {
+                  if ($(id)) $(id).value = "";
+                }
+                $("he-documented").value = "";
+                $("he-prompted").value = "";
+                $("he-fidelity").value = "";
+                $("he-asked-block").hidden = true;
+                if (tierInput) tierInput.checked = false;
+                hearthFiles = [];
+                renderHearthFiles();
+                $("he-cautions").hidden = true;
+                hearthNote("Recorded. The date it happened and the moment it was written are both on the row.");
+                renderAll();
+              } catch (error) {
+                if (uploaded.length) {
+                  await GZ.client.storage.from("vault").remove(uploaded).catch(() => {});
+                }
+                hearthNote("Could not record it: " + error.message, true);
+              } finally {
+                $("he-submit").disabled = false;
+              }
+            });
+          }
+
+          const filters = $("he-filters");
+          if (filters && !filters.dataset.wired) {
+            filters.dataset.wired = "1";
+            $("he-q").addEventListener("input", () => { hearthFilter.q = $("he-q").value; renderHearth(); });
+            $("he-f-thread").addEventListener("change", () => { hearthFilter.thread = $("he-f-thread").value; renderHearth(); });
+            $("he-f-tier").addEventListener("change", () => { hearthFilter.tier = $("he-f-tier").value; renderHearth(); });
+            $("he-f-order").addEventListener("change", () => { hearthFilter.order = $("he-f-order").value; renderHearth(); });
+            $("he-f-clear").addEventListener("click", () => {
+              hearthFilter.q = ""; hearthFilter.thread = ""; hearthFilter.tier = ""; hearthFilter.order = "asc";
+              $("he-q").value = ""; $("he-f-thread").value = ""; $("he-f-tier").value = ""; $("he-f-order").value = "asc";
+              renderHearth();
+            });
+          }
+
+          const save = $("hp-save");
+          if (save && !save.dataset.wired) {
+            save.dataset.wired = "1";
+            save.addEventListener("click", () => saveHearthProfile({
+              child: $("hp-child").value.trim(),
+              otherParent: $("hp-other").value.trim(),
+              self: $("hp-self").value.trim(),
+              witness: $("hp-witness").value.trim(),
+            }));
+          }
+
+          const exportBtn = $("hearth-export");
+          if (exportBtn && !exportBtn.dataset.wired) {
+            exportBtn.dataset.wired = "1";
+            exportBtn.addEventListener("click", exportHearthChronology);
+          }
+        }
+
+        /* The printed file. It has to carry what the screen leaves implicit:
+           what each basis means, when each entry was written relative to the
+           event, and the digest of any original, so a reader who was not
+           there can weigh it without being told what to think. */
+        function exportHearthChronology() {
+          const all = hearthAll().slice().sort((a, b) =>
+            String(hearthWhen(a)).localeCompare(String(hearthWhen(b))));
+          if (!all.length) return toast("There is nothing on the record yet.");
+
+          const esc = (t) => escText(String(t == null ? "" : t));
+          const lines = [];
+          lines.push("<h1>Chronology</h1>");
+          lines.push("<p class=\"ps-meta\">Prepared " + localDay() +
+            " · " + all.length + " entr" + (all.length === 1 ? "y" : "ies") + "</p>");
+          lines.push("<p class=\"ps-foot\">Every entry below records both the date the event " +
+            "happened and the date it was written down; where these differ the gap is stated. " +
+            "The basis given for each entry is the author's own classification, recorded at the " +
+            "time of writing:</p>");
+          lines.push("<ul class=\"ps-key\">" + HEARTH_TIERS.map((t) =>
+            "<li><b>" + esc(t.label) + "</b> — " + esc(t.test) + "</li>").join("") + "</ul>");
+
+          for (const record of all) {
+            const meta = record.meta || {};
+            const tier = hearthTier(meta.tier);
+            const thread = hearthThread(meta.thread);
+            const lag = hearthLagDays(record);
+            lines.push("<div class=\"ps-entry\">");
+            lines.push("<h3>" + esc(localDay(hearthWhen(record))) +
+              (meta.time ? " " + esc(meta.time) : "") + " — " + esc(record.title) + "</h3>");
+            const facts = [];
+            facts.push("Basis: " + esc(tier ? tier.label : "not recorded"));
+            if (thread) facts.push("Thread: " + esc(thread.label));
+            if (meta.people && meta.people.length) facts.push("Present: " + esc(meta.people.join(", ")));
+            if (meta.place) facts.push("Place: " + esc(meta.place));
+            facts.push("Written: " + esc(localDay(record.created_at)) +
+              (lag !== null ? " (" + esc(hearthLagLabel(lag)) + ")" : ""));
+            if (meta.source) facts.push("Source: " + esc(meta.source));
+            const exh = hearthExhibit(meta.exhibit);
+            if (exh && exh.id) facts.push("Exhibit " + esc(exh.id));
+            if (meta.documented === "requested") facts.push("Professional record requested, not yet received");
+            lines.push("<p class=\"ps-facts\">" + facts.join(" · ") + "</p>");
+            if (record.body) lines.push("<p>" + esc(record.body).replace(/\n/g, "<br />") + "</p>");
+            for (const [k, v] of [[childName() + " said", meta.said],
+                                  ["Asked immediately before", meta.asked],
+                                  ["Prompting", meta.prompted], ["Quote fidelity", meta.fidelity],
+                                  ["Adults did", meta.response],
+                                  ["Other parent said", meta.otherResponse],
+                                  ["Notified", meta.notified], ["Follow-up", meta.followup],
+                                  ["Bears on", meta.bears]]) {
+              if (!v) continue;
+              lines.push("<p class=\"ps-field\"><b>" + esc(k) + ":</b> " +
+                esc(v).replace(/\n/g, "<br />") + "</p>");
+            }
+            if (meta.files && meta.files.length) {
+              lines.push("<p class=\"ps-files\">" + meta.files.map((f) =>
+                esc(f.name) + (f.sha256 ? " · SHA-256 " + esc(String(f.sha256).slice(0, 16)) + "…" : "")
+              ).join("<br />") + "</p>");
+            }
+            lines.push("</div>");
+          }
+
+          const sheet = $("print-sheet");
+          sheet.innerHTML = lines.join("");
+          document.body.classList.add("print-mode");
+          const done = () => {
+            document.body.classList.remove("print-mode");
+            window.removeEventListener("afterprint", done);
+          };
+          window.addEventListener("afterprint", done);
+          window.print();
+          setTimeout(done, 2000);
+        }
 
         /* ---------- oracle intelligence ----------
            Every branch below counts something actually in the field. The

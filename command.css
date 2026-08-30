@@ -7275,3 +7275,452 @@ html[data-theme="light"] .directive {
 .ring.is-count {
   opacity: 0.55;
 }
+
+/* ================= HEARTH · one family matter =================
+   The capture form is the whole module: an entry that takes two minutes
+   to write does not get written, and a chronology with gaps in it is
+   worth less than one with fewer, denser entries. So the form is short,
+   always visible, and the only thing it insists on is the basis. */
+.hearth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.hearth-form > input[type="text"] {
+  font: 400 16px Georgia, serif;
+  padding: 12px 14px;
+}
+
+.he-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.he-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--faint);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  min-width: 0;
+}
+
+.hearth-form textarea {
+  min-height: 92px;
+  font: 400 13px / 1.65 Georgia, serif;
+}
+
+/* ---- the basis, which is required ---- */
+.he-tiers {
+  border: 1px solid var(--panel-line);
+  border-radius: var(--r-md);
+  padding: 14px 16px 12px;
+  margin: 2px 0 0;
+}
+
+.he-tiers legend {
+  color: var(--amber);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  padding: 0 6px;
+}
+
+.he-tier-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.he-tier {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  border: 1px solid var(--panel-line);
+  border-left: 3px solid var(--tier-colour, var(--panel-line));
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.he-tier:hover {
+  background: color-mix(in srgb, var(--tier-colour) 8%, transparent);
+}
+
+.he-tier:has(input:checked) {
+  background: color-mix(in srgb, var(--tier-colour) 13%, transparent);
+  border-color: color-mix(in srgb, var(--tier-colour) 55%, transparent);
+  border-left-color: var(--tier-colour);
+}
+
+.he-tier input {
+  margin-top: 2px;
+  accent-color: var(--tier-colour);
+  flex: none;
+}
+
+.he-tier span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.he-tier b {
+  color: var(--paper);
+  font: 600 12px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+.he-tier small {
+  color: var(--faint);
+  font: 400 10px / 1.45 Georgia, serif;
+  letter-spacing: 0;
+}
+
+.he-file {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--faint);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+}
+
+.he-file input {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* ---- the record itself ---- */
+.he-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 4px;
+}
+
+.he-filters input[type="search"] {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.he-filters select {
+  border: 1px solid var(--panel-line);
+  background: var(--panel-solid);
+  color: var(--muted);
+  border-radius: var(--r-md);
+  height: 34px;
+  padding: 0 10px;
+  font: 400 11px Georgia, serif;
+}
+
+.he-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.he-daymark {
+  color: var(--faint);
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin: 14px 0 2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--panel-line);
+}
+
+.he-daymark:first-child {
+  margin-top: 0;
+}
+
+.he-none {
+  color: var(--faint);
+  font: 400 12px Georgia, serif;
+  padding: 18px 2px;
+}
+
+.he-entry {
+  border: 1px solid var(--panel-line);
+  border-left: 3px solid var(--tier-colour, var(--panel-line));
+  border-radius: var(--r-md);
+  background: var(--panel);
+  padding: 12px 14px;
+  position: relative;
+}
+
+.he-entry:hover {
+  border-color: var(--panel-line-bright);
+  border-left-color: var(--tier-colour, var(--panel-line-bright));
+}
+
+.he-entry-top {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.he-entry-top small {
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  min-width: 40px;
+}
+
+.he-entry-top b {
+  font: 400 15px Georgia, serif;
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+/* the basis rides on every row, because an entry read without it is an
+   entry read as though it were documented */
+.he-basis {
+  color: var(--tier-colour, var(--faint));
+  border: 1px solid color-mix(in srgb, var(--tier-colour, var(--panel-line)) 40%, transparent);
+  border-radius: var(--r-pill);
+  padding: 2px 9px;
+  font: 600 8.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.he-entry p {
+  color: var(--muted);
+  font: 400 12.5px / 1.65 Georgia, serif;
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+
+.he-entry-foot {
+  color: var(--faint);
+  font-size: 10px;
+  margin-top: 9px;
+}
+
+.he-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.he-attachments button {
+  border: 1px solid var(--panel-line);
+  background: none;
+  color: var(--muted);
+  border-radius: var(--r-sm);
+  padding: 4px 9px;
+  cursor: pointer;
+  font: 400 10px Georgia, serif;
+}
+
+.he-attachments button:hover {
+  color: var(--gold);
+  border-color: var(--gold-soft);
+}
+
+.he-entry-tools {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.he-entry:hover .he-entry-tools,
+.he-entry:focus-within .he-entry-tools {
+  opacity: 1;
+}
+
+.he-entry-tools button {
+  border: 0;
+  background: none;
+  color: var(--danger);
+  cursor: pointer;
+  font: 400 10px Georgia, serif;
+}
+
+/* ---- the printed chronology ---- */
+@media print {
+  #print-sheet .ps-key {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 18px;
+    font-size: 10px;
+  }
+  #print-sheet .ps-key li {
+    margin: 2px 0;
+  }
+  #print-sheet .ps-entry {
+    margin: 0 0 14px;
+    page-break-inside: avoid;
+  }
+  #print-sheet .ps-entry h3 {
+    font: 600 12px Georgia, serif;
+    margin: 0 0 2px;
+  }
+  #print-sheet .ps-facts {
+    font-size: 9px;
+    color: #444;
+    margin: 0 0 4px;
+  }
+  #print-sheet .ps-files {
+    font-size: 8.5px;
+    color: #555;
+    margin: 4px 0 0;
+  }
+}
+
+/* ---- Hearth · the twelve-field entry ---- */
+.he-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--faint);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+}
+
+.he-field textarea {
+  min-height: 66px;
+}
+
+.hearth-form textarea,
+.hearth-form input[type="text"],
+.hearth-form input[type="date"],
+.hearth-form input[type="time"],
+.hearth-form select {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  font: 400 13px Georgia, serif;
+  letter-spacing: 0;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.hearth-form select {
+  background: var(--panel-solid);
+  height: 38px;
+  padding: 0 10px;
+}
+
+/* the §33 cautions: present, legible, and never in the way of the button */
+.he-cautions {
+  border: 1px solid color-mix(in srgb, var(--amber) 42%, transparent);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+  padding: 12px 15px;
+}
+
+.he-cautions b {
+  color: var(--amber);
+  font: 600 10px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 7px;
+}
+
+.he-cautions p {
+  color: var(--muted);
+  font: 400 12px / 1.6 Georgia, serif;
+  margin: 0 0 6px;
+}
+
+.he-cautions small {
+  color: var(--faint);
+  font: 400 10px / 1.5 Georgia, serif;
+  display: block;
+  margin-top: 4px;
+}
+
+/* the structured fields on a recorded entry */
+.he-detail {
+  margin: 10px 0 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 3px 14px;
+  align-items: baseline;
+}
+
+.he-detail dt {
+  color: var(--faint);
+  font: 600 8.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.he-detail dd {
+  margin: 0;
+  color: var(--muted);
+  font: 400 12px / 1.6 Georgia, serif;
+  white-space: pre-wrap;
+  min-width: 0;
+}
+
+@media print {
+  #print-sheet .ps-field {
+    font-size: 10px;
+    margin: 2px 0;
+  }
+  #print-sheet .ps-field b {
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 700px) {
+  .he-detail {
+    grid-template-columns: 1fr;
+    gap: 1px 0;
+  }
+  .he-detail dd {
+    margin-bottom: 7px;
+  }
+}
+
+/* the block that opens when the child is quoted — it is a prompt to think,
+   so it reads as one rather than as more form */
+.he-conditional {
+  border: 1px solid color-mix(in srgb, var(--blue) 38%, transparent);
+  border-left: 3px solid var(--blue);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--blue) 7%, transparent);
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.he-conditional-why {
+  color: var(--muted);
+  font: 400 12px / 1.6 Georgia, serif;
+  margin: 0;
+}
+
+.he-cite {
+  position: absolute;
+  top: 12px;
+  right: 74px;
+  color: var(--faint);
+  font: 600 8.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
