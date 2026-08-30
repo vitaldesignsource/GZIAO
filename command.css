@@ -7735,3 +7735,173 @@ html[data-theme="light"] .directive {
   border-radius: var(--r-md);
   padding: 10px 12px;
 }
+
+/* ---------- Hearth · matters, strip, and tracing ---------- */
+.he-matter {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  border: 1px solid var(--panel-line);
+  border-radius: var(--r-md);
+  padding: 9px 11px;
+  margin-bottom: 7px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.he-matter.is-active {
+  border-color: color-mix(in srgb, var(--amber) 55%, transparent);
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+}
+
+.he-matter-open {
+  flex: 1;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 0;
+}
+
+.he-matter-open b {
+  font: 600 12px Inter, ui-sans-serif, system-ui, sans-serif;
+  color: var(--paper);
+}
+
+.he-matter-open span {
+  color: var(--faint);
+  font-size: 10px;
+}
+
+.he-matter-mix {
+  display: flex;
+  width: 54px;
+  height: 5px;
+  align-self: center;
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  gap: 1px;
+  flex: none;
+}
+
+.he-matter-mix i {
+  display: block;
+  height: 100%;
+}
+
+.he-matter-kill {
+  border: 0;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  font-size: 13px;
+  align-self: center;
+}
+
+.he-matter-kill:hover {
+  color: var(--danger);
+}
+
+.he-matter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.he-matter-form input {
+  flex: 1 1 130px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper);
+  border-radius: var(--r-md);
+  padding: 8px 10px;
+  font: 400 11.5px Georgia, serif;
+}
+
+/* the density strip */
+.he-strip-wrap {
+  margin: 12px 0 2px;
+}
+
+#he-strip {
+  width: 100%;
+  height: 46px;
+  display: block;
+  border-bottom: 1px solid var(--panel-line);
+}
+
+.he-strip-axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--faint);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* tracing */
+.he-trace-btn {
+  border: 0;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  font: 400 10px Georgia, serif;
+  margin-right: 10px;
+}
+
+.he-trace-btn:hover {
+  color: var(--gold);
+}
+
+.he-trace {
+  border-top: 1px solid var(--panel-line);
+  margin-top: 10px;
+  padding-top: 9px;
+}
+
+.he-trace p {
+  color: var(--muted);
+  font: 400 11px / 1.7 Georgia, serif;
+  margin: 0 0 4px;
+}
+
+.he-trace b {
+  color: var(--faint);
+  font: 600 8.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.he-trace-jump {
+  border: 1px solid var(--panel-line);
+  background: none;
+  color: var(--muted);
+  border-radius: var(--r-sm);
+  padding: 1px 7px;
+  margin: 0 4px 3px 0;
+  cursor: pointer;
+  font: 400 10px Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.he-trace-jump:hover {
+  color: var(--gold);
+  border-color: var(--gold-soft);
+}
+
+/* the landing flash when a jump arrives */
+.he-entry.is-lit {
+  animation: he-lit 1.6s ease;
+}
+
+@keyframes he-lit {
+  0% { border-color: var(--gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent); }
+  100% { border-color: var(--panel-line); box-shadow: none; }
+}

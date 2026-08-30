@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=85" />
+    <link rel="stylesheet" href="command.css?v=86" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1969,7 +1969,7 @@
               </fieldset>
 
               <label class="he-field">SUPPORTING SOURCE
-                <input type="text" id="he-source" placeholder="OFW thread, ParentSquare, incident report, photograph, email&hellip;" autocomplete="off" />
+                <input type="text" id="he-source" placeholder="Message thread, school app, incident report, photograph, email&hellip;" autocomplete="off" />
               </label>
 
               <label class="he-file">ATTACH THE ORIGINAL (OPTIONAL &middot; SEVERAL AT ONCE)
@@ -1991,6 +1991,10 @@
                 <span id="he-count" style="color: var(--faint)">0 entries</span>
               </span>
               <h2>What is on the record</h2>
+              <div class="he-strip-wrap" id="he-strip-wrap" hidden>
+                <svg id="he-strip" viewBox="0 0 600 46" preserveAspectRatio="none" aria-label="entry density over time"></svg>
+                <div class="he-strip-axis"><span id="he-strip-from"></span><span id="he-strip-to"></span></div>
+              </div>
               <div class="he-filters" id="he-filters">
                 <input type="search" id="he-q" placeholder="Search the record&hellip;" autocomplete="off" />
                 <select id="he-f-thread"></select>
@@ -2007,6 +2011,18 @@
                 <b>The record is empty</b>
                 <span>Enter the first event above. Entries can be back-dated, and the file will say when each one was written.</span>
               </div>
+            </div>
+
+            <div class="panel">
+              <span class="kicker">THE MATTERS AT ISSUE</span>
+              <h2 style="font-size: 20px">What the file keeps being asked</h2>
+              <p class="panel-sub">Name a matter and the words that find it. The gathering is mechanical &mdash; every entry whose text contains a keyword &mdash; and the counts say only how much the file holds, never what it proves.</p>
+              <div id="he-matters" style="margin-top: 12px"></div>
+              <form id="he-matter-form" class="he-matter-form">
+                <input type="text" id="he-matter-label" placeholder="Name the matter&hellip;" autocomplete="off" />
+                <input type="text" id="he-matter-keys" placeholder="Keywords, separated by commas" autocomplete="off" />
+                <button class="ghost-btn" type="submit">Add</button>
+              </form>
             </div>
 
             <div class="panel">
@@ -2643,6 +2659,44 @@
                 deleted_at: null,
                 title: "First sealed record", body: "A demonstration entry held privately in the vault.",
                 created_at: new Date().toISOString(),
+              },
+              {
+                id: "he1", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
+                deleted_at: null, title: "Exchange did not occur at the arranged time",
+                body: "Waited from 18:00 to 18:40 at the agreed point. No arrival and no message.",
+                created_at: new Date(Date.now() - 4 * 86400000).toISOString(),
+                occurred_at: localDay(Date.now() - 20 * 86400000) + "T18:00:00",
+                meta: { module: "hearth", kind: "entry", tier: "contemporaneous", thread: "communication",
+                  time: "18:00", timeKnown: true, place: "Exchange point", people: ["Operator"],
+                  source: "Message thread, same evening", bears: "The schedule question", exhibit: "K" },
+              },
+              {
+                id: "he2", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
+                deleted_at: null, title: "Make-up time offered and accepted",
+                body: null,
+                created_at: new Date(Date.now() - 4 * 86400000).toISOString(),
+                occurred_at: localDay(Date.now() - 19 * 86400000) + "T12:00:00",
+                meta: { module: "hearth", kind: "entry", tier: "contemporaneous", thread: "communication",
+                  timeKnown: false, people: ["Operator"],
+                  otherResponse: "Those times work fine.",
+                  source: "Message thread", bears: "The schedule question", exhibit: "K" },
+              },
+              {
+                id: "he3", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
+                deleted_at: null, title: "Routine day recorded for contrast",
+                body: "Nothing out of the ordinary. Included so the record holds ordinary days too.",
+                created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+                occurred_at: localDay(Date.now() - 6 * 86400000) + "T12:00:00",
+                meta: { module: "hearth", kind: "entry", tier: "recollection", thread: "other",
+                  timeKnown: false, people: [] },
+              },
+              {
+                id: "hp0", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
+                deleted_at: null, title: "Hearth profile", body: null,
+                created_at: new Date().toISOString(),
+                meta: { module: "hearth", kind: "profile",
+                  profile: { child: "", otherParent: "", self: "", witness: "",
+                    matters: [{ id: "m1", label: "The schedule question", keywords: ["schedule", "exchange"] }] } },
               },
               {
                 id: "rc1", owner_id: "mock-user", kind: "record", visibility: "private", grade: null,
@@ -3446,6 +3500,7 @@
 
         /* which module a record belongs to — used to route intake clicks */
         function recordHome(record) {
+          if (record.meta && record.meta.module === "hearth") return { view: "hearth", label: "Hearth" };
           if (record.meta && record.meta.module === "sentinel") return { view: "sentinel", label: "Sentinel" };
           if (record.meta && record.meta.module === "resources") return { view: "resources", label: "Resources" };
           if (record.meta && record.meta.module === "calendar") return { view: "calendar", label: "Calendar" };
@@ -10365,7 +10420,7 @@
             test: "A school, daycare, agency, or official record — or an original recording",
             colour: "var(--green)" },
           { id: "contemporaneous", label: "Written at the time", rank: 2,
-            test: "An OFW, ParentSquare, email, or text message sent when it happened",
+            test: "A message-app thread, email, or text sent when it happened",
             colour: "var(--gold)" },
           { id: "firsthand", label: "Firsthand", rank: 3,
             test: "Someone who was actually present is describing what they saw or heard",
@@ -10424,7 +10479,7 @@
         function loadHearthProfile() {
           const row = records.find((r) => r.meta && r.meta.module === "hearth" && r.meta.kind === "profile");
           hearthProfile = Object.assign(
-            { child: "", otherParent: "", self: "", witness: "" },
+            { child: "", otherParent: "", self: "", witness: "", matters: [] },
             (row && row.meta && row.meta.profile) || {},
           );
           return Boolean(row);
@@ -10530,7 +10585,7 @@
         }
 
         let hearthFiles = [];
-        const hearthFilter = { q: "", thread: "", tier: "", order: "asc" };
+        const hearthFilter = { q: "", thread: "", tier: "", order: "asc", matter: "" };
 
         function hearthPopulateSelects() {
           const thread = $("he-thread");
@@ -10591,17 +10646,58 @@
           }
         }
 
+        /* Everything an entry says, in one string. The first search only read
+           title and body — but a loaded record keeps its weight in the
+           structured fields (the other parent's words, what was asked, what it
+           bears on, the source), so a search that skipped them missed most of
+           what the file knows. */
+        function hearthHaystack(record) {
+          const meta = record.meta || {};
+          return [record.title, record.body, meta.place,
+            (meta.people || []).join(" "),
+            meta.said, meta.asked, meta.response, meta.otherResponse,
+            meta.notified, meta.followup, meta.bears, meta.source,
+            meta.exhibit ? "exhibit " + meta.exhibit : "",
+            (hearthThread(meta.thread) || {}).label,
+            (hearthTier(meta.tier) || {}).label]
+            .filter(Boolean).join(" \u00b7 ").toLowerCase();
+        }
+
         function hearthMatches(record) {
           const meta = record.meta || {};
           if (hearthFilter.thread && meta.thread !== hearthFilter.thread) return false;
           if (hearthFilter.tier && meta.tier !== hearthFilter.tier) return false;
+          if (hearthFilter.matter) {
+            const matter = hearthMatters().find((m) => m.id === hearthFilter.matter);
+            if (matter && !hearthMatterHits(record, matter)) return false;
+          }
           const q = hearthFilter.q.trim().toLowerCase();
           if (!q) return true;
-          const hay = [record.title, record.body, meta.place,
-            (meta.people || []).join(" "),
-            (hearthThread(meta.thread) || {}).label,
-            (hearthTier(meta.tier) || {}).label].filter(Boolean).join(" ").toLowerCase();
-          return hay.includes(q);
+          return hearthHaystack(record).includes(q);
+        }
+
+        /* ---- matters: the questions this file keeps being asked ----
+           A matter is a named issue with the operator's own keywords. The
+           matching is mechanical substring work over each entry's text and is
+           labelled as such — the tool counts and gathers; deciding what a
+           gathered entry MEANS for the matter stays with the reader. Matters
+           are data, stored in the private profile row, never in this file. */
+        function hearthMatters() {
+          return hearthProfile.matters || [];
+        }
+
+        function hearthMatterHits(record, matter) {
+          const hay = hearthHaystack(record);
+          return (matter.keywords || []).some((k) => k && hay.includes(k.toLowerCase()));
+        }
+
+        function hearthMatterEntries(matter) {
+          return hearthEntries().filter((r) => hearthMatterHits(r, matter))
+            .sort((a, b) => String(hearthWhen(a)).localeCompare(String(hearthWhen(b))));
+        }
+
+        async function saveHearthMatters(matters) {
+          await saveHearthProfile({ matters });
         }
 
         /* Numbered by the order they were entered, never renumbered, so a
@@ -10670,6 +10766,7 @@
 
             const item = document.createElement("li");
             item.className = "he-entry";
+            item.id = "he-entry-" + record.id;
             const tier = hearthTier(meta.tier);
             /* a stable short citation, so a correction can attach to CH-0007
                rather than to "the third one on that page" */
@@ -10764,6 +10861,12 @@
 
             const tools = document.createElement("div");
             tools.className = "he-entry-tools";
+            const trace = document.createElement("button");
+            trace.type = "button";
+            trace.textContent = "Trace";
+            trace.className = "he-trace-btn";
+            trace.addEventListener("click", () => toggleHearthTrace(record, item));
+            tools.append(trace);
             const drop = document.createElement("button");
             drop.type = "button";
             drop.className = "is-destroy";
@@ -10775,7 +10878,199 @@
             list.append(item);
           }
 
+          renderHearthStrip(shown);
+          renderHearthMatters();
           renderHearthWeight(all);
+        }
+
+        function renderHearthMatters() {
+          const holder = $("he-matters");
+          if (!holder) return;
+          holder.innerHTML = "";
+          const matters = hearthMatters();
+          if (!matters.length) {
+            const none = document.createElement("p");
+            none.className = "panel-note";
+            none.textContent = "No matters named yet. Add the issues this record keeps having to answer \u2014 each becomes a one-click cross-section of the chronology.";
+            holder.append(none);
+            return;
+          }
+          for (const matter of matters) {
+            const hits = hearthMatterEntries(matter);
+            const row = document.createElement("div");
+            row.className = "he-matter" + (hearthFilter.matter === matter.id ? " is-active" : "");
+
+            const open = document.createElement("button");
+            open.type = "button";
+            open.className = "he-matter-open";
+            const name = document.createElement("b");
+            name.textContent = matter.label;
+            const count = document.createElement("span");
+            if (hits.length) {
+              const days = hits.map((r) => localDay(hearthWhen(r)));
+              count.textContent = hits.length + (hits.length === 1 ? " entry" : " entries") +
+                " \u00b7 " + days[0] + " \u2192 " + days[days.length - 1];
+            } else {
+              count.textContent = "nothing gathered yet";
+            }
+            open.append(name, count);
+            open.addEventListener("click", () => {
+              hearthFilter.matter = hearthFilter.matter === matter.id ? "" : matter.id;
+              renderHearth();
+            });
+            row.append(open);
+
+            /* the tier mix, so a matter resting on recollection alone is
+               visible at a glance beside one resting on neutral records */
+            if (hits.length) {
+              const mix = document.createElement("div");
+              mix.className = "he-matter-mix";
+              for (const tier of HEARTH_TIERS) {
+                const n = hits.filter((r) => r.meta.tier === tier.id).length;
+                if (!n) continue;
+                const seg = document.createElement("i");
+                seg.style.flex = String(n);
+                seg.style.background = tier.colour;
+                seg.title = tier.label + ": " + n;
+                mix.append(seg);
+              }
+              row.append(mix);
+            }
+
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.className = "he-matter-kill";
+            kill.textContent = "\u00d7";
+            kill.setAttribute("aria-label", "Remove " + matter.label);
+            kill.addEventListener("click", async () => {
+              if (!window.confirm("Remove the matter \u201c" + matter.label + "\u201d? The entries it gathers are untouched.")) return;
+              if (hearthFilter.matter === matter.id) hearthFilter.matter = "";
+              await saveHearthMatters(matters.filter((m) => m.id !== matter.id));
+            });
+            row.append(kill);
+            holder.append(row);
+          }
+        }
+
+        /* Entries as dots on a shared time axis, coloured by basis. Clusters
+           are the point: a quiet spring and a dense August are facts about
+           the record best seen, not summed. Clicking a dot goes to the entry. */
+        function renderHearthStrip(shown) {
+          const wrap = $("he-strip-wrap");
+          const svg = $("he-strip");
+          if (!wrap || !svg) return;
+          const dated = shown.filter((r) => hearthWhen(r));
+          if (dated.length < 2) { wrap.hidden = true; return; }
+          wrap.hidden = false;
+          const times = dated.map((r) => new Date(hearthWhen(r)).getTime());
+          const min = Math.min(...times), max = Math.max(...times);
+          const span = Math.max(max - min, dayMs);
+          $("he-strip-from").textContent = localDay(new Date(min));
+          $("he-strip-to").textContent = localDay(new Date(max));
+          svg.innerHTML = "";
+          const W = 600, H = 46;
+          /* stack same-day dots vertically so a heavy day reads as a column */
+          const byX = new Map();
+          for (const record of dated) {
+            const t = new Date(hearthWhen(record)).getTime();
+            const x = 6 + (t - min) / span * (W - 12);
+            const key = Math.round(x / 7);
+            const level = byX.get(key) || 0;
+            byX.set(key, level + 1);
+            const tier = hearthTier(record.meta.tier);
+            const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            dot.setAttribute("cx", x.toFixed(1));
+            dot.setAttribute("cy", String(H - 8 - Math.min(level, 4) * 8));
+            dot.setAttribute("r", "3.4");
+            dot.setAttribute("fill", tier ? tier.colour : "var(--faint)");
+            dot.setAttribute("fill-opacity", "0.85");
+            dot.style.cursor = "pointer";
+            const label = document.createElementNS("http://www.w3.org/2000/svg", "title");
+            label.textContent = localDay(hearthWhen(record)) + " \u2014 " + record.title;
+            dot.append(label);
+            dot.addEventListener("click", () => hearthJump(record.id));
+            svg.append(dot);
+          }
+        }
+
+        /* Everything that touches this entry: its source, its exhibit-mates,
+           the matters that gather it, and the rest of that same day \u2014 each a
+           click away. Tracing states relationships the data actually has;
+           it draws no arrows the operator did not put there. */
+        function toggleHearthTrace(record, item) {
+          const existing = item.querySelector(".he-trace");
+          if (existing) { existing.remove(); return; }
+          const meta = record.meta || {};
+          const box = document.createElement("div");
+          box.className = "he-trace";
+
+          const line = (label, content) => {
+            const p = document.createElement("p");
+            const b = document.createElement("b");
+            b.textContent = label;
+            p.append(b, document.createTextNode(" "));
+            if (typeof content === "string") p.append(document.createTextNode(content));
+            else for (const node of content) p.append(node);
+            box.append(p);
+          };
+          const jumpLink = (other) => {
+            const a = document.createElement("button");
+            a.type = "button";
+            a.className = "he-trace-jump";
+            a.textContent = "CH-" + String(citeOf(other)).padStart(4, "0") + " " + localDay(hearthWhen(other));
+            a.title = other.title;
+            a.addEventListener("click", () => hearthJump(other.id));
+            return a;
+          };
+
+          if (meta.source) line("Source:", meta.source);
+          const exhibitEntry = hearthExhibit(meta.exhibit);
+          if (exhibitEntry && exhibitEntry.id) {
+            const mates = hearthEntries().filter((r) =>
+              r.id !== record.id && r.meta.exhibit === meta.exhibit);
+            line("Exhibit " + exhibitEntry.id + ":",
+              mates.length
+                ? [document.createTextNode(mates.length + " other entr" + (mates.length === 1 ? "y" : "ies") + " in this packet \u2014 "),
+                   ...mates.slice(0, 6).map(jumpLink)]
+                : "the only entry in this packet so far");
+          }
+          const gathering = hearthMatters().filter((m) => hearthMatterHits(record, m));
+          if (gathering.length) {
+            line("Gathered by:", gathering.map((m) => m.label).join(" \u00b7 "));
+          }
+          const day = localDay(hearthWhen(record));
+          const sameDay = hearthEntries().filter((r) =>
+            r.id !== record.id && localDay(hearthWhen(r)) === day);
+          if (sameDay.length) {
+            line("Same day:", sameDay.map(jumpLink));
+          }
+          const sameThread = hearthEntries().filter((r) =>
+            r.id !== record.id && r.meta.thread === meta.thread);
+          if (sameThread.length) {
+            const sorted = sameThread.sort((a, b) =>
+              String(hearthWhen(a)).localeCompare(String(hearthWhen(b))));
+            const here = String(hearthWhen(record));
+            const before = sorted.filter((r) => String(hearthWhen(r)) < here).slice(-2);
+            const after = sorted.filter((r) => String(hearthWhen(r)) > here).slice(0, 2);
+            if (before.length || after.length) {
+              line("Thread neighbours:", [...before.map(jumpLink),
+                document.createTextNode(" \u25c6 "), ...after.map(jumpLink)]);
+            }
+          }
+          if (!box.children.length) {
+            line("", "This entry stands alone so far \u2014 no source, exhibit, matter, or same-day company.");
+          }
+          item.append(box);
+        }
+
+        /* go to an entry: scroll it into view and light it briefly */
+        function hearthJump(id) {
+          const target = document.getElementById("he-entry-" + id);
+          if (!target) return;
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+          target.classList.remove("is-lit");
+          void target.offsetWidth;
+          target.classList.add("is-lit");
         }
 
         /* What the file is made of, counted rather than characterised. */
@@ -11079,6 +11374,7 @@
             $("he-f-order").addEventListener("change", () => { hearthFilter.order = $("he-f-order").value; renderHearth(); });
             $("he-f-clear").addEventListener("click", () => {
               hearthFilter.q = ""; hearthFilter.thread = ""; hearthFilter.tier = ""; hearthFilter.order = "asc";
+              hearthFilter.matter = "";
               $("he-q").value = ""; $("he-f-thread").value = ""; $("he-f-tier").value = ""; $("he-f-order").value = "asc";
               renderHearth();
             });
@@ -11094,6 +11390,24 @@
             });
             $("he-import-check").addEventListener("click", checkHearthImport);
             $("he-import-commit").addEventListener("click", commitHearthImport);
+          }
+
+          const matterForm = $("he-matter-form");
+          if (matterForm && !matterForm.dataset.wired) {
+            matterForm.dataset.wired = "1";
+            matterForm.addEventListener("submit", async (event) => {
+              event.preventDefault();
+              const label = $("he-matter-label").value.trim();
+              const keywords = $("he-matter-keys").value
+                .split(",").map((k) => k.trim()).filter(Boolean);
+              if (!label) return toast("Name the matter first.");
+              if (!keywords.length) return toast("Give it at least one keyword to gather by.");
+              const matters = hearthMatters().slice();
+              matters.push({ id: "m" + Date.now().toString(36), label, keywords });
+              $("he-matter-label").value = "";
+              $("he-matter-keys").value = "";
+              await saveHearthMatters(matters);
+            });
           }
 
           const save = $("hp-save");
@@ -14584,6 +14898,12 @@
 
           const txn = meta.txn || {};
           add(txn.description); add(txn.category); add(txn.address); add(txn.ref);
+
+          if (meta.module === "hearth") {
+            add(meta.said); add(meta.otherResponse); add(meta.response);
+            add(meta.bears); add(meta.source); add(meta.place);
+            for (const person of meta.people || []) add(person);
+          }
 
           const receipt = meta.receipt || {};
           add(receipt.merchant); add(receipt.category); add(receipt.address);
