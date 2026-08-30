@@ -7724,3 +7724,14 @@ html[data-theme="light"] .directive {
   letter-spacing: 0.12em;
   font-variant-numeric: tabular-nums;
 }
+
+/* bulk intake keeps the same surface language as the rest of Hearth */
+#he-import-body textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+}

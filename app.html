@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=84" />
+    <link rel="stylesheet" href="command.css?v=85" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1848,6 +1848,23 @@
               </label>
             </div>
             <button class="ghost-btn" id="hp-save" type="button" style="margin-top: 12px">Save these names</button>
+          </section>
+
+          <section class="panel" id="hearth-import-panel">
+            <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
+              <span>BULK INTAKE</span>
+              <button class="chrono-open" id="he-import-toggle" type="button">OPEN</button>
+            </span>
+            <h2 style="font-size: 20px">Load prepared entries</h2>
+            <p class="panel-sub">For a batch worked up outside the form. Paste a JSON array of entries; each is checked and shown to you before anything is written, and any entry missing a date or a basis is refused rather than filed at a strength it has not earned.</p>
+            <div id="he-import-body" hidden style="margin-top: 14px">
+              <textarea id="he-import-text" placeholder='[{"date":"2026-08-18","title":"…","tier":"institutional","thread":"school","source":"Email from …"}]' style="min-height: 150px; font: 400 11px ui-monospace, monospace"></textarea>
+              <div class="he-filters" style="margin-top: 10px">
+                <button class="ghost-btn" id="he-import-check" type="button">Check these</button>
+                <button class="prime-btn" id="he-import-commit" type="button" disabled>Record them</button>
+              </div>
+              <div id="he-import-report" style="margin-top: 12px"></div>
+            </div>
           </section>
 
           <section class="panel" id="hearth-capture">
@@ -11067,6 +11084,18 @@
             });
           }
 
+          const toggle = $("he-import-toggle");
+          if (toggle && !toggle.dataset.wired) {
+            toggle.dataset.wired = "1";
+            toggle.addEventListener("click", () => {
+              const body = $("he-import-body");
+              body.hidden = !body.hidden;
+              toggle.textContent = body.hidden ? "OPEN" : "CLOSE";
+            });
+            $("he-import-check").addEventListener("click", checkHearthImport);
+            $("he-import-commit").addEventListener("click", commitHearthImport);
+          }
+
           const save = $("hp-save");
           if (save && !save.dataset.wired) {
             save.dataset.wired = "1";
@@ -11083,6 +11112,165 @@
             exportBtn.dataset.wired = "1";
             exportBtn.addEventListener("click", exportHearthChronology);
           }
+        }
+
+        /* Bulk intake.
+           Entries prepared elsewhere still have to clear the same bar as
+           entries typed into the form: a date, and a basis. A batch that
+           could file fifty rows at a strength nobody chose for them would
+           undo the one rule the whole file rests on. */
+        let hearthStaged = [];
+
+        function checkHearthImport() {
+          const report = $("he-import-report");
+          report.innerHTML = "";
+          hearthStaged = [];
+          $("he-import-commit").disabled = true;
+
+          let parsed;
+          try {
+            parsed = JSON.parse($("he-import-text").value);
+          } catch (error) {
+            report.innerHTML = "";
+            const bad = document.createElement("p");
+            bad.className = "panel-note";
+            bad.style.color = "var(--danger)";
+            bad.textContent = "That is not valid JSON: " + error.message;
+            report.append(bad);
+            return;
+          }
+          if (!Array.isArray(parsed)) parsed = [parsed];
+
+          const problems = [];
+          const good = [];
+          parsed.forEach((raw, i) => {
+            const at = "entry " + (i + 1) + (raw && raw.title ? " (" + String(raw.title).slice(0, 40) + ")" : "");
+            if (!raw || typeof raw !== "object") { problems.push(at + ": not an object"); return; }
+            if (!raw.title) { problems.push(at + ": no title"); return; }
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(String(raw.date || ""))) {
+              problems.push(at + ": needs a date as YYYY-MM-DD"); return;
+            }
+            if (!hearthTier(raw.tier)) {
+              problems.push(at + ": basis must be one of " +
+                HEARTH_TIERS.map((t) => t.id).join(", ")); return;
+            }
+            if (raw.thread && !hearthThread(raw.thread)) {
+              problems.push(at + ": unknown thread \u201c" + raw.thread + "\u201d"); return;
+            }
+            if (raw.said && !raw.asked) {
+              problems.push(at + ": quotes the child but does not record what was asked first"); return;
+            }
+            good.push(raw);
+          });
+
+          for (const line of problems) {
+            const p = document.createElement("p");
+            p.className = "panel-note";
+            p.style.color = "var(--danger)";
+            p.textContent = line;
+            report.append(p);
+          }
+
+          if (good.length) {
+            hearthStaged = good;
+            const ok = document.createElement("p");
+            ok.className = "panel-note";
+            ok.textContent = good.length + " entr" + (good.length === 1 ? "y is" : "ies are") +
+              " ready" + (problems.length ? "; the " + problems.length + " above will not be written." : ".");
+            report.append(ok);
+            const list = document.createElement("ul");
+            list.className = "he-list";
+            list.style.marginTop = "10px";
+            for (const raw of good.slice().sort((a, b) => a.date.localeCompare(b.date))) {
+              const li = document.createElement("li");
+              li.className = "he-entry";
+              const tier = hearthTier(raw.tier);
+              if (tier) li.style.setProperty("--tier-colour", tier.colour);
+              const top = document.createElement("div");
+              top.className = "he-entry-top";
+              const when = document.createElement("small");
+              when.textContent = raw.date;
+              const title = document.createElement("b");
+              title.textContent = raw.title;
+              const basis = document.createElement("i");
+              basis.className = "he-basis";
+              basis.textContent = tier.label;
+              top.append(when, title, basis);
+              li.append(top);
+              if (raw.source) {
+                const src = document.createElement("div");
+                src.className = "he-entry-foot";
+                src.textContent = "source: " + raw.source;
+                li.append(src);
+              }
+              list.append(li);
+            }
+            report.append(list);
+            $("he-import-commit").disabled = false;
+          }
+        }
+
+        async function commitHearthImport() {
+          if (!hearthStaged.length) return;
+          const button = $("he-import-commit");
+          button.disabled = true;
+          const report = $("he-import-report");
+          let written = 0;
+          const failed = [];
+          for (const raw of hearthStaged) {
+            const meta = {
+              module: "hearth", kind: "entry",
+              tier: raw.tier,
+              thread: raw.thread || "other",
+              time: raw.time || null,
+              timeKnown: Boolean(raw.time),
+              place: raw.place || null,
+              people: Array.isArray(raw.people) ? raw.people
+                : (raw.people ? String(raw.people).split(",").map((p) => p.trim()).filter(Boolean) : []),
+              said: raw.said || null,
+              asked: raw.asked || null,
+              prompted: raw.prompted || null,
+              fidelity: raw.fidelity || null,
+              response: raw.response || null,
+              documented: raw.documented || null,
+              notified: raw.notified || null,
+              otherResponse: raw.otherResponse || null,
+              followup: raw.followup || null,
+              bears: raw.bears || null,
+              source: raw.source || null,
+              exhibit: raw.exhibit || null,
+              /* an entry that arrived in a batch says so, because it was not
+                 written at the keyboard on the day and the file should not
+                 imply that it was */
+              intake: "bulk",
+            };
+            try {
+              const ok = await seal(raw.title, raw.body || null, {
+                kind: "record", quiet: true, defer: true, throwOnError: true,
+                occurredAt: raw.date + "T" + (raw.time || "12:00") + ":00",
+                meta,
+              });
+              if (ok) written++;
+            } catch (error) {
+              failed.push(raw.title + " — " + error.message);
+            }
+          }
+          hearthStaged = [];
+          $("he-import-text").value = "";
+          report.innerHTML = "";
+          const done = document.createElement("p");
+          done.className = "panel-note";
+          done.textContent = written + " entr" + (written === 1 ? "y" : "ies") + " recorded." +
+            (failed.length ? " " + failed.length + " could not be written." : "");
+          report.append(done);
+          for (const f of failed) {
+            const p = document.createElement("p");
+            p.className = "panel-note";
+            p.style.color = "var(--danger)";
+            p.textContent = f;
+            report.append(p);
+          }
+          renderAll();
         }
 
         /* The printed file. It has to carry what the screen leaves implicit:
