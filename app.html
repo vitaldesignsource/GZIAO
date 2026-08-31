@@ -3382,16 +3382,34 @@
              chips — so a channel that lived in the shared array would have
              silently inflated every one of them by each message and each
              read receipt. */
-          records = gathered.filter((row) =>
+          /* Without migration 008 there is no deleted_at column, and Destroy
+             used to mean a real DELETE. It does not have to: meta is JSONB
+             and takes a deleted_at of its own with no schema change at all,
+             so Trash works today and nothing leaves the database until it is
+             purged on purpose. The column remains the better home — the
+             policies in 008 also stop a destroyed record being readable by
+             the household it was shared with, which a client-side filter
+             cannot do — but a recoverable Destroy should not wait on a
+             migration. */
+          const softDeleted = (row) => Boolean(row.meta && row.meta.deleted_at);
+          const live = softDeleteAvailable ? gathered : gathered.filter((r) => !softDeleted(r));
+          records = live.filter((row) =>
             row.kind !== "study_progress" &&
             row.kind !== "message" && row.kind !== "message-read");
-          dispatchRows = gathered.filter((row) =>
+          dispatchRows = live.filter((row) =>
             row.kind === "message" || row.kind === "message-read");
+          if (!softDeleteAvailable) {
+            trashed = gathered.filter(softDeleted)
+              .map((r) => ({ ...r, deleted_at: r.meta.deleted_at }))
+              .sort((a, b) => String(b.deleted_at).localeCompare(String(a.deleted_at)));
+          }
           await loadTrash();
         }
 
         async function loadTrash() {
-          if (!softDeleteAvailable) { trashed = []; return; }
+          /* in fallback mode Trash is already built from what loadRecords
+             held back — clearing it here would empty the bin every reload */
+          if (!softDeleteAvailable) return;
           const { data, error } = await GZ.client
             .from("records")
             .select("*")
@@ -3410,22 +3428,18 @@
           const hasFile = Boolean(record.meta && record.meta.path);
 
           if (!softDeleteAvailable) {
-            /* no Trash to catch it: this really is irreversible, so ask */
-            const warning = "Permanently destroy this " + name + "?\n\n\u201c" +
-              record.title + "\u201d" +
-              (hasFile ? "\n\nIts preserved original will be deleted with it." : "") +
-              "\n\nThis cannot be undone.";
-            if (!window.confirm(warning)) return false;
-            const { error } = await GZ.client.from("records").delete().eq("id", record.id);
+            /* recoverable without the column: the tombstone goes in meta, the
+               stored file is left alone, and only a purge removes either */
+            const when = new Date().toISOString();
+            const meta = Object.assign({}, record.meta || {}, { deleted_at: when });
+            const { error } = await GZ.client.from("records")
+              .update({ meta }).eq("id", record.id);
             if (error) { toast("Could not destroy: " + error.message); return false; }
-            if (hasFile) {
-              const { error: fileError } =
-                await GZ.client.storage.from("vault").remove([record.meta.path]);
-              if (fileError) toast("Record destroyed, but its file could not be removed.");
-            }
+            const gone = records.find((held) => held.id === record.id);
             records = records.filter((held) => held.id !== record.id);
+            if (gone) trashed.unshift({ ...gone, meta, deleted_at: when });
             renderAll();
-            toast(name.charAt(0).toUpperCase() + name.slice(1) + " destroyed.");
+            toast(name.charAt(0).toUpperCase() + name.slice(1) + " moved to Trash.");
             return true;
           }
 
@@ -3443,6 +3457,17 @@
         }
 
         async function restoreRecord(record) {
+          if (!softDeleteAvailable) {
+            const meta = Object.assign({}, record.meta || {});
+            delete meta.deleted_at;
+            const { data: back, error: metaError } = await GZ.client.from("records")
+              .update({ meta }).eq("id", record.id).select().single();
+            if (metaError) return toast("Could not restore: " + metaError.message);
+            trashed = trashed.filter((held) => held.id !== record.id);
+            if (back) records.unshift(back);
+            renderAll();
+            return toast("Restored to the field.");
+          }
           const { data, error } = await GZ.client.from("records")
             .update({ deleted_at: null }).eq("id", record.id).select().single();
           if (error) return toast("Could not restore: " + error.message);
@@ -3484,7 +3509,9 @@
             if (error) failed++;
           }
           if (paths.length) await GZ.client.storage.from("vault").remove(paths);
-          await loadTrash();
+          /* loadTrash is a no-op in fallback mode, where Trash is built by
+             loadRecords, so the bin is cleared here rather than re-fetched */
+          if (softDeleteAvailable) await loadTrash(); else trashed = [];
           renderTrash();
           toast(failed ? failed + " could not be purged." : "Trash emptied.");
         }
@@ -3496,20 +3523,25 @@
           if (!list) return;
           list.innerHTML = "";
           if (!softDeleteAvailable) {
-            /* say which mode it is in rather than showing an empty Trash
-               that looks like "nothing has ever been destroyed" */
-            note.textContent =
-              "Trash is not enabled on this database yet \u2014 apply schema/008_soft_delete.sql " +
-              "in Supabase and reload. Until then, Destroy asks for confirmation and removes " +
-              "the record immediately.";
-            purgeAll.hidden = true;
-            return;
-          }
+            /* Trash works here, but say honestly what this mode cannot do:
+               the tombstone is in meta, so the client hides a destroyed
+               record while the row-level policies still consider it shared.
+               Migration 008 is what closes that, and until it is applied the
+               panel should not imply otherwise. */
+            note.textContent = (trashed.length
+              ? trashed.length + " destroyed record" + (trashed.length === 1 ? "" : "s") + " held. "
+              : "Destroying a record moves it here and nothing is removed until it is purged. ") +
+              "This database does not yet have the deleted_at column, so the marker is kept in the " +
+              "record itself: destroying hides it everywhere in the app, but a record that was shared " +
+              "stays readable to whoever it was shared with until schema/008_soft_delete.sql is applied.";
+            purgeAll.hidden = trashed.length === 0;
+          } else {
           note.textContent = trashed.length
             ? trashed.length + " destroyed record" + (trashed.length === 1 ? "" : "s") +
               " held. Nothing leaves the database until it is purged."
             : "Destroying a record moves it here. Nothing is removed from the database until it is purged, and a purge is a separate, deliberate act.";
           purgeAll.hidden = trashed.length === 0;
+          }
           for (const record of trashed) {
             const item = document.createElement("li");
             const head = document.createElement("div");
