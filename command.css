@@ -8127,6 +8127,33 @@ html[data-theme="light"] .directive {
   font: 400 11.5px Georgia, serif;
 }
 
+/* integrity: three states, and only one of them is reassuring */
+.he-entry-integ {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-line);
+}
+
+.he-integ-line {
+  margin: 0;
+  font: 400 11.5px / 1.6 Georgia, serif;
+  color: var(--faint);
+}
+
+.he-integ-line.is-ok {
+  color: var(--he-t1);
+}
+
+.he-integ-line.is-changed,
+#he-integrity.is-changed {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.he-integ-line.is-none {
+  color: var(--he-t4);
+}
+
 /* ---------------- DISPATCH ----------------
    A log that is used like a chat. Rows rather than bubbles: this channel
    may end up being read as a record, and a record reads better in a column

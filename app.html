@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=98" />
+    <link rel="stylesheet" href="command.css?v=99" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1992,6 +1992,11 @@
               <p class="panel-note" id="he-lag">&mdash;</p>
               <span class="kicker" style="display: block; margin-top: 22px">PRIMARY SOURCES</span>
               <p class="panel-note" id="he-gap">&mdash;</p>
+              <span class="kicker" style="display: block; margin-top: 22px">INTEGRITY</span>
+              <p class="panel-note" id="he-integrity">&mdash;</p>
+              <button class="ghost-btn" id="he-verify" type="button" style="margin-top: 8px">Check every entry</button>
+              <button class="ghost-btn" id="he-fingerprint" type="button" style="margin-top: 8px">Fingerprint the unstamped</button>
+              <p class="panel-note" style="margin-top: 8px">A fingerprint is taken when an entry is sealed and checked when it is opened. It detects a later change, however it was made. It is not proof against someone holding the database credentials, because the fingerprint is stored in the row it describes.</p>
               <div class="privacy-row" style="margin-top: 18px"><span><i></i>Private to you &middot; never shared</span></div>
             </div>
           </section>
@@ -11572,6 +11577,39 @@
             if (srcLine.textContent) docs.append(srcLine);
             body.append(docs);
 
+            /* the integrity line is filled in asynchronously the first time
+               the entry is opened; hashing all ninety-one on every render
+               would cost more than it tells anyone */
+            const integ = document.createElement("div");
+            integ.className = "he-entry-integ";
+            const integLabel = document.createElement("span");
+            integLabel.className = "he-open-label";
+            integLabel.textContent = "INTEGRITY";
+            const integLine = document.createElement("p");
+            integLine.className = "he-integ-line";
+            integLine.textContent = "Checking\u2026";
+            integ.append(integLabel, integLine);
+            body.append(integ);
+
+            const runVerify = () => {
+              hearthVerify(record).then((result) => {
+                integLine.classList.remove("is-ok", "is-changed", "is-none");
+                if (result.state === "ok") {
+                  integLine.classList.add("is-ok");
+                  integLine.textContent = "Unchanged since it was sealed on " +
+                    localDay(result.at) + ".";
+                } else if (result.state === "changed") {
+                  integLine.classList.add("is-changed");
+                  integLine.textContent = "CHANGED since the fingerprint taken " +
+                    localDay(result.at) + ". Something in this entry differs from what was sealed.";
+                } else {
+                  integLine.classList.add("is-none");
+                  integLine.textContent = "No fingerprint was taken for this entry, so a later change to it would not be detectable.";
+                }
+              }).catch(() => { integLine.textContent = "The check could not run."; });
+            };
+            if (open) runVerify(); else integ.dataset.pending = "1";
+
             if (citedBy.length) {
               const cited = document.createElement("div");
               cited.className = "he-entry-cited";
@@ -11614,8 +11652,10 @@
               body.hidden = !nowOpen;
               item.classList.toggle("is-open", nowOpen);
               head.setAttribute("aria-expanded", nowOpen ? "true" : "false");
-              if (nowOpen) hearthOpenEntries.add(record.id);
-              else hearthOpenEntries.delete(record.id);
+              if (nowOpen) {
+                hearthOpenEntries.add(record.id);
+                if (integ.dataset.pending) { delete integ.dataset.pending; runVerify(); }
+              } else hearthOpenEntries.delete(record.id);
             });
 
             list.append(item);
@@ -12268,6 +12308,59 @@
           renderDispatch();
         }
 
+        /* the file-level answer: how much of the record can still vouch for
+           itself, stated as counts rather than as a reassuring word */
+        async function runHearthIntegritySweep(loud) {
+          const line = $("he-integrity");
+          const entries = hearthEntries();
+          if (!entries.length) { if (line) line.textContent = "\u2014"; return; }
+          if (line) line.textContent = "Checking " + entries.length + " entries\u2026";
+          let ok = 0, changed = 0, none = 0;
+          const changedTitles = [];
+          for (const record of entries) {
+            const result = await hearthVerify(record);
+            if (result.state === "ok") ok++;
+            else if (result.state === "changed") { changed++; changedTitles.push(record.title); }
+            else none++;
+          }
+          if (line) {
+            const bits = [];
+            if (ok) bits.push(ok + " unchanged since sealing");
+            if (changed) bits.push(changed + " CHANGED since their fingerprint");
+            if (none) bits.push(none + " never fingerprinted");
+            line.textContent = bits.join(" \u00b7 ") + ".";
+            line.classList.toggle("is-changed", changed > 0);
+          }
+          if (loud) {
+            toast(changed
+              ? changed + " entr" + (changed === 1 ? "y has" : "ies have") + " changed since sealing."
+              : (none ? ok + " verified, " + none + " not yet fingerprinted."
+                      : "All " + ok + " entries verify against their fingerprints."));
+          }
+          return { ok, changed, none, changedTitles };
+        }
+
+        /* Stamping an entry written before fingerprinting existed cannot
+           honestly claim it is unchanged since it was written — only that it
+           is unchanged since today. The stamp records that date, and the
+           entry will say "sealed on <today>" rather than pretending. */
+        async function fingerprintUnstamped() {
+          const entries = hearthEntries().filter((r) => !(r.meta && r.meta.integrity));
+          if (!entries.length) return toast("Every entry already carries a fingerprint.");
+          let done = 0;
+          for (const record of entries) {
+            const meta = Object.assign({}, record.meta,
+              { integrity: hearthIntegrityStamp(await hearthHash(record)) });
+            const { error } = await GZ.client.from("records")
+              .update({ meta }).eq("id", record.id);
+            if (!error) { record.meta = meta; done++; }
+          }
+          toast(done + " entr" + (done === 1 ? "y" : "ies") +
+            " fingerprinted as of today. Changes from here are detectable; anything before today is not.");
+          runHearthIntegritySweep(false);
+          renderHearth();
+        }
+
         function wireDispatch() {
           const form = $("dis-form");
           if (!form || form.dataset.wired) return;
@@ -12317,6 +12410,69 @@
            compresses a quiet stretch to make the shape look better — a silent
            spring is a fact about the record, and it stays silent.
            --------------------------------------------------------------- */
+        /* ---------------------------------------------------------------
+           INTEGRITY — proving an entry has not changed since it was written.
+
+           The whole weight of this file is that its entries were made at the
+           time. created_at proves when a row was inserted; it proves nothing
+           about whether the words in it are still the words that were
+           inserted. There is no edit screen, but the rows are writable by
+           their owner — I appended to two of them from a console this week —
+           so "nobody edited it" currently rests on somebody's word.
+
+           So each entry carries a fingerprint of its own substance, taken
+           when it is sealed and checked whenever it is opened. A changed
+           entry says so.
+
+           What this is NOT: tamper-proof. The fingerprint lives in the row
+           it protects, so anyone holding the database credentials can change
+           the content and restamp it. It defends against accident, drift,
+           and quiet revision — not against the account holder. The panel
+           says so in those words, because a security claim that overstates
+           itself is worse than none.
+           --------------------------------------------------------------- */
+        const HEARTH_SEALED_FIELDS = [
+          "tier", "thread", "time", "place", "said", "asked", "prompted", "fidelity",
+          "response", "otherResponse", "notified", "documented", "followup", "bears",
+          "source", "exhibit",
+        ];
+
+        /* deterministic, and deliberately excludes `intake` and `integrity`
+           itself — the stamp cannot be part of what it stamps */
+        function hearthCanonical(record) {
+          const meta = record.meta || {};
+          const parts = [
+            "title:" + (record.title || ""),
+            "body:" + (record.body || ""),
+            "occurred:" + (record.occurred_at || ""),
+            "people:" + (Array.isArray(meta.people) ? meta.people.join(",") : ""),
+          ];
+          for (const field of HEARTH_SEALED_FIELDS) {
+            parts.push(field + ":" + (meta[field] == null ? "" : String(meta[field])));
+          }
+          for (const file of (meta.files || [])) {
+            parts.push("file:" + (file.sha256 || file.path || file.name || ""));
+          }
+          return parts.join("\n");
+        }
+
+        async function hearthHash(record) {
+          const bytes = new TextEncoder().encode(hearthCanonical(record));
+          return sha256Hex(bytes);
+        }
+
+        function hearthIntegrityStamp(hash, taken) {
+          return { algo: "sha256", hash, at: taken || new Date().toISOString(), v: 1 };
+        }
+
+        /* ok | changed | none */
+        async function hearthVerify(record) {
+          const stamp = record.meta && record.meta.integrity;
+          if (!stamp || !stamp.hash) return { state: "none" };
+          const now = await hearthHash(record);
+          return { state: now === stamp.hash ? "ok" : "changed", at: stamp.at, hash: stamp.hash };
+        }
+
         /* which entries the operator has opened, kept across re-renders so a
            filter change or a new entry does not close what they were reading */
         const hearthOpenEntries = new Set();
@@ -13203,6 +13359,17 @@
             heSetTab(initial);
           }
 
+          const verifyBtn = $("he-verify");
+          if (verifyBtn && !verifyBtn.dataset.wired) {
+            verifyBtn.dataset.wired = "1";
+            verifyBtn.addEventListener("click", () => runHearthIntegritySweep(true));
+          }
+          const stampBtn = $("he-fingerprint");
+          if (stampBtn && !stampBtn.dataset.wired) {
+            stampBtn.dataset.wired = "1";
+            stampBtn.addEventListener("click", fingerprintUnstamped);
+          }
+
           const audSel = $("he-audience");
           if (audSel && !audSel.options.length) {
             for (const option of HEARTH_AUDIENCES) {
@@ -13422,9 +13589,16 @@
                    stored as noon so the row sorts onto the right day, and
                    meta.timeKnown records that the hour is not evidence. */
                 meta.timeKnown = Boolean(time);
+                /* the stamp is taken over exactly what is about to be
+                   written, so it describes the entry as sealed */
+                const occurredAt = date + "T" + (time || "12:00") + ":00";
+                meta.integrity = hearthIntegrityStamp(await hearthHash({
+                  title, body: $("he-body").value.trim() || null,
+                  occurred_at: occurredAt, meta,
+                }));
                 const ok = await seal(title, $("he-body").value.trim() || null, {
                   kind: "record",
-                  occurredAt: date + "T" + (time || "12:00") + ":00",
+                  occurredAt,
                   meta,
                   quiet: true,
                   throwOnError: true,
@@ -13694,9 +13868,13 @@
               intake: "bulk",
             };
             try {
+              const occurredAt = raw.date + "T" + (raw.time || "12:00") + ":00";
+              meta.integrity = hearthIntegrityStamp(await hearthHash({
+                title: raw.title, body: raw.body || null, occurred_at: occurredAt, meta,
+              }));
               const ok = await seal(raw.title, raw.body || null, {
                 kind: "record", quiet: true, defer: true, throwOnError: true,
-                occurredAt: raw.date + "T" + (raw.time || "12:00") + ":00",
+                occurredAt,
                 meta,
               });
               if (ok) written++;
