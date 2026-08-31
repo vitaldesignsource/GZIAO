@@ -8288,6 +8288,250 @@ html[data-theme="light"] .he-span-over {
   }
 }
 
+/* ---------------- claims and contradictions ----------------
+   The card is a bundle: the words at the top, then four columns holding
+   what agrees, what does not, what corroborates independently, and what is
+   still open. The status colour rides the left edge the way an entry's
+   basis does, so the two views read as one system. */
+.he-claim {
+  border: 1px solid var(--panel-line);
+  border-left: 3px solid var(--claim-colour, var(--panel-line));
+  border-radius: var(--r-md);
+  background: var(--panel);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.he-claim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.he-claim-head b {
+  font: 400 16px Georgia, serif;
+  flex: 1 1 240px;
+}
+
+.he-claim-status {
+  font: 600 8.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-style: normal;
+  white-space: nowrap;
+  color: var(--claim-colour, var(--faint));
+  border: 1px solid color-mix(in srgb, var(--claim-colour, var(--panel-line)) 42%, transparent);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+}
+
+/* the exact words get the weight of a quotation, because paraphrase is
+   the failure this whole record exists to prevent */
+.he-claim-words {
+  margin: 12px 0 0;
+  padding: 10px 0 10px 14px;
+  border-left: 2px solid var(--panel-line-bright);
+  color: var(--paper);
+  font: 400 13.5px / 1.7 Georgia, serif;
+  white-space: pre-wrap;
+}
+
+.he-claim-by {
+  color: var(--faint);
+  font-size: 10.5px;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
+.he-claim-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.he-claim-col {
+  border: 1px solid var(--panel-line);
+  border-top: 2px solid color-mix(in srgb, var(--stance-colour, var(--panel-line)) 60%, transparent);
+  border-radius: var(--r-sm);
+  padding: 10px 11px;
+  background: color-mix(in srgb, var(--stance-colour, transparent) 3%, transparent);
+}
+
+.he-claim-col-label {
+  display: block;
+  font: 600 8.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stance-colour, var(--faint));
+}
+
+.he-claim-none {
+  color: var(--faint);
+  font: 400 11.5px Georgia, serif;
+  margin: 8px 0 0;
+  opacity: 0.8;
+}
+
+.he-claim-item {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid var(--panel-line);
+}
+
+.he-claim-item:first-of-type {
+  border-top: 0;
+}
+
+.he-claim-item p {
+  margin: 0;
+  color: var(--muted);
+  font: 400 12px / 1.6 Georgia, serif;
+}
+
+.he-claim-item-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.he-claim-item-foot small {
+  color: var(--faint);
+  font-size: 9.5px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.he-claim-drop {
+  border: 0;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+  flex: none;
+}
+
+.he-claim-drop:hover {
+  color: var(--danger);
+}
+
+.he-claim-add {
+  margin-top: 14px;
+}
+
+.he-claim-add summary {
+  cursor: pointer;
+  color: var(--amber);
+  font: 600 9px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  list-style: none;
+}
+
+.he-claim-add summary::-webkit-details-marker {
+  display: none;
+}
+
+.he-claim-add summary::before {
+  content: "+ ";
+}
+
+.he-claim-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.he-claim-add-form textarea,
+.he-claim-add-form input,
+.he-claim-add-form select {
+  border: 1px solid var(--panel-line);
+  background: var(--panel-solid);
+  color: var(--paper);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  font: 400 12px Georgia, serif;
+  width: 100%;
+}
+
+.he-claim-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-line);
+}
+
+.he-claim-restatus {
+  border: 1px solid var(--panel-line);
+  background: var(--panel-solid);
+  color: var(--muted);
+  border-radius: var(--r-md);
+  height: 32px;
+  padding: 0 10px;
+  font: 400 11px Georgia, serif;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.he-claim-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.he-claim-filters input[type="search"] {
+  flex: 1 1 200px;
+  min-width: 0;
+  border: 1px solid var(--panel-line);
+  background: var(--panel-solid);
+  color: var(--paper);
+  border-radius: var(--r-md);
+  height: 34px;
+  padding: 0 12px;
+  font: 400 12px Georgia, serif;
+  appearance: none;
+}
+
+.he-claim-filters select {
+  border: 1px solid var(--panel-line);
+  background: var(--panel-solid);
+  color: var(--muted);
+  border-radius: var(--r-md);
+  height: 34px;
+  padding: 0 10px;
+  font: 400 11px Georgia, serif;
+}
+
+#he-claim-form textarea,
+#he-claim-form input,
+#he-claim-form select {
+  border: 1px solid var(--panel-line);
+  background: var(--panel-solid);
+  color: var(--paper);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  font: 400 12px Georgia, serif;
+  width: 100%;
+}
+
+/* one column per stance is unreadable on a phone; two is the floor at
+   which the labels still fit, and one below 560px */
+@media (max-width: 560px) {
+  .he-claim-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------------- Hearth's own face ----------------
    Hearth is one module inside PROTECT, but it is the only one holding a
    live matter, and it should feel like walking into a different room:
@@ -8506,6 +8750,23 @@ html[data-theme="light"] .he-tabbar {
   }
   .he-tabbar button span {
     display: none;
+  }
+  /* a fifth tab put five labels into 343px and "Record an entry" wrapped to
+     three lines. The bar scrolls instead, so every label keeps one line and
+     its own width. */
+  .he-tabbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+  .he-tabbar::-webkit-scrollbar {
+    display: none;
+  }
+  .he-tabbar button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 15px 17px;
   }
   .he-span {
     padding: 10px 10px 8px;

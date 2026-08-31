@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=92" />
+    <link rel="stylesheet" href="command.css?v=93" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1832,6 +1832,7 @@
 
           <section class="tabbar he-tabbar" id="he-tabs">
             <button class="is-on" type="button" data-hetab="record"><b>The record</b><span id="he-tab-count">The chronology</span></button>
+            <button type="button" data-hetab="claims"><b>Claims</b><span id="he-claims-count">What is asserted</span></button>
             <button type="button" data-hetab="desk"><b>The desk</b><span id="he-desk-count">What is open</span></button>
             <button type="button" data-hetab="enter"><b>Record an entry</b><span>Write it while it is fresh</span></button>
             <button type="button" data-hetab="setup"><b>Intake &amp; setup</b><span>Names, matters, bulk load</span></button>
@@ -1926,6 +1927,52 @@
               <div class="privacy-row" style="margin-top: 18px"><span><i></i>Private to you &middot; never shared</span></div>
             </div>
           </section>
+          </div>
+
+          <div id="he-pane-claims" hidden>
+            <section class="chrono-row" style="grid-template-columns: 1fr 340px">
+              <div class="panel">
+                <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px">
+                  <span>CLAIMS &amp; CONTRADICTIONS</span>
+                  <span id="he-claim-tally" style="color: var(--faint)">0 claims</span>
+                </span>
+                <h2>What has been asserted, and what the file says back</h2>
+                <p class="panel-sub">
+                  One record per assertion: its exact words, who made it, where it appears, and every piece of
+                  the file that bears on it. A status here describes the state of the evidence gathered in this
+                  file &mdash; nothing more. It is not a finding about anyone&rsquo;s honesty or intent, and the
+                  system will never make one.
+                </p>
+                <div class="he-claim-filters" id="he-claim-filters">
+                  <input type="search" id="he-claim-q" placeholder="Search the claims&hellip;" aria-label="Search the claims" autocomplete="off" />
+                  <select id="he-claim-f-status" aria-label="Filter claims by status"></select>
+                </div>
+                <div id="he-claims" style="margin-top: 14px"></div>
+                <div class="empty-center" id="he-claims-empty">
+                  <div class="glyph" style="background: #d0ad6d15; border-color: #d0ad6d55"></div>
+                  <b>No claim is on the matrix yet</b>
+                  <span>Enter an assertion and its exact wording. The evidence for and against it is attached afterwards, one piece at a time.</span>
+                </div>
+              </div>
+
+              <div class="panel">
+                <span class="kicker">RAISE A CLAIM</span>
+                <h2 style="font-size: 20px">Put an assertion on the matrix</h2>
+                <form id="he-claim-form" class="he-matter-form" style="flex-direction: column; align-items: stretch">
+                  <input type="text" id="he-claim-label" placeholder="Short name for the claim&hellip;" aria-label="Short name for the claim" autocomplete="off" required />
+                  <textarea id="he-claim-wording" placeholder="Its exact words, quoted" aria-label="The claim in its exact words" rows="3"></textarea>
+                  <input type="text" id="he-claim-speaker" placeholder="Who asserted it" aria-label="Who asserted it" autocomplete="off" />
+                  <input type="text" id="he-claim-origin" placeholder="Where it appears &mdash; document and paragraph" aria-label="Where it appears, document and paragraph" autocomplete="off" />
+                  <input type="date" id="he-claim-stated" aria-label="Date asserted" />
+                  <select id="he-claim-status" aria-label="Status of the evidence gathered so far"></select>
+                  <button class="prime-btn" type="submit">Open the record</button>
+                </form>
+                <p class="panel-note" style="margin-top: 12px">
+                  Quote rather than paraphrase. A claim recorded in your own words is a claim you will have to
+                  defend as your own.
+                </p>
+              </div>
+            </section>
           </div>
 
           <div id="he-pane-desk" hidden>
@@ -10680,6 +10727,69 @@
            missing, open decisions, and inconsistencies the operator has
            marked. Each is a row the operator writes and closes; the tool only
            orders them by date and keeps them beside the record they cite. */
+        /* ---------------------------------------------------------------
+           CLAIMS AND CONTRADICTIONS
+
+           A chronology answers "what happened". It does not answer "this was
+           asserted, and here is everything in the file that bears on it" —
+           which is the question a contested matter actually turns on. So an
+           assertion gets its own record: its exact words, who made it, where
+           it appears, and the evidence for it, against it, and independent
+           of it, each piece able to point at the entry it comes from.
+
+           The status vocabulary describes THE EVIDENCE IN THIS FILE and
+           nothing else. There is deliberately no value meaning false, lie,
+           or fabricated: this system may show that the record contradicts an
+           assertion, and it must never conclude why. Intent is not an
+           observable, and a file that guesses at it is worth less than one
+           that does not.
+           --------------------------------------------------------------- */
+        const HEARTH_CLAIM_STATUS = [
+          { id: "unexamined", label: "Not yet examined", rank: 0, colour: "var(--faint)",
+            test: "The claim is recorded; the file has not been searched against it" },
+          { id: "supported", label: "Supported by the record", rank: 1, colour: "var(--he-t1)",
+            test: "What has been gathered so far agrees with it" },
+          { id: "mixed", label: "The record cuts both ways", rank: 2, colour: "var(--he-t4)",
+            test: "Some of the file agrees, some of it does not" },
+          { id: "contradicted", label: "Contradicted by the record", rank: 3, colour: "var(--danger)",
+            test: "What has been gathered so far does not agree with it — a statement about the evidence, not about the person" },
+          { id: "unresolvable", label: "Cannot be settled here", rank: 4, colour: "var(--he-t5)",
+            test: "The record available cannot decide it either way" },
+          { id: "withdrawn", label: "No longer asserted", rank: 5, colour: "var(--faint)",
+            test: "It was withdrawn, corrected, or abandoned by whoever made it" },
+        ];
+        const hearthClaimStatus = (id) =>
+          HEARTH_CLAIM_STATUS.find((c) => c.id === id) || HEARTH_CLAIM_STATUS[0];
+
+        const HEARTH_STANCES = [
+          { id: "support", label: "Supports it", colour: "var(--he-t1)" },
+          { id: "contradict", label: "Contradicts it", colour: "var(--danger)" },
+          { id: "corroborate", label: "Independent corroboration", colour: "var(--he-t3)" },
+          { id: "question", label: "Unanswered question", colour: "var(--he-t4)" },
+        ];
+        const hearthStance = (id) => HEARTH_STANCES.find((s) => s.id === id) || HEARTH_STANCES[0];
+
+        function hearthClaims() {
+          return records.filter((r) =>
+            r.meta && r.meta.module === "hearth" && r.meta.kind === "claim");
+        }
+
+        /* the evidence a claim carries, newest last so the bundle reads in
+           the order it was assembled */
+        function claimEvidence(claim) {
+          const list = claim.meta && Array.isArray(claim.meta.evidence) ? claim.meta.evidence : [];
+          return list.filter((e) => e && e.stance);
+        }
+
+        function claimCounts(claim) {
+          const ev = claimEvidence(claim);
+          const by = {};
+          for (const stance of HEARTH_STANCES) {
+            by[stance.id] = ev.filter((e) => e.stance === stance.id).length;
+          }
+          return by;
+        }
+
         const HEARTH_TASK_TYPES = [
           { id: "deadline", label: "Deadline", colour: "var(--danger)" },
           { id: "awaiting", label: "Awaiting an answer", colour: "var(--amber)" },
@@ -11262,11 +11372,295 @@
           }
 
           renderHearthSpan(shown);
+          renderHearthClaims();
           renderHearthMatters();
           renderHearthExhibits();
           renderHearthWeight(all);
           const tabCount = $("he-tab-count");
           if (tabCount) tabCount.textContent = all.length + " entr" + (all.length === 1 ? "y" : "ies");
+        }
+
+        /* One card per assertion. The card is the bundle: the words, who said
+           them, where they appear, and then every piece of the file that
+           bears on them, sorted into what agrees, what does not, what
+           corroborates independently, and what is still unanswered. Each
+           piece can point at the entry it came from, so the matrix and the
+           chronology are the same evidence seen twice. */
+        function renderHearthClaims() {
+          const holder = $("he-claims");
+          if (!holder) return;
+          holder.innerHTML = "";
+          const all = hearthClaims();
+          const query = ($("he-claim-q") && $("he-claim-q").value || "").trim().toLowerCase();
+          const wantStatus = $("he-claim-f-status") && $("he-claim-f-status").value;
+
+          const shown = all.filter((claim) => {
+            const meta = claim.meta || {};
+            if (wantStatus && meta.status !== wantStatus) return false;
+            if (!query) return true;
+            const hay = [claim.title, meta.wording, meta.speaker, meta.origin]
+              .concat(claimEvidence(claim).map((e) => e.text + " " + (e.source || "")))
+              .join(" ").toLowerCase();
+            return hay.includes(query);
+          }).sort((a, b) => {
+            const ra = hearthClaimStatus(a.meta.status).rank;
+            const rb = hearthClaimStatus(b.meta.status).rank;
+            if (ra !== rb) return rb - ra;
+            return String(b.meta.stated || "").localeCompare(String(a.meta.stated || ""));
+          });
+
+          const tally = $("he-claim-tally");
+          if (tally) {
+            tally.textContent = all.length
+              ? (shown.length === all.length
+                  ? all.length + (all.length === 1 ? " claim" : " claims")
+                  : shown.length + " of " + all.length)
+              : "0 claims";
+          }
+          const empty = $("he-claims-empty");
+          if (empty) empty.hidden = all.length > 0;
+          const countTab = $("he-claims-count");
+          if (countTab) {
+            countTab.textContent = all.length
+              ? all.length + (all.length === 1 ? " claim" : " claims")
+              : "What is asserted";
+          }
+          if (!shown.length) return;
+
+          for (const claim of shown) {
+            const meta = claim.meta || {};
+            const status = hearthClaimStatus(meta.status);
+            const card = document.createElement("article");
+            card.className = "he-claim";
+            card.style.setProperty("--claim-colour", status.colour);
+
+            const head = document.createElement("div");
+            head.className = "he-claim-head";
+            const name = document.createElement("b");
+            name.textContent = claim.title;
+            const pill = document.createElement("i");
+            pill.className = "he-claim-status";
+            pill.textContent = status.label;
+            pill.title = status.test;
+            head.append(name, pill);
+            card.append(head);
+
+            if (meta.wording) {
+              const quote = document.createElement("blockquote");
+              quote.className = "he-claim-words";
+              quote.textContent = meta.wording;
+              card.append(quote);
+            }
+
+            const attrib = [];
+            if (meta.speaker) attrib.push(meta.speaker);
+            if (meta.stated) attrib.push(localDay(meta.stated + "T12:00:00"));
+            if (meta.origin) attrib.push(meta.origin);
+            if (attrib.length) {
+              const by = document.createElement("div");
+              by.className = "he-claim-by";
+              by.textContent = attrib.join(" · ");
+              card.append(by);
+            }
+
+            const ev = claimEvidence(claim);
+            const grid = document.createElement("div");
+            grid.className = "he-claim-grid";
+            for (const stance of HEARTH_STANCES) {
+              const mine = ev.filter((e) => e.stance === stance.id);
+              const col = document.createElement("div");
+              col.className = "he-claim-col";
+              col.style.setProperty("--stance-colour", stance.colour);
+              const label = document.createElement("span");
+              label.className = "he-claim-col-label";
+              label.textContent = stance.label + " · " + mine.length;
+              col.append(label);
+              if (!mine.length) {
+                const none = document.createElement("p");
+                none.className = "he-claim-none";
+                none.textContent = stance.id === "question" ? "None outstanding." : "Nothing gathered.";
+                col.append(none);
+              }
+              for (const item of mine) {
+                const row = document.createElement("div");
+                row.className = "he-claim-item";
+                const text = document.createElement("p");
+                text.textContent = item.text;
+                row.append(text);
+                const foot = document.createElement("div");
+                foot.className = "he-claim-item-foot";
+                if (item.cite) {
+                  const target = hearthEntries().find((r) => r.id === item.cite);
+                  if (target) {
+                    const jump = document.createElement("button");
+                    jump.type = "button";
+                    jump.className = "he-trace-jump";
+                    jump.textContent = "CH-" + String(citeOf(target)).padStart(4, "0");
+                    jump.title = target.title;
+                    jump.addEventListener("click", () => {
+                      heSetTab("record");
+                      setTimeout(() => hearthJump(target.id), 60);
+                    });
+                    foot.append(jump);
+                  }
+                }
+                if (item.source) {
+                  const src = document.createElement("small");
+                  src.textContent = item.source;
+                  foot.append(src);
+                }
+                const drop = document.createElement("button");
+                drop.type = "button";
+                drop.className = "he-claim-drop";
+                drop.textContent = "×";
+                drop.title = "Remove this piece";
+                drop.addEventListener("click", () => removeClaimEvidence(claim, item));
+                foot.append(drop);
+                row.append(foot);
+                col.append(row);
+              }
+              grid.append(col);
+            }
+            card.append(grid);
+
+            card.append(buildClaimAdder(claim));
+
+            const tools = document.createElement("div");
+            tools.className = "he-claim-tools";
+            const sel = document.createElement("select");
+            sel.className = "he-claim-restatus";
+            sel.setAttribute("aria-label", "Status of the evidence on this claim");
+            for (const option of HEARTH_CLAIM_STATUS) {
+              const o = document.createElement("option");
+              o.value = option.id;
+              o.textContent = option.label;
+              if (option.id === (meta.status || "unexamined")) o.selected = true;
+              sel.append(o);
+            }
+            sel.addEventListener("change", () => setClaimStatus(claim, sel.value));
+            tools.append(sel);
+            const kill = document.createElement("button");
+            kill.type = "button";
+            kill.className = "is-destroy";
+            kill.textContent = "Destroy";
+            kill.addEventListener("click", () => destroyRecord(claim, "claim"));
+            tools.append(kill);
+            card.append(tools);
+
+            holder.append(card);
+          }
+        }
+
+        /* attaching a piece of evidence: what it says, which side it falls
+           on, and optionally the entry it comes from */
+        function buildClaimAdder(claim) {
+          const wrap = document.createElement("details");
+          wrap.className = "he-claim-add";
+          const summary = document.createElement("summary");
+          summary.textContent = "Attach evidence";
+          wrap.append(summary);
+
+          const form = document.createElement("form");
+          form.className = "he-claim-add-form";
+          const text = document.createElement("textarea");
+          text.rows = 2;
+          text.placeholder = "What the evidence says, in one or two lines";
+          text.setAttribute("aria-label", "What the evidence says");
+          text.required = true;
+          const stance = document.createElement("select");
+          stance.setAttribute("aria-label", "Which side this evidence falls on");
+          for (const option of HEARTH_STANCES) {
+            const o = document.createElement("option");
+            o.value = option.id;
+            o.textContent = option.label;
+            stance.append(o);
+          }
+          const cite = document.createElement("select");
+          cite.setAttribute("aria-label", "Chronology entry this evidence comes from");
+          const blank = document.createElement("option");
+          blank.value = "";
+          blank.textContent = "No entry cited";
+          cite.append(blank);
+          for (const entry of hearthEntries().slice().sort((a, b) =>
+            String(hearthWhen(a)).localeCompare(String(hearthWhen(b))))) {
+            const o = document.createElement("option");
+            o.value = entry.id;
+            o.textContent = "CH-" + String(citeOf(entry)).padStart(4, "0") + " · " +
+              localDay(hearthWhen(entry)) + " · " + entry.title.slice(0, 46);
+            cite.append(o);
+          }
+          const source = document.createElement("input");
+          source.type = "text";
+          source.placeholder = "Source, if it is outside the chronology";
+          source.setAttribute("aria-label", "Source, if it is outside the chronology");
+          const go = document.createElement("button");
+          go.className = "ghost-btn";
+          go.type = "submit";
+          go.textContent = "Attach";
+          form.append(text, stance, cite, source, go);
+          form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const body = text.value.trim();
+            if (!body) return toast("Say what the evidence is.");
+            await addClaimEvidence(claim, {
+              stance: stance.value,
+              text: body,
+              cite: cite.value || null,
+              source: source.value.trim() || null,
+            });
+            text.value = ""; source.value = ""; cite.value = "";
+            wrap.open = false;
+          });
+          wrap.append(form);
+          return wrap;
+        }
+
+        /* Claims are written one field at a time from several places, so the
+           writes are serialised the way the profile is: read the row back,
+           apply, roll back on failure. Two people editing the same claim from
+           two tabs is not the risk — one operator with a slow network is. */
+        let hearthClaimQueue = Promise.resolve();
+        function updateClaim(claim, mutate) {
+          const run = hearthClaimQueue.then(async () => {
+            const live = records.find((r) => r.id === claim.id);
+            if (!live) return false;
+            const before = JSON.parse(JSON.stringify(live.meta || {}));
+            const next = JSON.parse(JSON.stringify(live.meta || {}));
+            mutate(next);
+            live.meta = next;
+            renderHearthClaims();
+            const { error } = await GZ.client
+              .from("records").update({ meta: next }).eq("id", claim.id);
+            if (error) {
+              live.meta = before;
+              renderHearthClaims();
+              toast("Could not save that: " + error.message);
+              return false;
+            }
+            return true;
+          });
+          hearthClaimQueue = run.catch(() => {});
+          return run;
+        }
+
+        function addClaimEvidence(claim, piece) {
+          return updateClaim(claim, (meta) => {
+            if (!Array.isArray(meta.evidence)) meta.evidence = [];
+            meta.evidence.push(piece);
+          });
+        }
+
+        function removeClaimEvidence(claim, piece) {
+          return updateClaim(claim, (meta) => {
+            if (!Array.isArray(meta.evidence)) return;
+            const at = meta.evidence.findIndex((e) =>
+              e.stance === piece.stance && e.text === piece.text && (e.cite || null) === (piece.cite || null));
+            if (at >= 0) meta.evidence.splice(at, 1);
+          });
+        }
+
+        function setClaimStatus(claim, status) {
+          return updateClaim(claim, (meta) => { meta.status = status; });
         }
 
         function renderHearthMatters() {
@@ -12202,7 +12596,7 @@
            first thing an empty file needs is its first entry. The choice is
            remembered per device. */
         function heSetTab(id) {
-          for (const pane of ["record", "desk", "enter", "setup"]) {
+          for (const pane of ["record", "claims", "desk", "enter", "setup"]) {
             const el = $("he-pane-" + pane);
             if (el) el.hidden = pane !== id;
           }
@@ -12221,6 +12615,67 @@
             try { initial = localStorage.getItem("gz-hearth-tab"); } catch (e) {}
             if (!initial) initial = hearthEntries().length ? "record" : "enter";
             heSetTab(initial);
+          }
+
+          const claimForm = $("he-claim-form");
+          if (claimForm && !claimForm.dataset.wired) {
+            claimForm.dataset.wired = "1";
+
+            const statusSel = $("he-claim-status");
+            const filterSel = $("he-claim-f-status");
+            if (statusSel && !statusSel.options.length) {
+              for (const option of HEARTH_CLAIM_STATUS) {
+                const o = document.createElement("option");
+                o.value = option.id;
+                o.textContent = option.label;
+                o.title = option.test;
+                statusSel.append(o);
+              }
+            }
+            if (filterSel && !filterSel.options.length) {
+              const any = document.createElement("option");
+              any.value = "";
+              any.textContent = "Every status";
+              filterSel.append(any);
+              for (const option of HEARTH_CLAIM_STATUS) {
+                const o = document.createElement("option");
+                o.value = option.id;
+                o.textContent = option.label;
+                filterSel.append(o);
+              }
+              filterSel.addEventListener("change", renderHearthClaims);
+            }
+            const q = $("he-claim-q");
+            if (q) q.addEventListener("input", renderHearthClaims);
+
+            claimForm.addEventListener("submit", async (event) => {
+              event.preventDefault();
+              const label = $("he-claim-label").value.trim();
+              if (!label) return toast("Name the claim in one line.");
+              const wording = $("he-claim-wording").value.trim();
+              const ok = await seal(label, null, {
+                kind: "record", quiet: true,
+                meta: {
+                  module: "hearth", kind: "claim",
+                  wording: wording || null,
+                  speaker: $("he-claim-speaker").value.trim() || null,
+                  origin: $("he-claim-origin").value.trim() || null,
+                  stated: $("he-claim-stated").value || null,
+                  status: $("he-claim-status").value || "unexamined",
+                  evidence: [],
+                },
+              });
+              if (!ok) return toast("Could not open the record.");
+              $("he-claim-label").value = "";
+              $("he-claim-wording").value = "";
+              $("he-claim-speaker").value = "";
+              $("he-claim-origin").value = "";
+              $("he-claim-stated").value = "";
+              if (!wording) {
+                toast("Recorded. Add its exact wording when you have the document in front of you.");
+              }
+              renderAll();
+            });
           }
 
           if (!$("he-form-wired")) {
