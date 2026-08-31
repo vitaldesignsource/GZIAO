@@ -8142,6 +8142,112 @@ html[data-theme="light"] .directive {
   font: 400 11.5px Georgia, serif;
 }
 
+/* ================= HEARTH · liveliness =================
+   Motion here has to earn its place. This is a record of a custody matter,
+   not a dashboard, so nothing loops for decoration and nothing moves while
+   being read. What moves, moves once, on arrival, and says something:
+   the file laying itself out, the shape of the record assembling, the
+   weight of it filling in. The one continuous thing is the fire, and it
+   breathes slowly enough that you would have to look for it. */
+
+/* the file lays itself out rather than appearing all at once */
+@keyframes he-arrive {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.he-list .he-entry {
+  animation: he-arrive 0.34s var(--ease, cubic-bezier(.22,.7,.28,1)) backwards;
+}
+
+.he-daymark {
+  animation: he-arrive 0.3s var(--ease, cubic-bezier(.22,.7,.28,1)) backwards;
+}
+
+/* the stagger is capped: ninety-one entries at 18ms each would take a
+   second and a half to finish, so it tails off after the first dozen */
+.he-list > *:nth-child(1) { animation-delay: 0ms; }
+.he-list > *:nth-child(2) { animation-delay: 22ms; }
+.he-list > *:nth-child(3) { animation-delay: 44ms; }
+.he-list > *:nth-child(4) { animation-delay: 66ms; }
+.he-list > *:nth-child(5) { animation-delay: 88ms; }
+.he-list > *:nth-child(6) { animation-delay: 110ms; }
+.he-list > *:nth-child(7) { animation-delay: 132ms; }
+.he-list > *:nth-child(8) { animation-delay: 154ms; }
+.he-list > *:nth-child(9) { animation-delay: 176ms; }
+.he-list > *:nth-child(n+10) { animation-delay: 198ms; }
+
+/* the weight of the file fills in rather than being already full */
+.bar-fill {
+  transform-origin: left center;
+  animation: he-fill 0.62s var(--ease, cubic-bezier(.22,.7,.28,1)) backwards;
+}
+
+@keyframes he-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* the span's columns grow from the ground the record stands on */
+@keyframes he-rise {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* only on a fresh draw. The band redraws on every frame of a pan, and a
+   growth animation restarting each frame would hold every column near zero
+   and read as a flicker. */
+#he-span-detail.is-fresh rect:not(.he-span-overlay):not(#he-span-marker) {
+  transform-origin: center bottom;
+  animation: he-rise 0.5s var(--ease, cubic-bezier(.22,.7,.28,1)) backwards;
+}
+
+/* the fire. One continuous thing, slow enough to be atmosphere rather than
+   movement, and it stops entirely for anyone who has asked it to. */
+/* isolate so the ember can sit at z-index -1: above the column's own
+   background, beneath everything written on it. Absolute rather than fixed,
+   so it belongs to the top of the file and scrolls away with it instead of
+   following the reader down the page. */
+.main[data-module="hearth"] {
+  position: relative;
+  isolation: isolate;
+}
+
+.main[data-module="hearth"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 340px;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(620px circle at 6% -10%,
+    color-mix(in srgb, var(--amber) 9%, transparent), transparent 60%);
+  animation: he-ember 13s ease-in-out infinite;
+}
+
+@keyframes he-ember {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
+}
+
+/* a claim card arrives the same way the entries do */
+.he-claim,
+.dis-msg {
+  animation: he-arrive 0.32s var(--ease, cubic-bezier(.22,.7,.28,1)) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .he-list .he-entry,
+  .he-daymark,
+  .he-claim,
+  .dis-msg,
+  .bar-fill,
+  #he-span-detail rect,
+  .main[data-module="hearth"]::before {
+    animation: none;
+  }
+}
+
 /* integrity: three states, and only one of them is reassuring */
 .he-entry-integ {
   margin-top: 14px;

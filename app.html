@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=100" />
+    <link rel="stylesheet" href="command.css?v=101" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -12751,6 +12751,12 @@
           }
 
           spanGeom = { cells, unit, win };
+          /* the columns grow on a fresh arrival, never mid-drag */
+          if (!svg.dataset.drawn) {
+            svg.dataset.drawn = "1";
+            svg.classList.add("is-fresh");
+            setTimeout(() => svg.classList.remove("is-fresh"), 620);
+          }
           if (spanSelection) {
             const still = cells.find((c) => c.start === spanSelection.start);
             if (still) paintSpanMarker(still); else spanSelection = null;
