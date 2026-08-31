@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=89" />
+    <link rel="stylesheet" href="command.css?v=90" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1849,9 +1849,28 @@
                 </span>
               </span>
               <h2>What is on the record</h2>
-              <div class="he-strip-wrap" id="he-strip-wrap" hidden>
-                <svg id="he-strip" viewBox="0 0 600 46" preserveAspectRatio="none" aria-label="entry density over time"></svg>
-                <div class="he-strip-axis"><span id="he-strip-from"></span><span id="he-strip-to"></span></div>
+              <div class="he-span" id="he-span" hidden>
+                <div class="he-span-head">
+                  <span class="he-span-kicker">THE SPAN</span>
+                  <div class="he-span-presets" id="he-span-presets"></div>
+                </div>
+                <div class="he-span-stage">
+                  <svg id="he-span-detail" class="he-span-detail" viewBox="0 0 1000 96"
+                       preserveAspectRatio="none" role="img"
+                       aria-label="entries over the selected window, stacked by basis"></svg>
+                  <div class="he-span-ticks" id="he-span-ticks"></div>
+                </div>
+                <p class="he-span-readout" id="he-span-readout"></p>
+                <div class="he-span-context">
+                  <svg id="he-span-over" class="he-span-over" viewBox="0 0 1000 34"
+                       preserveAspectRatio="none" role="img"
+                       aria-label="the whole record; drag to move the window"></svg>
+                  <div class="he-span-axis">
+                    <span id="he-span-from"></span>
+                    <span class="he-span-hint">drag the window &middot; tap a column to jump</span>
+                    <span id="he-span-to"></span>
+                  </div>
+                </div>
               </div>
               <div class="he-filters" id="he-filters">
                 <input type="search" id="he-q" placeholder="Search the record&hellip;" autocomplete="off" />
@@ -10478,19 +10497,19 @@
         const HEARTH_TIERS = [
           { id: "institutional", label: "Neutral record", rank: 1,
             test: "A school, daycare, agency, or official record — or an original recording",
-            colour: "var(--green)" },
+            colour: "var(--he-t1)" },
           { id: "contemporaneous", label: "Written at the time", rank: 2,
             test: "A message-app thread, email, or text sent when it happened",
-            colour: "var(--gold)" },
+            colour: "var(--he-t2)" },
           { id: "firsthand", label: "Firsthand", rank: 3,
             test: "Someone who was actually present is describing what they saw or heard",
-            colour: "var(--blue)" },
+            colour: "var(--he-t3)" },
           { id: "recollection", label: "Later recollection", rank: 4,
             test: "Remembered and written down afterwards. No record, no other witness",
-            colour: "var(--amber)" },
+            colour: "var(--he-t4)" },
           { id: "inference", label: "Inference", rank: 5,
             test: "What I make of it — motive, meaning, or state of mind. Not the event",
-            colour: "var(--violet)" },
+            colour: "var(--he-t5)" },
         ];
 
         const HEARTH_THREADS = [
@@ -11219,7 +11238,7 @@
             list.append(item);
           }
 
-          renderHearthStrip(shown);
+          renderHearthSpan(shown);
           renderHearthMatters();
           renderHearthExhibits();
           renderHearthWeight(all);
@@ -11296,55 +11315,514 @@
           }
         }
 
-        /* Entries as dots on a shared time axis, coloured by basis. Clusters
-           are the point: a quiet spring and a dense August are facts about
-           the record best seen, not summed. Clicking a dot goes to the entry. */
-        function renderHearthStrip(shown) {
-          const wrap = $("he-strip-wrap");
-          const svg = $("he-strip");
-          if (!wrap || !svg) return;
+        /* ---------------------------------------------------------------
+           THE SPAN — a focus-and-context time instrument.
+
+           The record runs five years and three quarters of it falls inside a
+           single summer. On one linear axis that summer is a four-pixel smear,
+           which is the opposite of what the file is for. So there are two
+           linear axes: an OVERVIEW that always shows the whole record, and a
+           DETAIL band that shows one window of it at a scale you can read.
+
+           Both are linear and both print their own range. Nothing here
+           compresses a quiet stretch to make the shape look better — a silent
+           spring is a fact about the record, and it stays silent.
+           --------------------------------------------------------------- */
+        const SPAN_W = 1000;
+        let hearthWindow = null;   /* {from,to} in ms, or null for the whole span */
+        /* A window the operator never chose must not survive a change to the
+           record. Until they drag the brush or pick a preset the band simply
+           follows whatever the filters are showing; after that it holds the
+           window they set, clamped to what still exists. */
+        let hearthWindowPinned = false;
+        let hearthSpanFull = null;
+        let hearthSpanRows = [];
+
+        function svgEl(name, attrs) {
+          const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+          for (const key in attrs) el.setAttribute(key, String(attrs[key]));
+          return el;
+        }
+
+        /* the bucket is chosen so a column is always a period a person can
+           name — a day, a week, a month — never an arbitrary slice of pixels */
+        function hearthBucketUnit(ms) {
+          const days = ms / dayMs;
+          if (days <= 75) return "day";
+          if (days <= 500) return "week";
+          return "month";
+        }
+
+        function hearthBucketStart(t, unit) {
+          const d = new Date(t);
+          d.setHours(0, 0, 0, 0);
+          if (unit === "week") d.setDate(d.getDate() - d.getDay());
+          if (unit === "month") d.setDate(1);
+          if (unit === "year") { d.setMonth(0); d.setDate(1); }
+          return d.getTime();
+        }
+
+        function hearthBucketNext(t, unit) {
+          const d = new Date(t);
+          if (unit === "day") d.setDate(d.getDate() + 1);
+          else if (unit === "week") d.setDate(d.getDate() + 7);
+          else if (unit === "month") d.setMonth(d.getMonth() + 1);
+          else d.setFullYear(d.getFullYear() + 1);
+          return d.getTime();
+        }
+
+        function hearthBucketLabel(t, unit) {
+          const d = new Date(t);
+          if (unit === "month") return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+          if (unit === "week") return "week of " + d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+          return d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+        }
+
+        function spanShortDate(t) {
+          return new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+        }
+
+        function renderHearthSpan(shown) {
+          const wrap = $("he-span");
+          if (!wrap) return;
           const dated = shown.filter((r) => hearthWhen(r));
-          if (dated.length < 2) { wrap.hidden = true; return; }
+          if (dated.length < 2) { wrap.hidden = true; hearthWindow = null; return; }
           wrap.hidden = false;
+          hearthSpanRows = dated;
+
           const times = dated.map((r) => new Date(hearthWhen(r)).getTime());
-          const min = Math.min(...times), max = Math.max(...times);
-          const span = Math.max(max - min, dayMs);
-          $("he-strip-from").textContent = localDay(new Date(min));
-          $("he-strip-to").textContent = localDay(new Date(max));
+          const lo = Math.min.apply(null, times);
+          const hi = Math.max.apply(null, times);
+          const full = { from: lo, to: Math.max(hi + dayMs, lo + dayMs * 2) };
+          hearthSpanFull = full;
+
+          /* a window from a previous render is kept only where it still
+             lands inside the record the filters are now showing */
+          let win = hearthWindowPinned ? hearthWindow : null;
+          if (win) {
+            win = { from: Math.max(full.from, win.from), to: Math.min(full.to, win.to) };
+            if (win.to - win.from < dayMs) win = null;
+          }
+          if (!win) win = { from: full.from, to: full.to };
+          hearthWindow = win;
+
+          drawSpanDetail(dated, win);
+          drawSpanOverview(dated, full, win);
+          drawSpanPresets(dated, full, win);
+          setSpanReadout(dated, win, full, null);
+        }
+
+        function spanRowsIn(rows, from, to) {
+          return rows.filter((r) => {
+            const t = new Date(hearthWhen(r)).getTime();
+            return t >= from && t < to;
+          });
+        }
+
+        function drawSpanDetail(dated, win) {
+          const svg = $("he-span-detail");
+          const ticks = $("he-span-ticks");
+          if (!svg) return;
           svg.innerHTML = "";
-          const W = 600, H = 46;
-          /* stack same-day dots vertically so a heavy day reads as a column */
-          const byX = new Map();
+          if (ticks) ticks.innerHTML = "";
+
+          const H = 96, base = H - 14, ceiling = 10;
+          const span = Math.max(win.to - win.from, dayMs);
+          const unit = hearthBucketUnit(span);
+          const xOf = (t) => (t - win.from) / span * SPAN_W;
+          const inWin = spanRowsIn(dated, win.from, win.to);
+
+          const buckets = new Map();
+          for (const record of inWin) {
+            const key = hearthBucketStart(new Date(hearthWhen(record)).getTime(), unit);
+            if (!buckets.has(key)) buckets.set(key, []);
+            buckets.get(key).push(record);
+          }
+          const counts = Array.from(buckets.values()).map((b) => b.length);
+          const peak = counts.length ? Math.max.apply(null, counts) : 1;
+
+          /* gridlines one step coarser than the columns, so the eye gets a
+             calendar to hang the shape on without the shape being buried */
+          const gridUnit = unit === "day" ? "week" : (unit === "week" ? "month" : "year");
+          const marks = [];
+          let g = hearthBucketStart(win.from, gridUnit);
+          let guard = 0;
+          while (g <= win.to && guard++ < 600) {
+            if (g >= win.from) marks.push(g);
+            g = hearthBucketNext(g, gridUnit);
+          }
+          /* labels are thinned to about ten so they never collide; the rules
+             themselves stay every step, because the grid is what gives the
+             columns a calendar to stand on */
+          const every = Math.max(1, Math.ceil(marks.length / 10));
+          marks.forEach((at, index) => {
+            const x = xOf(at);
+            svg.append(svgEl("line", {
+              x1: x.toFixed(1), y1: ceiling - 6, x2: x.toFixed(1), y2: base,
+              stroke: "var(--panel-line)", "stroke-width": 1, "stroke-opacity": 0.6,
+            }));
+            if (!ticks || index % every) return;
+            const d = new Date(at);
+            let text;
+            if (gridUnit === "year") text = String(d.getFullYear());
+            else if (gridUnit === "month") {
+              text = d.toLocaleDateString(undefined, { month: "short" });
+              if (d.getMonth() === 0) text += " " + String(d.getFullYear()).slice(2);
+            } else {
+              text = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+            }
+            const tick = document.createElement("span");
+            tick.className = "he-span-tick";
+            tick.style.left = (x / SPAN_W * 100).toFixed(3) + "%";
+            tick.textContent = text;
+            ticks.append(tick);
+          });
+
+          svg.append(svgEl("line", {
+            x1: 0, y1: base + 0.5, x2: SPAN_W, y2: base + 0.5,
+            stroke: "var(--panel-line-bright)", "stroke-width": 1,
+          }));
+
+          /* the columns: stacked by basis, the strongest evidence at the
+             ground, so height is volume and colour is what the volume is
+             made of */
+          const order = HEARTH_TIERS.map((t) => t.id);
+          const geometry = [];
+          for (const start of Array.from(buckets.keys()).sort((a, b) => a - b)) {
+            const rows = buckets.get(start);
+            const end = hearthBucketNext(start, unit);
+            const x0 = xOf(Math.max(start, win.from));
+            const x1 = xOf(Math.min(end, win.to));
+            const w = Math.max(x1 - x0 - (x1 - x0 > 4 ? 1.4 : 0.3), 1.4);
+            const tall = rows.length / peak * (base - ceiling);
+            let y = base;
+            for (const id of order) {
+              const n = rows.filter((r) => r.meta.tier === id).length;
+              if (!n) continue;
+              const h = Math.max(n / rows.length * tall, 1.2);
+              y -= h;
+              const tier = hearthTier(id);
+              svg.append(svgEl("rect", {
+                x: x0.toFixed(1), y: y.toFixed(1),
+                width: w.toFixed(1), height: h.toFixed(1),
+                fill: tier ? tier.colour : "var(--faint)", "fill-opacity": 0.88,
+                rx: 0.6,
+              }));
+            }
+            geometry.push({ start, end, x0, x1: x0 + w, rows });
+          }
+
+          /* today, when the window actually contains it */
+          const now = Date.now();
+          if (now >= win.from && now <= win.to) {
+            const x = xOf(now);
+            svg.append(svgEl("line", {
+              x1: x.toFixed(1), y1: ceiling - 6, x2: x.toFixed(1), y2: base,
+              stroke: "var(--ink)", "stroke-width": 1.2, "stroke-opacity": 0.5,
+              "stroke-dasharray": "3 3",
+            }));
+          }
+
+          /* every dated open item that falls in view, marked on the rule —
+             these are the only forward-looking marks the band carries */
+          for (const task of hearthOpenTasks()) {
+            if (!task.meta.due) continue;
+            const t = new Date(task.meta.due + "T12:00:00").getTime();
+            if (isNaN(t) || t < win.from || t > win.to) continue;
+            const x = xOf(t);
+            svg.append(svgEl("line", {
+              x1: x.toFixed(1), y1: base - 6, x2: x.toFixed(1), y2: base + 6,
+              stroke: "var(--danger)", "stroke-width": 1.4,
+            }));
+          }
+
+          /* one overlay carries every pointer: with day columns ten pixels
+             wide there is no per-column target a thumb could hit, so the
+             band reads the position instead of the shape */
+          const overlay = svgEl("rect", {
+            x: 0, y: 0, width: SPAN_W, height: H, fill: "transparent",
+            class: "he-span-overlay",
+          });
+          const marker = svgEl("rect", {
+            x: 0, y: ceiling - 6, width: 0, height: base - ceiling + 6,
+            fill: "var(--amber)", "fill-opacity": 0.14, visibility: "hidden",
+          });
+          svg.append(marker, overlay);
+
+          const bucketAt = (clientX) => {
+            const box = svg.getBoundingClientRect();
+            if (!box.width) return null;
+            const x = (clientX - box.left) / box.width * SPAN_W;
+            let best = null;
+            for (const cell of geometry) {
+              if (x >= cell.x0 - 2 && x <= cell.x1 + 2) { best = cell; break; }
+              if (!best || Math.abs(x - cell.x0) < Math.abs(x - best.x0)) best = cell;
+            }
+            return best;
+          };
+
+          overlay.addEventListener("pointermove", (event) => {
+            const cell = bucketAt(event.clientX);
+            if (!cell) return;
+            marker.setAttribute("x", cell.x0.toFixed(1));
+            marker.setAttribute("width", Math.max(cell.x1 - cell.x0, 2).toFixed(1));
+            marker.setAttribute("visibility", "visible");
+            setSpanReadout(dated, win, hearthSpanFull, { cell, unit });
+          });
+          overlay.addEventListener("pointerleave", () => {
+            marker.setAttribute("visibility", "hidden");
+            setSpanReadout(dated, win, hearthSpanFull, null);
+          });
+          overlay.addEventListener("click", (event) => {
+            const cell = bucketAt(event.clientX);
+            if (!cell || !cell.rows.length) return;
+            const first = cell.rows.slice().sort((a, b) =>
+              String(hearthWhen(a)).localeCompare(String(hearthWhen(b))))[0];
+            hearthJump(first.id);
+          });
+        }
+
+        function drawSpanOverview(dated, full, win) {
+          const svg = $("he-span-over");
+          if (!svg) return;
+          svg.innerHTML = "";
+          const H = 34, base = H - 7;
+          const span = Math.max(full.to - full.from, dayMs);
+          const xOf = (t) => (t - full.from) / span * SPAN_W;
+          const unit = hearthBucketUnit(span);
+
+          const buckets = new Map();
           for (const record of dated) {
-            const t = new Date(hearthWhen(record)).getTime();
-            const x = 6 + (t - min) / span * (W - 12);
-            const key = Math.round(x / 7);
-            const level = byX.get(key) || 0;
-            byX.set(key, level + 1);
-            const tier = hearthTier(record.meta.tier);
-            /* the visible dot is small; the tap target is not — an invisible
-               second circle carries the click for touch */
-            const cy = H - 8 - Math.min(level, 4) * 8;
-            const hit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            hit.setAttribute("cx", x.toFixed(1));
-            hit.setAttribute("cy", String(cy));
-            hit.setAttribute("r", "10");
-            hit.setAttribute("fill", "transparent");
-            hit.style.cursor = "pointer";
-            hit.addEventListener("click", () => hearthJump(record.id));
-            svg.append(hit);
-            const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            dot.setAttribute("cx", x.toFixed(1));
-            dot.setAttribute("cy", String(cy));
-            dot.setAttribute("r", "3.4");
-            dot.setAttribute("fill", tier ? tier.colour : "var(--faint)");
-            dot.setAttribute("fill-opacity", "0.85");
-            dot.style.cursor = "pointer";
-            const label = document.createElementNS("http://www.w3.org/2000/svg", "title");
-            label.textContent = localDay(hearthWhen(record)) + " \u2014 " + record.title;
-            dot.append(label);
-            dot.addEventListener("click", () => hearthJump(record.id));
-            svg.append(dot);
+            const key = hearthBucketStart(new Date(hearthWhen(record)).getTime(), unit);
+            buckets.set(key, (buckets.get(key) || 0) + 1);
+          }
+          const values = Array.from(buckets.values());
+          const peak = values.length ? Math.max.apply(null, values) : 1;
+
+          for (const [start, n] of buckets) {
+            const end = hearthBucketNext(start, unit);
+            const x0 = xOf(start);
+            const w = Math.max(xOf(end) - x0 - 0.6, 1.1);
+            const h = Math.max(n / peak * (base - 5), 1.4);
+            svg.append(svgEl("rect", {
+              x: x0.toFixed(1), y: (base - h).toFixed(1),
+              width: w.toFixed(1), height: h.toFixed(1),
+              fill: "var(--muted)", "fill-opacity": 0.8, rx: 0.5,
+            }));
+          }
+          svg.append(svgEl("line", {
+            x1: 0, y1: base + 0.5, x2: SPAN_W, y2: base + 0.5,
+            stroke: "var(--panel-line)", "stroke-width": 1,
+          }));
+
+          /* the window: a lit pane over the record, with the rest dimmed
+             rather than hidden, because what is outside the window is still
+             part of the file */
+          const wx0 = xOf(win.from), wx1 = xOf(win.to);
+          svg.append(svgEl("rect", {
+            x: 0, y: 0, width: Math.max(wx0, 0).toFixed(1), height: H,
+            fill: "var(--shell-bg)", "fill-opacity": 0.62,
+          }));
+          svg.append(svgEl("rect", {
+            x: wx1.toFixed(1), y: 0, width: Math.max(SPAN_W - wx1, 0).toFixed(1), height: H,
+            fill: "var(--shell-bg)", "fill-opacity": 0.62,
+          }));
+          svg.append(svgEl("rect", {
+            x: wx0.toFixed(1), y: 0.5, width: Math.max(wx1 - wx0, 1.5).toFixed(1), height: H - 1,
+            fill: "var(--amber)", "fill-opacity": 0.07,
+            stroke: "var(--amber)", "stroke-width": 1, "stroke-opacity": 0.65,
+          }));
+          for (const hx of [wx0, wx1]) {
+            svg.append(svgEl("rect", {
+              x: (hx - 1).toFixed(1), y: 4, width: 2, height: H - 8,
+              fill: "var(--amber)", "fill-opacity": 0.9, rx: 1,
+            }));
+          }
+
+          const overlay = svgEl("rect", {
+            x: 0, y: 0, width: SPAN_W, height: H, fill: "transparent",
+            class: "he-span-brush",
+          });
+          svg.append(overlay);
+          wireSpanBrush(svg, overlay, full, win);
+        }
+
+        /* Drag anywhere on the overview. Near an edge it resizes that edge,
+           inside it slides the whole window, outside it recentres — which
+           gives a thumb a target the width of the pane instead of a handle
+           the width of a hair. */
+        function wireSpanBrush(svg, overlay, full, win) {
+          const span = Math.max(full.to - full.from, dayMs);
+          const tOf = (clientX) => {
+            const box = svg.getBoundingClientRect();
+            if (!box.width) return null;
+            const ratio = (clientX - box.left) / box.width;
+            return full.from + Math.max(0, Math.min(1, ratio)) * span;
+          };
+          const edge = span * 0.03;
+          let mode = null, grabbed = 0, startWin = null;
+
+          const commit = (next) => {
+            let from = Math.max(full.from, Math.min(next.from, full.to - dayMs));
+            let to = Math.min(full.to, Math.max(next.to, full.from + dayMs));
+            if (to - from < dayMs) return;
+            hearthWindow = { from, to };
+            hearthWindowPinned = true;
+            renderHearthSpan(hearthSpanRows);
+          };
+
+          overlay.addEventListener("pointerdown", (event) => {
+            const t = tOf(event.clientX);
+            if (t === null) return;
+            overlay.setPointerCapture(event.pointerId);
+            startWin = { from: win.from, to: win.to };
+            grabbed = t;
+            if (Math.abs(t - win.from) <= edge) mode = "from";
+            else if (Math.abs(t - win.to) <= edge) mode = "to";
+            else if (t > win.from && t < win.to) mode = "move";
+            else {
+              const half = (win.to - win.from) / 2;
+              mode = "move";
+              startWin = { from: t - half, to: t + half };
+              commit(startWin);
+              return;
+            }
+          });
+
+          overlay.addEventListener("pointermove", (event) => {
+            if (!mode) {
+              const t = tOf(event.clientX);
+              overlay.style.cursor = t === null ? "default"
+                : (Math.abs(t - win.from) <= edge || Math.abs(t - win.to) <= edge)
+                  ? "ew-resize" : (t > win.from && t < win.to ? "grab" : "pointer");
+              return;
+            }
+            const t = tOf(event.clientX);
+            if (t === null) return;
+            if (mode === "from") commit({ from: Math.min(t, startWin.to - dayMs), to: startWin.to });
+            else if (mode === "to") commit({ from: startWin.from, to: Math.max(t, startWin.from + dayMs) });
+            else {
+              const shift = t - grabbed;
+              const width = startWin.to - startWin.from;
+              let from = startWin.from + shift;
+              from = Math.max(full.from, Math.min(from, full.to - width));
+              commit({ from, to: from + width });
+            }
+          });
+
+          const release = (event) => {
+            mode = null;
+            if (event && overlay.hasPointerCapture && overlay.hasPointerCapture(event.pointerId)) {
+              overlay.releasePointerCapture(event.pointerId);
+            }
+          };
+          overlay.addEventListener("pointerup", release);
+          overlay.addEventListener("pointercancel", release);
+        }
+
+        /* Presets are built from the record in hand, never from a calendar
+           the record does not reach — a year with no entries is not offered. */
+        function drawSpanPresets(dated, full, win) {
+          const holder = $("he-span-presets");
+          if (!holder) return;
+          holder.innerHTML = "";
+          const options = [{ id: "all", label: "Whole record", from: full.from, to: full.to }];
+
+          const years = Array.from(new Set(dated.map((r) => new Date(hearthWhen(r)).getFullYear()))).sort();
+          if (years.length > 1) {
+            for (const year of years.slice(-3)) {
+              options.push({
+                id: "y" + year, label: String(year),
+                from: new Date(year, 0, 1).getTime(),
+                to: new Date(year + 1, 0, 1).getTime(),
+              });
+            }
+          }
+          const now = Date.now();
+          if (full.to > now - dayMs * 120) {
+            options.push({ id: "d90", label: "Last 90 days", from: now - dayMs * 90, to: full.to });
+          }
+
+          let marked = false;
+          for (const option of options) {
+            const from = Math.max(full.from, option.from);
+            const to = Math.min(full.to, option.to);
+            if (to - from < dayMs) continue;
+            const n = spanRowsIn(dated, from, to).length;
+            if (!n) continue;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "he-span-preset";
+            /* two presets can clamp to the same window on a short record;
+               only the first of them is marked, so "on" means one thing */
+            const near = (a, b) => Math.abs(a - b) < dayMs;
+            if (!marked && near(from, win.from) && near(to, win.to)) {
+              button.classList.add("is-on");
+              marked = true;
+            }
+            button.innerHTML = "";
+            const label = document.createElement("b");
+            label.textContent = option.label;
+            const count = document.createElement("span");
+            count.textContent = String(n);
+            button.append(label, count);
+            button.addEventListener("click", () => {
+              /* "Whole record" releases the window back to following the
+                 filters; every other preset pins it */
+              hearthWindow = { from, to };
+              hearthWindowPinned = option.id !== "all";
+              renderHearthSpan(hearthSpanRows);
+            });
+            holder.append(button);
+          }
+        }
+
+        /* The readout is the band's caption and the only place it makes a
+           claim. Every number in it is counted from the rows in the window;
+           none of it is estimated. */
+        function setSpanReadout(dated, win, full, focus) {
+          const out = $("he-span-readout");
+          if (!out) return;
+          $("he-span-from").textContent = spanShortDate(full.from);
+          $("he-span-to").textContent = spanShortDate(full.to - dayMs);
+
+          const rows = focus ? focus.cell.rows : spanRowsIn(dated, win.from, win.to);
+          const heading = focus
+            ? hearthBucketLabel(focus.cell.start, focus.unit)
+            : (Math.abs(win.from - full.from) < dayMs && Math.abs(win.to - full.to) < dayMs
+                ? "The whole record"
+                : spanShortDate(win.from) + " – " + spanShortDate(win.to - dayMs));
+
+          out.innerHTML = "";
+          const strong = document.createElement("b");
+          strong.textContent = heading;
+          out.append(strong);
+          const count = document.createElement("span");
+          count.className = "he-span-count";
+          count.textContent = rows.length + (rows.length === 1 ? " entry" : " entries");
+          out.append(count);
+
+          const mix = document.createElement("span");
+          mix.className = "he-span-mix";
+          for (const tier of HEARTH_TIERS) {
+            const n = rows.filter((r) => r.meta.tier === tier.id).length;
+            if (!n) continue;
+            const chip = document.createElement("i");
+            chip.style.setProperty("--tier-colour", tier.colour);
+            chip.title = tier.label;
+            const num = document.createElement("em");
+            num.textContent = String(n);
+            chip.append(num, document.createTextNode(tier.label));
+            mix.append(chip);
+          }
+          if (mix.childNodes.length) out.append(mix);
+          if (focus && rows.length) {
+            const hint = document.createElement("span");
+            hint.className = "he-span-hint";
+            hint.textContent = rows.length === 1
+              ? rows[0].title.slice(0, 78)
+              : "tap to open the first of these";
+            out.append(hint);
           }
         }
 
