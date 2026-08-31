@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=93" />
+    <link rel="stylesheet" href="command.css?v=94" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -180,7 +180,19 @@
             <span class="theme-toggle-copy">Dark</span>
           </button>
           <div class="top-state"><i></i> <span id="field-state">Field clear</span> <b id="top-time"></b></div>
-          <button class="top-cap" id="cap-open" type="button" aria-label="Capture">+</button>
+          <button class="top-cap" id="cap-open" type="button" aria-label="Capture">
+            <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+              <defs>
+                <linearGradient id="cap-sheen" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#ffffff" stop-opacity="0.26" />
+                  <stop offset="0.58" stop-color="#ffffff" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path class="cap-body" d="M20 1 L36.2 10.5 L36.2 29.5 L20 39 L3.8 29.5 L3.8 10.5 Z" />
+              <path class="cap-sheen" d="M20 1 L36.2 10.5 L36.2 29.5 L20 39 L3.8 29.5 L3.8 10.5 Z" fill="url(#cap-sheen)" />
+              <path class="cap-mark" d="M20 14.4 V25.6 M14.4 20 H25.6" />
+            </svg>
+          </button>
         </header>
 
         <!-- ================= COMMAND VIEW ================= -->
@@ -8095,6 +8107,15 @@
           }
           /* draw it before it is looked at, if it went stale while hidden */
           currentView = id;
+          /* the button does two different things now, so it should not claim
+             to do only one of them */
+          const cap = $("cap-open");
+          if (cap) {
+            const inHearth = id === "hearth";
+            const label = inHearth ? "Record an entry in this file" : "Capture into the field";
+            cap.setAttribute("aria-label", label);
+            cap.title = label;
+          }
           if (viewDirty.has(id)) {
             viewDirty.delete(id);
             runRenderers(VIEW_RENDERERS[id]);
