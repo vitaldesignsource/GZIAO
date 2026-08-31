@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=91" />
+    <link rel="stylesheet" href="command.css?v=92" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1869,7 +1869,7 @@
                        aria-label="the whole record; drag to move the window"></svg>
                   <div class="he-span-axis">
                     <span id="he-span-from"></span>
-                    <span class="he-span-hint">drag the window &middot; tap a column to jump</span>
+                    <span class="he-span-hint" id="he-span-help">drag the window</span>
                     <span id="he-span-to"></span>
                   </div>
                 </div>
@@ -11432,7 +11432,22 @@
           drawSpanDetail(dated, win);
           drawSpanOverview(dated, full, win);
           drawSpanPresets(dated, full, win);
-          setSpanReadout(dated, win, full, null);
+          wireSpanPointers();
+          const help = $("he-span-help");
+          if (help) {
+            help.textContent = spanCoarse()
+              ? "drag the band to pan · tap a column to inspect"
+              : "drag the window · drag the band to pan · click a column to open";
+          }
+          if (spanSelection) {
+            const cell = spanGeom.cells.find((c) => c.start === spanSelection.start);
+            if (cell) {
+              setSpanReadout(dated, win, full, { cell, unit: spanGeom.unit }, true);
+              return;
+            }
+            spanSelection = null;
+          }
+          setSpanReadout(dated, win, full, null, false);
         }
 
         function spanRowsIn(rows, from, to) {
@@ -11441,6 +11456,16 @@
             return t >= from && t < to;
           });
         }
+
+        /* The bands draw; they do not listen. Every redraw replaces the SVG's
+           children, so a handler bound to a child rect is detached the moment
+           the first pointermove commits — the drag died after one step and
+           only looked alive when events were dispatched straight at the
+           orphaned node. The <svg> elements themselves persist, so the pointer
+           layer is bound to those once and reads the geometry each band leaves
+           behind here. */
+        let spanGeom = { cells: [], unit: "day", win: null };
+        let spanSelection = null;   /* a locked bucket, for touch */
 
         function drawSpanDetail(dated, win) {
           const svg = $("he-span-detail");
@@ -11464,8 +11489,6 @@
           const counts = Array.from(buckets.values()).map((b) => b.length);
           const peak = counts.length ? Math.max.apply(null, counts) : 1;
 
-          /* gridlines one step coarser than the columns, so the eye gets a
-             calendar to hang the shape on without the shape being buried */
           const gridUnit = unit === "day" ? "week" : (unit === "week" ? "month" : "year");
           const marks = [];
           let g = hearthBucketStart(win.from, gridUnit);
@@ -11474,10 +11497,12 @@
             if (g >= win.from) marks.push(g);
             g = hearthBucketNext(g, gridUnit);
           }
-          /* labels are thinned to about ten so they never collide; the rules
-             themselves stay every step, because the grid is what gives the
-             columns a calendar to stand on */
-          const every = Math.max(1, Math.ceil(marks.length / 10));
+          /* labels are thinned to what the band is actually wide enough to
+             hold, so a phone gets four and a desk gets ten rather than both
+             getting ten and the phone getting a smear */
+          const room = Math.max(svg.getBoundingClientRect().width || 600, 240);
+          const maxLabels = Math.max(3, Math.floor(room / 62));
+          const every = Math.max(1, Math.ceil(marks.length / maxLabels));
           marks.forEach((at, index) => {
             const x = xOf(at);
             svg.append(svgEl("line", {
@@ -11506,11 +11531,17 @@
             stroke: "var(--panel-line-bright)", "stroke-width": 1,
           }));
 
-          /* the columns: stacked by basis, the strongest evidence at the
-             ground, so height is volume and colour is what the volume is
-             made of */
+          /* the marker sits under the columns so a locked selection reads as
+             a lit panel behind the data rather than a film over it */
+          const marker = svgEl("rect", {
+            x: 0, y: ceiling - 6, width: 0, height: base - ceiling + 6,
+            fill: "var(--amber)", "fill-opacity": 0.16, visibility: "hidden",
+            id: "he-span-marker", rx: 2,
+          });
+          svg.append(marker);
+
           const order = HEARTH_TIERS.map((t) => t.id);
-          const geometry = [];
+          const cells = [];
           for (const start of Array.from(buckets.keys()).sort((a, b) => a - b)) {
             const rows = buckets.get(start);
             const end = hearthBucketNext(start, unit);
@@ -11528,26 +11559,22 @@
               svg.append(svgEl("rect", {
                 x: x0.toFixed(1), y: y.toFixed(1),
                 width: w.toFixed(1), height: h.toFixed(1),
-                fill: tier ? tier.colour : "var(--faint)", "fill-opacity": 0.88,
-                rx: 0.6,
+                fill: tier ? tier.colour : "var(--faint)", "fill-opacity": 0.9,
               }));
             }
-            geometry.push({ start, end, x0, x1: x0 + w, rows });
+            cells.push({ start, end, x0, x1: x0 + w, rows });
           }
 
-          /* today, when the window actually contains it */
           const now = Date.now();
           if (now >= win.from && now <= win.to) {
             const x = xOf(now);
             svg.append(svgEl("line", {
               x1: x.toFixed(1), y1: ceiling - 6, x2: x.toFixed(1), y2: base,
-              stroke: "var(--ink)", "stroke-width": 1.2, "stroke-opacity": 0.5,
+              stroke: "var(--paper)", "stroke-width": 1.2, "stroke-opacity": 0.45,
               "stroke-dasharray": "3 3",
             }));
           }
 
-          /* every dated open item that falls in view, marked on the rule —
-             these are the only forward-looking marks the band carries */
           for (const task of hearthOpenTasks()) {
             if (!task.meta.due) continue;
             const t = new Date(task.meta.due + "T12:00:00").getTime();
@@ -11559,50 +11586,20 @@
             }));
           }
 
-          /* one overlay carries every pointer: with day columns ten pixels
-             wide there is no per-column target a thumb could hit, so the
-             band reads the position instead of the shape */
-          const overlay = svgEl("rect", {
-            x: 0, y: 0, width: SPAN_W, height: H, fill: "transparent",
-            class: "he-span-overlay",
-          });
-          const marker = svgEl("rect", {
-            x: 0, y: ceiling - 6, width: 0, height: base - ceiling + 6,
-            fill: "var(--amber)", "fill-opacity": 0.14, visibility: "hidden",
-          });
-          svg.append(marker, overlay);
+          spanGeom = { cells, unit, win };
+          if (spanSelection) {
+            const still = cells.find((c) => c.start === spanSelection.start);
+            if (still) paintSpanMarker(still); else spanSelection = null;
+          }
+        }
 
-          const bucketAt = (clientX) => {
-            const box = svg.getBoundingClientRect();
-            if (!box.width) return null;
-            const x = (clientX - box.left) / box.width * SPAN_W;
-            let best = null;
-            for (const cell of geometry) {
-              if (x >= cell.x0 - 2 && x <= cell.x1 + 2) { best = cell; break; }
-              if (!best || Math.abs(x - cell.x0) < Math.abs(x - best.x0)) best = cell;
-            }
-            return best;
-          };
-
-          overlay.addEventListener("pointermove", (event) => {
-            const cell = bucketAt(event.clientX);
-            if (!cell) return;
-            marker.setAttribute("x", cell.x0.toFixed(1));
-            marker.setAttribute("width", Math.max(cell.x1 - cell.x0, 2).toFixed(1));
-            marker.setAttribute("visibility", "visible");
-            setSpanReadout(dated, win, hearthSpanFull, { cell, unit });
-          });
-          overlay.addEventListener("pointerleave", () => {
-            marker.setAttribute("visibility", "hidden");
-            setSpanReadout(dated, win, hearthSpanFull, null);
-          });
-          overlay.addEventListener("click", (event) => {
-            const cell = bucketAt(event.clientX);
-            if (!cell || !cell.rows.length) return;
-            const first = cell.rows.slice().sort((a, b) =>
-              String(hearthWhen(a)).localeCompare(String(hearthWhen(b))))[0];
-            hearthJump(first.id);
-          });
+        function paintSpanMarker(cell) {
+          const marker = document.getElementById("he-span-marker");
+          if (!marker) return;
+          if (!cell) { marker.setAttribute("visibility", "hidden"); return; }
+          marker.setAttribute("x", cell.x0.toFixed(1));
+          marker.setAttribute("width", Math.max(cell.x1 - cell.x0, 2.5).toFixed(1));
+          marker.setAttribute("visibility", "visible");
         }
 
         function drawSpanOverview(dated, full, win) {
@@ -11630,7 +11627,7 @@
             svg.append(svgEl("rect", {
               x: x0.toFixed(1), y: (base - h).toFixed(1),
               width: w.toFixed(1), height: h.toFixed(1),
-              fill: "var(--muted)", "fill-opacity": 0.8, rx: 0.5,
+              fill: "var(--muted)", "fill-opacity": 0.8,
             }));
           }
           svg.append(svgEl("line", {
@@ -11638,9 +11635,6 @@
             stroke: "var(--panel-line)", "stroke-width": 1,
           }));
 
-          /* the window: a lit pane over the record, with the rest dimmed
-             rather than hidden, because what is outside the window is still
-             part of the file */
           const wx0 = xOf(win.from), wx1 = xOf(win.to);
           svg.append(svgEl("rect", {
             x: 0, y: 0, width: Math.max(wx0, 0).toFixed(1), height: H,
@@ -11657,90 +11651,162 @@
           }));
           for (const hx of [wx0, wx1]) {
             svg.append(svgEl("rect", {
-              x: (hx - 1).toFixed(1), y: 4, width: 2, height: H - 8,
-              fill: "var(--amber)", "fill-opacity": 0.9, rx: 1,
+              x: (hx - 1.5).toFixed(1), y: 3, width: 3, height: H - 6,
+              fill: "var(--amber)", "fill-opacity": 0.92, rx: 1.5,
             }));
           }
-
-          const overlay = svgEl("rect", {
-            x: 0, y: 0, width: SPAN_W, height: H, fill: "transparent",
-            class: "he-span-brush",
-          });
-          svg.append(overlay);
-          wireSpanBrush(svg, overlay, full, win);
         }
 
-        /* Drag anywhere on the overview. Near an edge it resizes that edge,
-           inside it slides the whole window, outside it recentres — which
-           gives a thumb a target the width of the pane instead of a handle
-           the width of a hair. */
-        function wireSpanBrush(svg, overlay, full, win) {
-          const span = Math.max(full.to - full.from, dayMs);
-          const tOf = (clientX) => {
-            const box = svg.getBoundingClientRect();
+        function spanCommit(next, pin) {
+          const full = hearthSpanFull;
+          if (!full) return;
+          const floor = dayMs * 2;
+          let from = next.from, to = next.to;
+          if (to - from < floor) to = from + floor;
+          if (from < full.from) { to += full.from - from; from = full.from; }
+          if (to > full.to) { from -= to - full.to; to = full.to; }
+          from = Math.max(from, full.from);
+          to = Math.min(to, full.to);
+          if (to - from < dayMs) return;
+          hearthWindow = { from, to };
+          if (pin !== false) hearthWindowPinned = true;
+          renderHearthSpan(hearthSpanRows);
+        }
+
+        const spanCoarse = () => {
+          try { return matchMedia("(pointer: coarse)").matches; } catch (e) { return false; }
+        };
+
+        /* One pointer layer, bound once to the two persistent <svg> nodes.
+           On the detail band a horizontal drag pans the window and a tap
+           inspects: on touch that tap locks the column and offers what to do
+           with it, because a finger cannot hover and tapping straight through
+           to an entry left the band unreadable on a phone. */
+        function wireSpanPointers() {
+          const detail = $("he-span-detail");
+          const over = $("he-span-over");
+          if (!detail || !over || detail.dataset.wired) return;
+          detail.dataset.wired = "1";
+
+          const ratioOf = (el, clientX) => {
+            const box = el.getBoundingClientRect();
             if (!box.width) return null;
-            const ratio = (clientX - box.left) / box.width;
-            return full.from + Math.max(0, Math.min(1, ratio)) * span;
+            return Math.max(0, Math.min(1, (clientX - box.left) / box.width));
           };
-          const edge = span * 0.03;
-          let mode = null, grabbed = 0, startWin = null;
-
-          const commit = (next) => {
-            let from = Math.max(full.from, Math.min(next.from, full.to - dayMs));
-            let to = Math.min(full.to, Math.max(next.to, full.from + dayMs));
-            if (to - from < dayMs) return;
-            hearthWindow = { from, to };
-            hearthWindowPinned = true;
-            renderHearthSpan(hearthSpanRows);
+          const cellAt = (clientX) => {
+            const r = ratioOf(detail, clientX);
+            if (r === null || !spanGeom.cells.length) return null;
+            const x = r * SPAN_W;
+            let best = null, bestGap = Infinity;
+            for (const cell of spanGeom.cells) {
+              if (x >= cell.x0 - 2 && x <= cell.x1 + 2) return cell;
+              const gap = Math.min(Math.abs(x - cell.x0), Math.abs(x - cell.x1));
+              if (gap < bestGap) { bestGap = gap; best = cell; }
+            }
+            return bestGap <= 26 ? best : null;
           };
 
-          overlay.addEventListener("pointerdown", (event) => {
-            const t = tOf(event.clientX);
+          let drag = null;
+          detail.addEventListener("pointerdown", (event) => {
+            if (!event.isPrimary || !hearthWindow) return;
+            drag = { x: event.clientX, win: { ...hearthWindow }, moved: false };
+          });
+          detail.addEventListener("pointermove", (event) => {
+            if (drag) {
+              const box = detail.getBoundingClientRect();
+              if (!box.width) return;
+              const dx = event.clientX - drag.x;
+              if (!drag.moved && Math.abs(dx) < 6) return;
+              drag.moved = true;
+              const span = drag.win.to - drag.win.from;
+              const shift = -(dx / box.width) * span;
+              spanCommit({ from: drag.win.from + shift, to: drag.win.to + shift });
+              return;
+            }
+            if (spanCoarse() || spanSelection) return;
+            const cell = cellAt(event.clientX);
+            paintSpanMarker(cell);
+            setSpanReadout(hearthSpanRows, spanGeom.win, hearthSpanFull,
+              cell ? { cell, unit: spanGeom.unit } : null, false);
+          });
+          detail.addEventListener("pointerleave", () => {
+            if (spanSelection) return;
+            paintSpanMarker(null);
+            setSpanReadout(hearthSpanRows, spanGeom.win, hearthSpanFull, null, false);
+          });
+          const finish = (event) => {
+            const wasDrag = drag && drag.moved;
+            drag = null;
+            if (wasDrag) return;
+            const cell = cellAt(event.clientX);
+            if (!cell || !cell.rows.length) {
+              spanSelection = null;
+              paintSpanMarker(null);
+              setSpanReadout(hearthSpanRows, spanGeom.win, hearthSpanFull, null, false);
+              return;
+            }
+            if (spanCoarse()) {
+              spanSelection = { start: cell.start };
+              paintSpanMarker(cell);
+              setSpanReadout(hearthSpanRows, spanGeom.win, hearthSpanFull,
+                { cell, unit: spanGeom.unit }, true);
+              return;
+            }
+            const first = cell.rows.slice().sort((a, b) =>
+              String(hearthWhen(a)).localeCompare(String(hearthWhen(b))))[0];
+            hearthJump(first.id);
+          };
+          detail.addEventListener("pointerup", finish);
+          detail.addEventListener("pointercancel", () => { drag = null; });
+
+          /* the context rail: near an edge resizes it, inside slides the
+             window, outside recentres */
+          let brush = null;
+          const timeAt = (clientX) => {
+            const r = ratioOf(over, clientX);
+            if (r === null || !hearthSpanFull) return null;
+            return hearthSpanFull.from + r * (hearthSpanFull.to - hearthSpanFull.from);
+          };
+          over.addEventListener("pointerdown", (event) => {
+            if (!event.isPrimary || !hearthWindow || !hearthSpanFull) return;
+            const t = timeAt(event.clientX);
             if (t === null) return;
-            overlay.setPointerCapture(event.pointerId);
-            startWin = { from: win.from, to: win.to };
-            grabbed = t;
-            if (Math.abs(t - win.from) <= edge) mode = "from";
-            else if (Math.abs(t - win.to) <= edge) mode = "to";
-            else if (t > win.from && t < win.to) mode = "move";
+            const full = hearthSpanFull, win = hearthWindow;
+            const edge = (full.to - full.from) * (spanCoarse() ? 0.05 : 0.03);
+            if (Math.abs(t - win.from) <= edge) brush = { mode: "from", win: { ...win }, grab: t };
+            else if (Math.abs(t - win.to) <= edge) brush = { mode: "to", win: { ...win }, grab: t };
+            else if (t > win.from && t < win.to) brush = { mode: "move", win: { ...win }, grab: t };
             else {
               const half = (win.to - win.from) / 2;
-              mode = "move";
-              startWin = { from: t - half, to: t + half };
-              commit(startWin);
-              return;
+              brush = { mode: "move", win: { from: t - half, to: t + half }, grab: t };
+              spanCommit(brush.win);
             }
           });
-
-          overlay.addEventListener("pointermove", (event) => {
-            if (!mode) {
-              const t = tOf(event.clientX);
-              overlay.style.cursor = t === null ? "default"
-                : (Math.abs(t - win.from) <= edge || Math.abs(t - win.to) <= edge)
-                  ? "ew-resize" : (t > win.from && t < win.to ? "grab" : "pointer");
+          over.addEventListener("pointermove", (event) => {
+            if (!brush) {
+              if (spanCoarse() || !hearthWindow) return;
+              const t = timeAt(event.clientX);
+              const win = hearthWindow;
+              const edge = (hearthSpanFull.to - hearthSpanFull.from) * 0.03;
+              over.style.cursor = t === null ? "default"
+                : (Math.abs(t - win.from) <= edge || Math.abs(t - win.to) <= edge) ? "ew-resize"
+                : (t > win.from && t < win.to) ? "grab" : "pointer";
               return;
             }
-            const t = tOf(event.clientX);
+            const t = timeAt(event.clientX);
             if (t === null) return;
-            if (mode === "from") commit({ from: Math.min(t, startWin.to - dayMs), to: startWin.to });
-            else if (mode === "to") commit({ from: startWin.from, to: Math.max(t, startWin.from + dayMs) });
+            if (brush.mode === "from") spanCommit({ from: t, to: brush.win.to });
+            else if (brush.mode === "to") spanCommit({ from: brush.win.from, to: t });
             else {
-              const shift = t - grabbed;
-              const width = startWin.to - startWin.from;
-              let from = startWin.from + shift;
-              from = Math.max(full.from, Math.min(from, full.to - width));
-              commit({ from, to: from + width });
+              const width = brush.win.to - brush.win.from;
+              const from = brush.win.from + (t - brush.grab);
+              spanCommit({ from, to: from + width });
             }
           });
-
-          const release = (event) => {
-            mode = null;
-            if (event && overlay.hasPointerCapture && overlay.hasPointerCapture(event.pointerId)) {
-              overlay.releasePointerCapture(event.pointerId);
-            }
-          };
-          overlay.addEventListener("pointerup", release);
-          overlay.addEventListener("pointercancel", release);
+          const endBrush = () => { brush = null; };
+          over.addEventListener("pointerup", endBrush);
+          over.addEventListener("pointercancel", endBrush);
+          over.addEventListener("pointerleave", endBrush);
         }
 
         /* Presets are built from the record in hand, never from a calendar
@@ -11803,20 +11869,21 @@
         /* The readout is the band's caption and the only place it makes a
            claim. Every number in it is counted from the rows in the window;
            none of it is estimated. */
-        function setSpanReadout(dated, win, full, focus) {
+        function setSpanReadout(dated, win, full, focus, locked) {
           const out = $("he-span-readout");
-          if (!out) return;
+          if (!out || !win || !full) return;
           $("he-span-from").textContent = spanShortDate(full.from);
           $("he-span-to").textContent = spanShortDate(full.to - dayMs);
 
           const rows = focus ? focus.cell.rows : spanRowsIn(dated, win.from, win.to);
+          const whole = Math.abs(win.from - full.from) < dayMs && Math.abs(win.to - full.to) < dayMs;
           const heading = focus
             ? hearthBucketLabel(focus.cell.start, focus.unit)
-            : (Math.abs(win.from - full.from) < dayMs && Math.abs(win.to - full.to) < dayMs
-                ? "The whole record"
-                : spanShortDate(win.from) + " – " + spanShortDate(win.to - dayMs));
+            : (whole ? "The whole record"
+                     : spanShortDate(win.from) + " – " + spanShortDate(win.to - dayMs));
 
           out.innerHTML = "";
+          out.classList.toggle("is-locked", Boolean(locked));
           const strong = document.createElement("b");
           strong.textContent = heading;
           out.append(strong);
@@ -11839,12 +11906,45 @@
             mix.append(chip);
           }
           if (mix.childNodes.length) out.append(mix);
-          if (focus && rows.length) {
+
+          /* A finger cannot hover, so on touch the tap locks the column and
+             the readout becomes the place you act from: go finer, open the
+             first entry, or let it go. */
+          if (locked && focus && rows.length) {
+            const acts = document.createElement("span");
+            acts.className = "he-span-acts";
+            const cell = focus.cell;
+            const act = (label, run) => {
+              const b = document.createElement("button");
+              b.type = "button";
+              b.className = "he-span-act";
+              b.textContent = label;
+              b.addEventListener("click", (event) => { event.stopPropagation(); run(); });
+              acts.append(b);
+            };
+            if (cell.end - cell.start > dayMs * 2) {
+              act("Zoom in", () => {
+                spanSelection = null;
+                spanCommit({ from: cell.start, to: cell.end });
+              });
+            }
+            act(rows.length === 1 ? "Open it" : "Open first", () => {
+              const first = rows.slice().sort((a, b) =>
+                String(hearthWhen(a)).localeCompare(String(hearthWhen(b))))[0];
+              hearthJump(first.id);
+            });
+            act("Clear", () => {
+              spanSelection = null;
+              paintSpanMarker(null);
+              setSpanReadout(dated, win, full, null, false);
+            });
+            out.append(acts);
+          } else if (focus && rows.length) {
             const hint = document.createElement("span");
             hint.className = "he-span-hint";
             hint.textContent = rows.length === 1
               ? rows[0].title.slice(0, 78)
-              : "tap to open the first of these";
+              : "click to open the first of these";
             out.append(hint);
           }
         }

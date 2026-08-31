@@ -7066,9 +7066,14 @@ html[data-theme="light"] .hero {
   text-wrap: balance;
 }
 
+/* flex:0 0 auto forbade shrinking, so on a phone the row kept its full
+   419px content width inside a 375px viewport: its own flex-wrap never
+   engaged, Capture hung 99px off the right edge, and the whole document
+   scrolled sideways. It may shrink now, which is what lets it wrap. */
 .hero-actions {
   gap: 10px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 /* "Record amount" wrapped to two lines while its neighbours did not:
@@ -8041,8 +8046,11 @@ html[data-theme="light"] .he-span-preset.is-on {
   overflow: visible;
 }
 
-.he-span-overlay {
-  cursor: crosshair;
+/* pan-y, never none: the band takes horizontal drags for itself and
+   leaves vertical scrolling to the page, so it can never trap a thumb
+   trying to scroll past it */
+.he-span-detail {
+  touch-action: pan-y;
 }
 
 .he-span-ticks {
@@ -8110,6 +8118,41 @@ html[data-theme="light"] .he-span-preset.is-on {
   border-radius: 2px;
   background: var(--tier-colour, var(--faint));
   align-self: center;
+}
+
+/* On touch the readout stops being a caption and becomes the place you
+   act from, so the actions live in it rather than floating over the band. */
+.he-span-acts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.he-span-act {
+  border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--panel-line));
+  background: color-mix(in srgb, var(--amber) 10%, transparent);
+  color: var(--paper);
+  border-radius: var(--r-pill);
+  padding: 5px 12px;
+  cursor: pointer;
+  font: 600 10px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.he-span-act:hover {
+  background: color-mix(in srgb, var(--amber) 20%, transparent);
+}
+
+.he-span-act:last-child {
+  border-color: var(--panel-line);
+  background: transparent;
+  color: var(--muted);
+}
+
+.he-span-readout.is-locked {
+  border-top-color: color-mix(in srgb, var(--amber) 40%, var(--panel-line));
 }
 
 .he-span-mix em {
@@ -8448,14 +8491,48 @@ html[data-theme="light"] .he-tabbar {
 }
 
 @media (max-width: 700px) {
+  /* the row takes the full line and its three controls wrap under each
+     other rather than being squeezed off the page */
+  .hero-actions {
+    width: 100%;
+  }
+  .hero-actions .seg {
+    flex: 1 1 220px;
+  }
+  .hero-actions .ghost-btn,
+  .hero-actions .prime-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
   .he-tabbar button span {
     display: none;
   }
   .he-span {
     padding: 10px 10px 8px;
   }
+  /* the band is the instrument, so on a phone it gets more height, not
+     less — 84px of chart under three rows of chrome was the wrong trade */
   .he-span-detail {
-    height: 84px;
+    height: 116px;
+  }
+  .he-span-readout {
+    gap: 5px 10px;
+    padding-top: 10px;
+  }
+  .he-span-readout > b {
+    flex: 1 0 100%;
+    font-size: 15px;
+  }
+  .he-span-acts {
+    flex: 1 0 100%;
+    margin-top: 2px;
+  }
+  .he-span-act {
+    flex: 1 1 auto;
+    min-height: 40px;
+    text-align: center;
+    justify-content: center;
+    font-size: 11px;
   }
   /* five 44px pills wrapped to three rows and pushed the band itself below
      the fold. One scrolling row keeps the instrument on screen. */
