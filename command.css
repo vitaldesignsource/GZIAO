@@ -7937,13 +7937,16 @@ html[data-theme="light"] .directive {
   box-shadow: var(--lift-1);
 }
 
+/* The head was a tiny label at one end and a row of large pills at the
+   other, with half the panel's width of nothing between them. The label
+   and the control are now tied together by a hairline that spans the gap,
+   and the pills have become one segmented control instead of five separate
+   buttons — a zoom control should be quieter than the data it zooms. */
 .he-span-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .he-span-kicker {
@@ -7951,48 +7954,79 @@ html[data-theme="light"] .directive {
   letter-spacing: 0.22em;
   color: var(--amber);
   font-weight: 600;
+  white-space: nowrap;
+  flex: none;
+}
+
+.he-span-rule {
+  flex: 1 1 auto;
+  min-width: 12px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--amber) 30%, transparent) 0%,
+    var(--panel-line) 22%,
+    var(--panel-line) 74%,
+    transparent 100%);
 }
 
 .he-span-presets {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--panel-line);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--shell-bg) 50%, transparent);
 }
 
 .he-span-preset {
   display: inline-flex;
   align-items: baseline;
-  gap: 6px;
-  border: 1px solid var(--panel-line);
+  gap: 5px;
+  border: 0;
   background: transparent;
   color: var(--muted);
   border-radius: var(--r-pill);
-  padding: 4px 10px;
+  padding: 5px 11px;
   cursor: pointer;
-  font: 500 10px Inter, ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: 0.05em;
-  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+  font: 500 10.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  transition: color 0.16s ease, background 0.16s ease;
 }
 
 .he-span-preset span {
   font-variant-numeric: tabular-nums;
   color: var(--faint);
-  font-size: 9px;
+  font-size: 9.5px;
+  font-weight: 600;
 }
 
 .he-span-preset:hover {
-  border-color: color-mix(in srgb, var(--amber) 45%, var(--panel-line));
+  background: color-mix(in srgb, var(--paper) 6%, transparent);
   color: var(--paper);
 }
 
+/* the selected segment is raised out of the trough rather than lit up:
+   it reads as "you are here", not as the loudest thing on the panel */
 .he-span-preset.is-on {
-  border-color: color-mix(in srgb, var(--amber) 62%, transparent);
-  background: color-mix(in srgb, var(--amber) 12%, transparent);
+  background: var(--panel-raised);
   color: var(--paper);
+  box-shadow: var(--lift-1),
+              inset 0 0 0 1px color-mix(in srgb, var(--amber) 26%, transparent);
 }
 
 .he-span-preset.is-on span {
   color: var(--amber);
+}
+
+.he-span-preset:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--amber) 55%, transparent);
+}
+
+html[data-theme="light"] .he-span-preset.is-on {
+  background: var(--panel-solid);
 }
 
 /* the stage */
@@ -8345,12 +8379,13 @@ html[data-theme="light"] .he-tabbar {
     height: 44px;
   }
   .he-span-preset {
-    min-height: 44px;
+    min-height: 40px;
+    align-items: center;
     padding: 0 14px;
     font-size: 12px;
   }
   .he-span-preset span {
-    font-size: 10px;
+    font-size: 10.5px;
   }
 
   .he-entry-tools {
@@ -8427,12 +8462,15 @@ html[data-theme="light"] .he-tabbar {
   .he-span-head {
     display: block;
   }
+  .he-span-rule {
+    display: none;
+  }
   .he-span-presets {
-    flex-wrap: nowrap;
+    display: flex;
+    width: 100%;
     overflow-x: auto;
     scrollbar-width: none;
     margin-top: 8px;
-    padding-bottom: 2px;
     -webkit-overflow-scrolling: touch;
   }
   .he-span-presets::-webkit-scrollbar {
