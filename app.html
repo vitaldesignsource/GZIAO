@@ -8331,7 +8331,28 @@
         document.querySelectorAll("[data-capture]").forEach((button) => {
           button.addEventListener("click", openCapture);
         });
-        $("cap-open").addEventListener("click", openCapture);
+        /* The + is a vault capture, and it was wired straight to openCapture —
+           which receives the click event as its context. A MouseEvent has no
+           .kind, so it always fell through to the generic {kind:"record"}.
+           Pressed inside Hearth that sealed an untyped row with no date, no
+           basis and no source: it never reached the chronology, was never
+           exported, and said "Record sealed into the vault" either way.
+           Silence is the wrong failure for a file whose point is that nothing
+           goes missing, so in Hearth the button now opens Hearth's own entry
+           form, which enforces what an entry needs. Everywhere else it is
+           unchanged. */
+        $("cap-open").addEventListener("click", () => {
+          if (currentView === "hearth") {
+            heSetTab("enter");
+            const title = $("he-title");
+            if (title) {
+              title.scrollIntoView({ behavior: "smooth", block: "center" });
+              title.focus({ preventScroll: true });
+            }
+            return;
+          }
+          openCapture();
+        });
         $("capture-cancel").addEventListener("click", () => (modal.hidden = true));
         modal.addEventListener("click", (event) => {
           if (event.target === modal) modal.hidden = true;
