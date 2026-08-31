@@ -8127,6 +8127,269 @@ html[data-theme="light"] .directive {
   font: 400 11.5px Georgia, serif;
 }
 
+/* ---------------- DISPATCH ----------------
+   A log that is used like a chat. Rows rather than bubbles: this channel
+   may end up being read as a record, and a record reads better in a column
+   with the author named than in two ragged edges. What is yours is tinted
+   rather than moved. */
+.dis-thread {
+  margin-top: 14px;
+  max-height: 54vh;
+  overflow-y: auto;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dis-daymark {
+  color: var(--faint);
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin: 12px 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dis-daymark::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--panel-line) 0%, transparent 92%);
+}
+
+.dis-msg {
+  border: 1px solid var(--panel-line);
+  border-left: 3px solid var(--panel-line-bright);
+  border-radius: var(--r-md);
+  background: var(--panel);
+  padding: 11px 13px;
+}
+
+.dis-msg.is-mine {
+  border-left-color: var(--gold);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--gold) 5%, transparent) 0%, transparent 30%),
+    var(--panel);
+}
+
+.dis-msg-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.dis-msg-head b {
+  font: 600 11px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.06em;
+}
+
+.dis-msg-head small {
+  color: var(--faint);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-msg p {
+  margin: 7px 0 0;
+  color: var(--paper);
+  font: 400 13px / 1.65 Georgia, serif;
+  white-space: pre-wrap;
+}
+
+.dis-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.dis-files button {
+  border: 1px solid var(--panel-line);
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--r-sm);
+  padding: 5px 9px;
+  cursor: pointer;
+  font: 400 10.5px Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.dis-files button:hover {
+  border-color: var(--gold-soft);
+  color: var(--gold);
+}
+
+/* the receipt line is the reason this is not a chat app */
+.dis-msg-foot {
+  color: var(--faint);
+  font-size: 9.5px;
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+}
+
+.dis-msg-foot.is-waiting {
+  color: var(--amber);
+}
+
+.dis-msg-tools {
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.dis-msg:hover .dis-msg-tools,
+.dis-msg:focus-within .dis-msg-tools {
+  opacity: 1;
+}
+
+.dis-msg-tools button {
+  border: 0;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  font: 600 8.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0;
+}
+
+.dis-msg-tools button:hover {
+  color: var(--gold);
+}
+
+.dis-form {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--panel-line);
+}
+
+.dis-form textarea {
+  width: 100%;
+  border: 1px solid var(--panel-line);
+  background: var(--panel-solid);
+  color: var(--paper);
+  border-radius: var(--r-md);
+  padding: 11px 13px;
+  font: 400 13px Georgia, serif;
+  resize: vertical;
+}
+
+.dis-form textarea:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--panel-line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 14%, transparent);
+}
+
+.dis-form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.dis-attach input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dis-attach {
+  position: relative;
+}
+
+.dis-attach span {
+  display: inline-block;
+  border: 1px solid var(--panel-line);
+  border-radius: var(--r-pill);
+  padding: 7px 14px;
+  color: var(--muted);
+  cursor: pointer;
+  font: 500 10.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.06em;
+}
+
+.dis-attach:hover span {
+  border-color: var(--gold-soft);
+  color: var(--gold);
+}
+
+.dis-attach input:focus-visible + span {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.dis-queued {
+  color: var(--amber);
+  font-size: 10px;
+  flex: 1 1 auto;
+}
+
+.dis-person {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--panel-line);
+}
+
+.dis-person i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex: none;
+  align-self: center;
+}
+
+.dis-person b {
+  flex: 1 1 auto;
+  font: 400 13px Georgia, serif;
+}
+
+.dis-person small {
+  color: var(--faint);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--panel-line);
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.dis-stat b {
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+}
+
+@media (hover: none), (pointer: coarse) {
+  /* the promote-to-Hearth control cannot hide behind hover on a tablet */
+  .dis-msg-tools {
+    opacity: 1;
+  }
+  .dis-msg-tools button,
+  .dis-files button,
+  .dis-attach span {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .dis-thread {
+    max-height: none;
+  }
+}
+
 /* ---------------- THE SPAN ----------------
    The band is an instrument, so it is built like one: a lit stage for the
    window under examination, a caption that says what is on it, and a dim
