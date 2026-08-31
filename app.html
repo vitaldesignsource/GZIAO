@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=99" />
+    <link rel="stylesheet" href="command.css?v=100" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -8206,7 +8206,13 @@
           });
           $("crumb-name").textContent = module.name;
           const main = document.querySelector(".main");
-          if (main) main.dataset.tone = TONE_BY_VIEW[id] || "orient";
+          if (main) {
+            main.dataset.tone = TONE_BY_VIEW[id] || "orient";
+            /* the area tone is shared by four modules; a module that wants a
+               wash of its own needs to be nameable at the same level, so the
+               gradient can span the whole column rather than one panel */
+            main.dataset.module = id;
+          }
           document.querySelectorAll("#tabbar button[data-tab]").forEach((button) => {
             button.classList.toggle("is-on", button.dataset.tab === id);
           });

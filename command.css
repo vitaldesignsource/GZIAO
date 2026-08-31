@@ -5235,6 +5235,21 @@ small.ritual-note {
     var(--shell-bg);
 }
 
+/* Hearth is the only module holding a live matter, and it gets a wash of
+   its own over the PROTECT tone. It lives on the column rather than on the
+   header panel: on .mp-head it was inset by the content padding and capped
+   by the content's max-width, so it stopped short of both edges and read as
+   a stripe laid on the page instead of light falling across it. */
+.main[data-module="hearth"] {
+  background:
+    radial-gradient(760px circle at 6% -8%,
+      color-mix(in srgb, var(--amber) 17%, transparent), transparent 62%),
+    radial-gradient(680px circle at 88% -6%,
+      color-mix(in srgb, var(--violet) 9%, transparent), transparent 60%),
+    linear-gradient(168deg, #d0ad6d0c 0%, transparent 34%),
+    var(--shell-bg);
+}
+
 /* ---- the brand mark ---- */
 .brand-img {
   height: 46px;
@@ -9085,16 +9100,6 @@ html[data-theme="light"] .he-span-over {
   margin-bottom: 4px;
 }
 
-/* the wash is the header's own background rather than a negative-z child,
-   so no ancestor's background can paint over it */
-#view-hearth .mp-head {
-  background-image:
-    radial-gradient(58% 150% at 4% -20%,
-      color-mix(in srgb, var(--amber) 14%, transparent) 0%, transparent 68%),
-    radial-gradient(42% 130% at 92% -10%,
-      color-mix(in srgb, var(--violet) 7%, transparent) 0%, transparent 70%);
-  background-repeat: no-repeat;
-}
 
 /* the rule under the header burns down from the accent rather than
    sitting flat, so the eye is pulled left to right into the tabs */
