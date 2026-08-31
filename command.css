@@ -8248,6 +8248,103 @@ html[data-theme="light"] .directive {
   }
 }
 
+/* the marker slides between columns rather than teleporting; x and width
+   are animatable properties on an SVG rect in every browser this runs in */
+#he-span-marker {
+  transition: x 0.16s cubic-bezier(.22,.7,.28,1),
+              width 0.16s cubic-bezier(.22,.7,.28,1),
+              fill-opacity 0.16s ease;
+}
+
+/* the side panels build their rows the way the record builds its entries */
+#he-matters > *,
+#he-exhibits > *,
+#he-tasks > *,
+#he-derived > *,
+.he-next > li,
+#he-tier-bars > *,
+#he-thread-bars > * {
+  animation: he-arrive 0.3s cubic-bezier(.22,.7,.28,1) backwards;
+}
+
+#he-matters > *:nth-child(1),
+#he-exhibits > *:nth-child(1),
+#he-tasks > *:nth-child(1),
+.he-next > li:nth-child(1),
+#he-tier-bars > *:nth-child(1) { animation-delay: 0ms; }
+#he-matters > *:nth-child(2),
+#he-exhibits > *:nth-child(2),
+#he-tasks > *:nth-child(2),
+.he-next > li:nth-child(2),
+#he-tier-bars > *:nth-child(2) { animation-delay: 34ms; }
+#he-matters > *:nth-child(3),
+#he-exhibits > *:nth-child(3),
+#he-tasks > *:nth-child(3),
+.he-next > li:nth-child(3),
+#he-tier-bars > *:nth-child(3) { animation-delay: 68ms; }
+#he-matters > *:nth-child(n+4),
+#he-exhibits > *:nth-child(n+4),
+#he-tasks > *:nth-child(n+4),
+#he-tier-bars > *:nth-child(n+4) { animation-delay: 102ms; }
+
+/* the tier edge catches the light as the pointer crosses it */
+.he-entry::before {
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.he-entry:hover::before {
+  filter: brightness(1.35);
+}
+
+/* the basis pill and the claim status lift with their card */
+.he-basis,
+.he-claim-status {
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.he-entry:hover .he-basis {
+  background: color-mix(in srgb, var(--tier-colour, transparent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--tier-colour, var(--panel-line)) 62%, transparent);
+}
+
+.he-claim:hover .he-claim-status {
+  background: color-mix(in srgb, var(--claim-colour, transparent) 12%, transparent);
+}
+
+/* the chevron nudges before it commits */
+.he-entry-head:hover .he-entry-chev {
+  transform: rotate(45deg) translate(1px, 1px);
+}
+
+.he-entry.is-open .he-entry-head:hover .he-entry-chev {
+  transform: rotate(225deg) translate(1px, 1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #he-span-marker,
+  .he-entry::before,
+  .he-basis,
+  .he-claim-status,
+  .he-entry-chev {
+    transition: none;
+  }
+  #he-matters > *,
+  #he-exhibits > *,
+  #he-tasks > *,
+  #he-derived > *,
+  .he-next > li,
+  #he-tier-bars > *,
+  #he-thread-bars > * {
+    animation: none;
+  }
+  .he-entry-head:hover .he-entry-chev {
+    transform: rotate(45deg);
+  }
+  .he-entry.is-open .he-entry-head:hover .he-entry-chev {
+    transform: rotate(225deg);
+  }
+}
+
 /* integrity: three states, and only one of them is reassuring */
 .he-entry-integ {
   margin-top: 14px;

@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=101" />
+    <link rel="stylesheet" href="command.css?v=102" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -11687,7 +11687,7 @@
 
             head.addEventListener("click", () => {
               const nowOpen = body.hidden;
-              body.hidden = !nowOpen;
+              heReveal(body, nowOpen);
               item.classList.toggle("is-open", nowOpen);
               head.setAttribute("aria-expanded", nowOpen ? "true" : "false");
               if (nowOpen) {
@@ -12511,6 +12511,56 @@
           return { state: now === stamp.hash ? "ok" : "changed", at: stamp.at, hash: stamp.hash };
         }
 
+        const heReducedMotion = () => {
+          try { return matchMedia("(prefers-reduced-motion: reduce)").matches; }
+          catch (e) { return false; }
+        };
+
+        /* display:none cannot be transitioned, so the height is animated
+           against the panel's own measured content rather than a guessed
+           max-height that would clip a long entry. `hidden` stays the source
+           of truth, so assistive technology still sees a closed panel as
+           closed. */
+        function heReveal(panel, show) {
+          if (heReducedMotion() || !panel.animate) { panel.hidden = !show; return; }
+          const EASE = "cubic-bezier(.22,.7,.28,1)";
+          /* cleanup runs on cancel as well as on finish. An animation that is
+             interrupted — the entry re-rendered under it, the tab backgrounded
+             and the timeline frozen — would otherwise leave the panel pinned
+             at zero height with overflow hidden, which is an open entry
+             showing nothing. */
+          let running = null, settled = false;
+          const settle = () => {
+            if (settled) return;
+            settled = true;
+            /* release the animation as well as the styles: a frozen or
+               interrupted animation goes on pinning height to its first
+               keyframe, which would leave an opened panel at zero height with
+               nothing else visibly wrong. Cancelling hands the element back
+               its natural size. */
+            if (running) { try { running.cancel(); } catch (e) { /* already gone */ } }
+            panel.style.overflow = "";
+            panel.hidden = !show;
+          };
+          if (show) panel.hidden = false;
+          const height = panel.scrollHeight;
+          panel.style.overflow = "hidden";
+          const frames = show
+            ? [{ height: "0px", opacity: 0 }, { height: height + "px", opacity: 1 }]
+            : [{ height: height + "px", opacity: 1 }, { height: "0px", opacity: 0 }];
+          const duration = show ? 300 : 230;
+          const run = panel.animate(frames, { duration, easing: EASE });
+          running = run;
+          run.addEventListener("finish", settle);
+          /* and a net under both. A backgrounded tab freezes the document
+             timeline, so the animation never advances and neither event ever
+             fires — observed directly: currentTime stuck at 0 while the panel
+             sat pinned at zero height. The timer does not depend on the
+             timeline, so the panel always ends up in the state that was
+             asked for, animated or not. */
+          setTimeout(settle, duration + 80);
+        }
+
         /* which entries the operator has opened, kept across re-renders so a
            filter change or a new entry does not close what they were reading */
         const hearthOpenEntries = new Set();
@@ -13052,8 +13102,17 @@
             : (whole ? "The whole record"
                      : spanShortDate(win.from) + " – " + spanShortDate(win.to - dayMs));
 
+          const changing = out.dataset.head !== heading;
+          out.dataset.head = heading;
           out.innerHTML = "";
           out.classList.toggle("is-locked", Boolean(locked));
+          /* only when the period actually changes: re-fading on every
+             pointermove across one column would strobe */
+          if (changing && out.animate && !heReducedMotion()) {
+            out.animate([{ opacity: 0.25, transform: "translateY(2px)" },
+                         { opacity: 1, transform: "none" }],
+                        { duration: 180, easing: "ease-out" });
+          }
           const strong = document.createElement("b");
           strong.textContent = heading;
           out.append(strong);
@@ -13198,7 +13257,7 @@
           const body = document.getElementById("he-open-" + id);
           const head = target.querySelector(".he-entry-head");
           if (body && body.hidden) {
-            body.hidden = false;
+            heReveal(body, true);
             target.classList.add("is-open");
             if (head) head.setAttribute("aria-expanded", "true");
             hearthOpenEntries.add(id);
@@ -13384,7 +13443,16 @@
         function heSetTab(id) {
           for (const pane of ["record", "claims", "desk", "enter", "setup"]) {
             const el = $("he-pane-" + pane);
-            if (el) el.hidden = pane !== id;
+            if (!el) continue;
+            const wasHidden = el.hidden;
+            el.hidden = pane !== id;
+            /* the incoming pane rises into place; four instant swaps in a row
+               read as a flicker between unrelated screens */
+            if (!el.hidden && wasHidden && el.animate && !heReducedMotion()) {
+              el.animate([{ opacity: 0, transform: "translateY(7px)" },
+                          { opacity: 1, transform: "none" }],
+                         { duration: 260, easing: "cubic-bezier(.22,.7,.28,1)" });
+            }
           }
           document.querySelectorAll("#he-tabs button").forEach((b) =>
             b.classList.toggle("is-on", b.dataset.hetab === id));
