@@ -7428,6 +7428,14 @@ html[data-theme="light"] .directive {
   gap: 8px;
 }
 
+.he-daymark,
+.he-entry {
+  /* jump targets must land BELOW the sticky chrome: 72px app bar plus the
+     stuck filter row. Without this, "Jump to June 2026" put the June
+     heading exactly underneath the bars. */
+  scroll-margin-top: 150px;
+}
+
 .he-daymark {
   color: var(--faint);
   font-size: 8.5px;
@@ -7935,10 +7943,15 @@ html[data-theme="light"] .directive {
   border-bottom: 2px solid var(--amber);
 }
 
-/* the filter row stays put while sixty entries scroll */
-.he-filters {
+/* The filter row stays put while sixty entries scroll. Scoped to the
+   chronology's #he-filters — the bulk importer reuses the class for its
+   button row, and a sticky "Record them" floating free of the report it
+   commits is exactly wrong. top matches the app bar: .top is sticky,
+   72px, z-index 15, so top:0 here parked this row invisibly BENEATH it —
+   shipped that way and caught by review, not by eye. */
+#he-filters {
   position: sticky;
-  top: 0;
+  top: 72px;
   z-index: 6;
   background: var(--panel-solid);
   padding: 10px 2px;
@@ -8013,8 +8026,11 @@ html[data-theme="light"] .directive {
   .he-strip-wrap {
     overflow-x: auto;
   }
-  .he-filters {
-    top: 0;
+  /* six 44px controls wrap to four rows on a phone; pinning ~250px of
+     chrome over a ~750px viewport left two entries visible. Scrolling up
+     beats losing a third of the screen. */
+  #he-filters {
+    position: static;
   }
   .he-entry-top b {
     flex-basis: 100%;

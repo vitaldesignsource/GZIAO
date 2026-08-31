@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=88" />
+    <link rel="stylesheet" href="command.css?v=89" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1840,9 +1840,13 @@
           <div id="he-pane-record">
             <section class="chrono-row" style="grid-template-columns: 1fr 340px">
             <div class="panel">
-              <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
+              <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px">
                 <span>THE CHRONOLOGY</span>
-                <span id="he-count" style="color: var(--faint)">0 entries</span>
+                <span style="display: flex; gap: 8px; align-items: baseline">
+                  <button class="chrono-open" id="he-copy-here" type="button">COPY</button>
+                  <button class="chrono-open" id="he-print-here" type="button">PRINT</button>
+                  <span id="he-count" style="color: var(--faint)">0 entries</span>
+                </span>
               </span>
               <h2>What is on the record</h2>
               <div class="he-strip-wrap" id="he-strip-wrap" hidden>
@@ -10544,26 +10548,41 @@
         const childName = () => hearthProfile.child || "the child";
         const otherParentName = () => hearthProfile.otherParent || "the other parent";
 
-        async function saveHearthProfile(next) {
-          const row = records.find((r) => r.meta && r.meta.module === "hearth" && r.meta.kind === "profile");
-          const profile = Object.assign({}, hearthProfile, next);
-          if (row) {
-            const meta = Object.assign({}, row.meta, { profile });
-            const { data, error } = await GZ.client.from("records")
-              .update({ meta }).eq("id", row.id).select().single();
-            if (error) return toast("Could not save: " + error.message);
-            const at = records.findIndex((r) => r.id === row.id);
-            if (at > -1) records[at] = data;
-          } else {
-            const ok = await seal("Hearth profile", null, {
-              kind: "record", quiet: true,
-              meta: { module: "hearth", kind: "profile", profile },
-            });
-            if (!ok) return toast("Could not save the profile.");
-          }
-          hearthProfile = profile;
-          renderAll();
-          toast("Saved. These names stay in your database and never reach the repository.");
+        /* Writes queue behind one another. Two overlapping saves used to both
+           take the create branch (two profile rows) or both build from the
+           same stale state (the second silently erasing the first's matter) \u2014
+           the duplicate-matters incident that happened in production. The
+           row is re-found after every await, and the in-memory state is
+           applied before the network call so a queued second write builds on
+           the first. */
+        let hearthProfileQueue = Promise.resolve();
+
+        function saveHearthProfile(next) {
+          const run = hearthProfileQueue.then(async () => {
+            const before = hearthProfile;
+            const profile = Object.assign({}, hearthProfile, next);
+            hearthProfile = profile;
+            const row = records.find((r) => r.meta && r.meta.module === "hearth" && r.meta.kind === "profile");
+            if (row) {
+              const meta = Object.assign({}, row.meta, { profile });
+              const { data, error } = await GZ.client.from("records")
+                .update({ meta }).eq("id", row.id).select().single();
+              if (error) { hearthProfile = before; return toast("Could not save: " + error.message); }
+              const at = records.findIndex((r) => r.id === row.id);
+              if (at > -1) records[at] = data;
+            } else {
+              const ok = await seal("Hearth profile", null, {
+                kind: "record", quiet: true,
+                meta: { module: "hearth", kind: "profile", profile },
+              });
+              if (!ok) { hearthProfile = before; return toast("Could not save the profile."); }
+            }
+            renderAll();
+            toast("Saved.");
+          });
+          /* the chain must survive a failure or every later save is stuck */
+          hearthProfileQueue = run.catch(() => {});
+          return run;
         }
 
         /* §33 is a list of things the drafting has already decided not to do.
@@ -10584,7 +10603,7 @@
             say: "Describes the child as untruthful. The position on record is developmental \u2014 adult interpretation of a young child's language is unreliable without context \u2014 not that he lies." },
           { test: /\b(always|never|every time|refuses to ever)\b/i,
             say: "Categorical. A narrower, dated claim is harder to rebut than an absolute one." },
-          { test: /\b(DCS|CPS|the agency)\b[^.]{0,60}\b(cleared|exonerat|closed|unfounded|found no)/i,
+          { test: /\b(DCS|CPS|the agency)\b[^.\n]{0,60}\b(cleared|exonerat|closed|unfounded|found no)/i,
             say: "Treats the child-safety agency as having reached a finding. Until a written record establishes it, the accurate form is what was reportedly said and what remains to be obtained." },
         ];
 
@@ -10681,11 +10700,16 @@
           const happened = new Date(hearthWhen(record));
           const written = new Date(record.created_at);
           if (isNaN(happened) || isNaN(written)) return null;
-          return Math.max(0, Math.round((written - happened) / dayMs));
+          /* signed on purpose: an entry recorded BEFORE its stated date is an
+             anomaly the reader must see, and clamping it to zero printed
+             "recorded the same day" \u2014 a false claim in the one file whose
+             case rests on labelling contemporaneity accurately */
+          return Math.round((written - happened) / dayMs);
         }
 
         function hearthLagLabel(days) {
           if (days === null) return "";
+          if (days < 0) return "recorded " + Math.abs(days) + "d before the stated date \u2014 check the dates";
           if (days === 0) return "recorded the same day";
           if (days === 1) return "recorded the next day";
           if (days < 7) return "recorded " + days + " days later";
@@ -11607,8 +11631,11 @@
 
             /* the §33 check runs as he writes, on the fields that carry
                characterisation, and says its piece without stopping anything */
-            const cautionFields = ["he-title", "he-body", "he-said", "he-response",
-                                   "he-other", "he-bears"];
+            /* only the fields written in the operator's own voice: the whole
+               point of he-said and he-other is verbatim quotation, and warning
+               the operator about words that are not his taught him to ignore
+               the box */
+            const cautionFields = ["he-title", "he-body", "he-response", "he-bears"];
             const runCautions = () => {
               const text = cautionFields.map((id) => ($(id) ? $(id).value : "")).join("\n");
               const hits = hearthCautions(text);
@@ -11867,6 +11894,8 @@
             exportBtn.dataset.wired = "1";
             exportBtn.addEventListener("click", exportHearthChronology);
             $("hearth-copy").addEventListener("click", copyHearthView);
+            if ($("he-copy-here")) $("he-copy-here").addEventListener("click", copyHearthView);
+            if ($("he-print-here")) $("he-print-here").addEventListener("click", exportHearthChronology);
           }
         }
 
