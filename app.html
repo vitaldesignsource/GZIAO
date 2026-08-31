@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=86" />
+    <link rel="stylesheet" href="command.css?v=88" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1825,49 +1825,120 @@
               <p>A contemporaneous record of one situation. What happened, when it happened, and what stands behind it &mdash; kept separate from what it might mean.</p>
             </div>
             <div class="mp-actions">
-              <button class="ghost-btn" id="hearth-export" type="button">&#10515; Export the chronology</button>
+              <button class="ghost-btn" id="hearth-copy" type="button">&#10697; Copy this view</button>
+              <button class="ghost-btn" id="hearth-export" type="button">&#10515; Print this view</button>
             </div>
           </div>
 
-          <section class="panel" id="hearth-profile-panel">
-            <span class="kicker">WHO THIS FILE CONCERNS</span>
-            <h2 style="font-size: 20px">Names stay here</h2>
-            <p class="panel-sub">This application's source is a public repository. Nothing you type below is ever written into it &mdash; these names live only in your own database and are read back when the page renders. The person with the least say in that is the child, which is why it works this way.</p>
-            <div class="he-row" style="margin-top: 14px">
-              <label>CHILD
-                <input type="text" id="hp-child" placeholder="First name" autocomplete="off" />
-              </label>
-              <label>OTHER PARENT
-                <input type="text" id="hp-other" placeholder="Name" autocomplete="off" />
-              </label>
-              <label>YOU
-                <input type="text" id="hp-self" placeholder="Name" autocomplete="off" />
-              </label>
-              <label>OTHER WITNESS
-                <input type="text" id="hp-witness" placeholder="Name" autocomplete="off" />
-              </label>
-            </div>
-            <button class="ghost-btn" id="hp-save" type="button" style="margin-top: 12px">Save these names</button>
+          <section class="tabbar he-tabbar" id="he-tabs">
+            <button class="is-on" type="button" data-hetab="record"><b>The record</b><span id="he-tab-count">The chronology</span></button>
+            <button type="button" data-hetab="desk"><b>The desk</b><span id="he-desk-count">What is open</span></button>
+            <button type="button" data-hetab="enter"><b>Record an entry</b><span>Write it while it is fresh</span></button>
+            <button type="button" data-hetab="setup"><b>Intake &amp; setup</b><span>Names, matters, bulk load</span></button>
           </section>
 
-          <section class="panel" id="hearth-import-panel">
-            <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
-              <span>BULK INTAKE</span>
-              <button class="chrono-open" id="he-import-toggle" type="button">OPEN</button>
-            </span>
-            <h2 style="font-size: 20px">Load prepared entries</h2>
-            <p class="panel-sub">For a batch worked up outside the form. Paste a JSON array of entries; each is checked and shown to you before anything is written, and any entry missing a date or a basis is refused rather than filed at a strength it has not earned.</p>
-            <div id="he-import-body" hidden style="margin-top: 14px">
-              <textarea id="he-import-text" placeholder='[{"date":"2026-08-18","title":"…","tier":"institutional","thread":"school","source":"Email from …"}]' style="min-height: 150px; font: 400 11px ui-monospace, monospace"></textarea>
-              <div class="he-filters" style="margin-top: 10px">
-                <button class="ghost-btn" id="he-import-check" type="button">Check these</button>
-                <button class="prime-btn" id="he-import-commit" type="button" disabled>Record them</button>
+          <div id="he-pane-record">
+            <section class="chrono-row" style="grid-template-columns: 1fr 340px">
+            <div class="panel">
+              <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
+                <span>THE CHRONOLOGY</span>
+                <span id="he-count" style="color: var(--faint)">0 entries</span>
+              </span>
+              <h2>What is on the record</h2>
+              <div class="he-strip-wrap" id="he-strip-wrap" hidden>
+                <svg id="he-strip" viewBox="0 0 600 46" preserveAspectRatio="none" aria-label="entry density over time"></svg>
+                <div class="he-strip-axis"><span id="he-strip-from"></span><span id="he-strip-to"></span></div>
               </div>
-              <div id="he-import-report" style="margin-top: 12px"></div>
+              <div class="he-filters" id="he-filters">
+                <input type="search" id="he-q" placeholder="Search the record&hellip;" autocomplete="off" />
+                <select id="he-f-thread"></select>
+                <select id="he-f-tier"></select>
+                <select id="he-f-order">
+                  <option value="asc">Oldest first</option>
+                  <option value="desc">Newest first</option>
+                </select>
+                <select id="he-f-month" aria-label="Jump to month"></select>
+                <button class="ghost-btn" id="he-f-clear" type="button">Clear</button>
+              </div>
+              <ul class="he-list" id="he-list"></ul>
+              <div class="empty-center" id="he-empty">
+                <div class="glyph" style="background: #d0ad6d15; border-color: #d0ad6d55"></div>
+                <b>The record is empty</b>
+                <span>Enter the first event above. Entries can be back-dated, and the file will say when each one was written.</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <span class="kicker">THE MATTERS AT ISSUE</span>
+              <h2 style="font-size: 20px">What the file keeps being asked</h2>
+              <p class="panel-sub">Name a matter and the words that find it. The gathering is mechanical &mdash; every entry whose text contains a keyword &mdash; and the counts say only how much the file holds, never what it proves.</p>
+              <div id="he-matters" style="margin-top: 12px"></div>
+              <form id="he-matter-form" class="he-matter-form">
+                <input type="text" id="he-matter-label" placeholder="Name the matter&hellip;" autocomplete="off" />
+                <input type="text" id="he-matter-keys" placeholder="Keywords, separated by commas" autocomplete="off" />
+                <button class="ghost-btn" type="submit">Add</button>
+              </form>
+            </div>
+
+            <div class="panel">
+              <span class="kicker">EXHIBIT PACKETS</span>
+              <h2 style="font-size: 20px">Where each entry will travel</h2>
+              <p class="panel-sub">Entries pinned to a lettered packet, counted. One tap shows a packet&rsquo;s contents; Print then produces that packet&rsquo;s brief.</p>
+              <div id="he-exhibits" style="margin-top: 12px"></div>
+            </div>
+
+            <div class="panel">
+              <span class="kicker">WHAT THE FILE HOLDS</span>
+              <h2 style="font-size: 20px">Its own weight</h2>
+              <p class="panel-sub" id="he-weight-sub">Nothing recorded yet.</p>
+              <div id="he-tier-bars" style="margin-top: 14px"></div>
+              <span class="kicker" style="display: block; margin-top: 22px">BY THREAD</span>
+              <div id="he-thread-bars" style="margin-top: 10px"></div>
+              <span class="kicker" style="display: block; margin-top: 22px">CONTEMPORANEITY</span>
+              <p class="panel-note" id="he-lag">&mdash;</p>
+              <span class="kicker" style="display: block; margin-top: 22px">PRIMARY SOURCES</span>
+              <p class="panel-note" id="he-gap">&mdash;</p>
+              <div class="privacy-row" style="margin-top: 18px"><span><i></i>Private to you &middot; never shared</span></div>
             </div>
           </section>
+          </div>
 
-          <section class="panel" id="hearth-capture">
+          <div id="he-pane-desk" hidden>
+            <section class="chrono-row" style="grid-template-columns: 1fr 340px">
+              <div class="panel">
+                <span class="kicker is-signal">NEXT THREE</span>
+                <h2>What the dates put first</h2>
+                <p class="panel-sub">The three open items nearest their dates &mdash; ordered by deadline, then age. The order is arithmetic; the importance is yours to overrule by giving something a date.</p>
+                <ol class="he-next" id="he-next"></ol>
+
+                <span class="kicker" style="display: block; margin-top: 26px">EVERYTHING OPEN</span>
+                <div id="he-tasks" style="margin-top: 10px"></div>
+                <details id="he-done-wrap" style="margin-top: 14px">
+                  <summary class="panel-note" style="cursor: pointer">Closed items</summary>
+                  <div id="he-tasks-done" style="margin-top: 8px"></div>
+                </details>
+              </div>
+
+              <div class="panel">
+                <span class="kicker">RAISE AN ITEM</span>
+                <h2 style="font-size: 20px">Put it on the desk</h2>
+                <form id="he-task-form" class="he-matter-form" style="flex-direction: column; align-items: stretch">
+                  <select id="he-task-type"></select>
+                  <input type="text" id="he-task-title" placeholder="What is open, in one line" autocomplete="off" />
+                  <input type="date" id="he-task-due" aria-label="Due date, optional" />
+                  <input type="text" id="he-task-cite" placeholder="Entry it concerns (CH-0000, optional)" autocomplete="off" />
+                  <button class="prime-btn" type="submit">Raise it</button>
+                </form>
+
+                <span class="kicker" style="display: block; margin-top: 26px">THE RECORD ITSELF ASKS</span>
+                <p class="panel-sub">Entries whose own fields say a source is still wanted. Computed from the record, so it stays true; it clears when the entry&rsquo;s source does.</p>
+                <div id="he-derived" style="margin-top: 10px"></div>
+              </div>
+            </section>
+          </div>
+
+          <div id="he-pane-enter" hidden>
+            <section class="panel" id="hearth-capture">
             <span class="kicker is-signal">RECORD WHAT HAPPENED</span>
             <h2>Enter it now, while it is fresh</h2>
             <p class="panel-sub">A note written the same day carries weight a reconstruction cannot. Every entry records both when the event happened and when you wrote it down, and shows the gap.</p>
@@ -1983,62 +2054,47 @@
               <p class="panel-note" id="he-status" hidden></p>
             </form>
           </section>
+          </div>
 
-          <section class="chrono-row" style="grid-template-columns: 1fr 340px">
-            <div class="panel">
-              <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
-                <span>THE CHRONOLOGY</span>
-                <span id="he-count" style="color: var(--faint)">0 entries</span>
-              </span>
-              <h2>What is on the record</h2>
-              <div class="he-strip-wrap" id="he-strip-wrap" hidden>
-                <svg id="he-strip" viewBox="0 0 600 46" preserveAspectRatio="none" aria-label="entry density over time"></svg>
-                <div class="he-strip-axis"><span id="he-strip-from"></span><span id="he-strip-to"></span></div>
-              </div>
-              <div class="he-filters" id="he-filters">
-                <input type="search" id="he-q" placeholder="Search the record&hellip;" autocomplete="off" />
-                <select id="he-f-thread"></select>
-                <select id="he-f-tier"></select>
-                <select id="he-f-order">
-                  <option value="asc">Oldest first</option>
-                  <option value="desc">Newest first</option>
-                </select>
-                <button class="ghost-btn" id="he-f-clear" type="button">Clear</button>
-              </div>
-              <ul class="he-list" id="he-list"></ul>
-              <div class="empty-center" id="he-empty">
-                <div class="glyph" style="background: #d0ad6d15; border-color: #d0ad6d55"></div>
-                <b>The record is empty</b>
-                <span>Enter the first event above. Entries can be back-dated, and the file will say when each one was written.</span>
-              </div>
+          <div id="he-pane-setup" hidden>
+            <section class="panel" id="hearth-profile-panel">
+            <span class="kicker">WHO THIS FILE CONCERNS</span>
+            <h2 style="font-size: 20px">Names stay here</h2>
+            <p class="panel-sub">This application's source is a public repository. Nothing you type below is ever written into it &mdash; these names live only in your own database and are read back when the page renders. The person with the least say in that is the child, which is why it works this way.</p>
+            <div class="he-row" style="margin-top: 14px">
+              <label>CHILD
+                <input type="text" id="hp-child" placeholder="First name" autocomplete="off" />
+              </label>
+              <label>OTHER PARENT
+                <input type="text" id="hp-other" placeholder="Name" autocomplete="off" />
+              </label>
+              <label>YOU
+                <input type="text" id="hp-self" placeholder="Name" autocomplete="off" />
+              </label>
+              <label>OTHER WITNESS
+                <input type="text" id="hp-witness" placeholder="Name" autocomplete="off" />
+              </label>
             </div>
+            <button class="ghost-btn" id="hp-save" type="button" style="margin-top: 12px">Save these names</button>
+          </section>
 
-            <div class="panel">
-              <span class="kicker">THE MATTERS AT ISSUE</span>
-              <h2 style="font-size: 20px">What the file keeps being asked</h2>
-              <p class="panel-sub">Name a matter and the words that find it. The gathering is mechanical &mdash; every entry whose text contains a keyword &mdash; and the counts say only how much the file holds, never what it proves.</p>
-              <div id="he-matters" style="margin-top: 12px"></div>
-              <form id="he-matter-form" class="he-matter-form">
-                <input type="text" id="he-matter-label" placeholder="Name the matter&hellip;" autocomplete="off" />
-                <input type="text" id="he-matter-keys" placeholder="Keywords, separated by commas" autocomplete="off" />
-                <button class="ghost-btn" type="submit">Add</button>
-              </form>
-            </div>
-
-            <div class="panel">
-              <span class="kicker">WHAT THE FILE HOLDS</span>
-              <h2 style="font-size: 20px">Its own weight</h2>
-              <p class="panel-sub" id="he-weight-sub">Nothing recorded yet.</p>
-              <div id="he-tier-bars" style="margin-top: 14px"></div>
-              <span class="kicker" style="display: block; margin-top: 22px">BY THREAD</span>
-              <div id="he-thread-bars" style="margin-top: 10px"></div>
-              <span class="kicker" style="display: block; margin-top: 22px">CONTEMPORANEITY</span>
-              <p class="panel-note" id="he-lag">&mdash;</p>
-              <span class="kicker" style="display: block; margin-top: 22px">PRIMARY SOURCES</span>
-              <p class="panel-note" id="he-gap">&mdash;</p>
-              <div class="privacy-row" style="margin-top: 18px"><span><i></i>Private to you &middot; never shared</span></div>
+            <section class="panel" id="hearth-import-panel">
+            <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline">
+              <span>BULK INTAKE</span>
+              <button class="chrono-open" id="he-import-toggle" type="button">OPEN</button>
+            </span>
+            <h2 style="font-size: 20px">Load prepared entries</h2>
+            <p class="panel-sub">For a batch worked up outside the form. Paste a JSON array of entries; each is checked and shown to you before anything is written, and any entry missing a date or a basis is refused rather than filed at a strength it has not earned.</p>
+            <div id="he-import-body" hidden style="margin-top: 14px">
+              <textarea id="he-import-text" placeholder='[{"date":"2026-08-18","title":"…","tier":"institutional","thread":"school","source":"Email from …"}]' style="min-height: 150px; font: 400 11px ui-monospace, monospace"></textarea>
+              <div class="he-filters" style="margin-top: 10px">
+                <button class="ghost-btn" id="he-import-check" type="button">Check these</button>
+                <button class="prime-btn" id="he-import-commit" type="button" disabled>Record them</button>
+              </div>
+              <div id="he-import-report" style="margin-top: 12px"></div>
             </div>
           </section>
+          </div>
         </div>
 
         <!-- ================= CONSTELLATIONS ================= -->
@@ -7762,7 +7818,7 @@
                     renderIntegrity, renderUnitInbox, renderIntakeBanner],
           timeline: [renderTimelineView],
           sentinel: [renderSentinel],
-          hearth: [wireHearth, renderHearth],
+          hearth: [wireHearth, renderHearth, renderHearthDesk],
           constellations: [renderConstellations, renderUnit],
           thework: [renderTempleView],
           aion: [renderAnchorControls, renderChartMemory],
@@ -10440,7 +10496,7 @@
           { id: "communication", label: "Co-parent communication" },
           { id: "allegation", label: "Allegation & response" },
           { id: "phone", label: "Telephone access" },
-          { id: "agency", label: "DCS / OCWI" },
+          { id: "agency", label: "Child-safety agency" },
           { id: "process", label: "Court & process" },
           { id: "other", label: "Other" },
         ];
@@ -10462,7 +10518,7 @@
           { id: "K", label: "K — telephone-access evidence" },
           { id: "L", label: "L — product photographs & label" },
           { id: "M", label: "M — Meg declaration" },
-          { id: "N", label: "N — DCS / OCWI records (reserved)" },
+          { id: "N", label: "N — child-safety agency records (reserved)" },
           { id: "O", label: "O — complete original recordings (reserved)" },
         ];
 
@@ -10528,8 +10584,8 @@
             say: "Describes the child as untruthful. The position on record is developmental \u2014 adult interpretation of a young child's language is unreliable without context \u2014 not that he lies." },
           { test: /\b(always|never|every time|refuses to ever)\b/i,
             say: "Categorical. A narrower, dated claim is harder to rebut than an absolute one." },
-          { test: /\bDCS\b[^.]{0,60}\b(cleared|exonerat|closed|unfounded|found no)/i,
-            say: "Treats DCS/OCWI as having reached a finding. Until a written record establishes it, the accurate form is what was reportedly said and what remains to be obtained." },
+          { test: /\b(DCS|CPS|the agency)\b[^.]{0,60}\b(cleared|exonerat|closed|unfounded|found no)/i,
+            say: "Treats the child-safety agency as having reached a finding. Until a written record establishes it, the accurate form is what was reportedly said and what remains to be obtained." },
         ];
 
         function hearthCautions(text) {
@@ -10555,7 +10611,60 @@
 
         /* the profile row lives in the same module but is not an event */
         function hearthEntries() {
-          return hearthAll().filter((r) => r.meta.kind !== "profile");
+          return hearthAll().filter((r) => r.meta.kind === "entry");
+        }
+
+        /* The desk: the standing questions a live matter carries — deadlines,
+           communications awaiting an answer, evidence to verify, records still
+           missing, open decisions, and inconsistencies the operator has
+           marked. Each is a row the operator writes and closes; the tool only
+           orders them by date and keeps them beside the record they cite. */
+        const HEARTH_TASK_TYPES = [
+          { id: "deadline", label: "Deadline", colour: "var(--danger)" },
+          { id: "awaiting", label: "Awaiting an answer", colour: "var(--amber)" },
+          { id: "verify", label: "Evidence to verify", colour: "var(--gold)" },
+          { id: "missing", label: "Record still missing", colour: "var(--blue)" },
+          { id: "decision", label: "Open decision", colour: "var(--violet)" },
+          { id: "inconsistency", label: "Marked inconsistency", colour: "var(--rose)" },
+        ];
+        const hearthTaskType = (id) => HEARTH_TASK_TYPES.find((t) => t.id === id) || null;
+
+        function hearthTasks() {
+          return hearthAll().filter((r) => r.meta.kind === "task");
+        }
+
+        function hearthOpenTasks() {
+          return hearthTasks().filter((r) => !(r.meta && r.meta.done));
+        }
+
+        /* soonest dated first, overdue at the very top, undated by age —
+           this is an ordering, not a judgement of importance */
+        function hearthTaskRank(a, b) {
+          const da = a.meta.due || null, db = b.meta.due || null;
+          if (da && db) return da.localeCompare(db);
+          if (da) return -1;
+          if (db) return 1;
+          return String(a.created_at).localeCompare(String(b.created_at));
+        }
+
+        function hearthDueLabel(due) {
+          if (!due) return "";
+          const days = daysUntil(due);
+          if (days === null) return due;
+          if (days < 0) return due + " \u00b7 " + Math.abs(days) + "d overdue";
+          if (days === 0) return due + " \u00b7 today";
+          if (days === 1) return due + " \u00b7 tomorrow";
+          return due + " \u00b7 in " + days + "d";
+        }
+
+        /* what the record itself asks for: entries whose own fields say a
+           source is still wanted — computed, never stored, so it stays true */
+        function hearthDerivedAsks() {
+          return hearthEntries().filter((r) => {
+            const m = r.meta || {};
+            return m.followup || m.documented === "requested" ||
+              (r.body || "").includes("[Date banner not visible");
+          });
         }
 
         /* The instant the event happened, as stored. occurred_at is the event;
@@ -10585,7 +10694,7 @@
         }
 
         let hearthFiles = [];
-        const hearthFilter = { q: "", thread: "", tier: "", order: "asc", matter: "" };
+        const hearthFilter = { q: "", thread: "", tier: "", order: "asc", matter: "", exhibit: "" };
 
         function hearthPopulateSelects() {
           const thread = $("he-thread");
@@ -10671,6 +10780,7 @@
             const matter = hearthMatters().find((m) => m.id === hearthFilter.matter);
             if (matter && !hearthMatterHits(record, matter)) return false;
           }
+          if (hearthFilter.exhibit && meta.exhibit !== hearthFilter.exhibit) return false;
           const q = hearthFilter.q.trim().toLowerCase();
           if (!q) return true;
           return hearthHaystack(record).includes(q);
@@ -10688,7 +10798,14 @@
 
         function hearthMatterHits(record, matter) {
           const hay = hearthHaystack(record);
-          return (matter.keywords || []).some((k) => k && hay.includes(k.toLowerCase()));
+          return (matter.keywords || []).some((k) => {
+            if (!k) return false;
+            /* whole words, not substrings: "call" must not gather every entry
+               containing "physically" or "locally". A keyword that is itself a
+               phrase still matches as a phrase. */
+            const escaped = k.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            return new RegExp("\\b" + escaped + "\\b", "i").test(hay);
+          });
         }
 
         function hearthMatterEntries(matter) {
@@ -10702,11 +10819,193 @@
 
         /* Numbered by the order they were entered, never renumbered, so a
            number quoted in a filing keeps pointing at the same entry. */
+        /* The numbering sorts once and is cached until the record changes —
+           calling this for every row of a long render was quadratic. The
+           cache keys on entry count, which changes on every add or destroy;
+           an entry's number never changes while it exists, because numbers
+           that renumber are numbers nobody can quote. */
+        let citeCache = { size: -1, map: null };
         function citeOf(record) {
-          const entries = hearthAll()
-            .filter((r) => r.meta.kind !== "profile")
-            .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
-          return entries.findIndex((r) => r.id === record.id) + 1;
+          const entries = hearthEntries();
+          if (citeCache.size !== entries.length) {
+            const ordered = entries.slice()
+              .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)) ||
+                              String(a.id).localeCompare(String(b.id)));
+            citeCache = { size: entries.length, map: new Map(ordered.map((r, i) => [r.id, i + 1])) };
+          }
+          return citeCache.map.get(record.id) || 0;
+        }
+
+        function hearthTaskRow(record, closed) {
+          const meta = record.meta || {};
+          const type = hearthTaskType(meta.taskType);
+          const row = document.createElement("div");
+          row.className = "he-task" + (closed ? " is-closed" : "");
+          if (type) row.style.setProperty("--task-colour", type.colour);
+
+          const toggle = document.createElement("button");
+          toggle.type = "button";
+          toggle.className = "he-task-toggle";
+          toggle.setAttribute("aria-label", closed ? "Reopen" : "Close");
+          toggle.textContent = closed ? "\u21ba" : "\u2713";
+          toggle.addEventListener("click", async () => {
+            const next = { ...meta, done: !closed, doneAt: closed ? null : new Date().toISOString() };
+            const { data, error } = await GZ.client.from("records")
+              .update({ meta: next }).eq("id", record.id).select().single();
+            if (error) return toast("Could not update: " + error.message);
+            const at = records.findIndex((r) => r.id === record.id);
+            if (at > -1) records[at] = data;
+            renderAll();
+          });
+          row.append(toggle);
+
+          const bodyCol = document.createElement("div");
+          bodyCol.className = "he-task-body";
+          const top = document.createElement("div");
+          const badge = document.createElement("i");
+          badge.className = "he-basis";
+          badge.style.setProperty("--tier-colour", type ? type.colour : "var(--faint)");
+          badge.textContent = type ? type.label : "item";
+          const title = document.createElement("b");
+          title.textContent = record.title;
+          top.append(badge, title);
+          bodyCol.append(top);
+          const foot = document.createElement("small");
+          const bits = [];
+          if (meta.due) bits.push(hearthDueLabel(meta.due));
+          if (meta.cite) bits.push(meta.cite);
+          bits.push("raised " + localDay(record.created_at));
+          if (closed && meta.doneAt) bits.push("closed " + localDay(meta.doneAt));
+          foot.textContent = bits.join("  \u00b7  ");
+          bodyCol.append(foot);
+          row.append(bodyCol);
+
+          if (meta.cite) {
+            const go = document.createElement("button");
+            go.type = "button";
+            go.className = "he-trace-jump";
+            go.textContent = "\u21e2";
+            go.setAttribute("aria-label", "Go to " + meta.cite);
+            go.addEventListener("click", () => {
+              const num = parseInt(String(meta.cite).replace(/\D/g, ""), 10);
+              const target = hearthEntries().find((r) => citeOf(r) === num);
+              if (!target) return toast("No entry answers to " + meta.cite + ".");
+              heSetTab("record");
+              setTimeout(() => hearthJump(target.id), 250);
+            });
+            row.append(go);
+          }
+
+          const kill = document.createElement("button");
+          kill.type = "button";
+          kill.className = "he-matter-kill";
+          kill.textContent = "\u00d7";
+          kill.setAttribute("aria-label", "Destroy this item");
+          kill.addEventListener("click", () => destroyRecord(record, "desk item"));
+          row.append(kill);
+          return row;
+        }
+
+        function renderHearthDesk() {
+          const holder = $("he-tasks");
+          if (!holder) return;
+
+          const typeSel = $("he-task-type");
+          if (typeSel && !typeSel.options.length) {
+            for (const t of HEARTH_TASK_TYPES) {
+              const o = document.createElement("option");
+              o.value = t.id; o.textContent = t.label;
+              typeSel.append(o);
+            }
+          }
+
+          const open = hearthOpenTasks().sort(hearthTaskRank);
+          const closed = hearthTasks().filter((r) => r.meta.done)
+            .sort((a, b) => String(b.meta.doneAt || "").localeCompare(String(a.meta.doneAt || "")));
+
+          const next = $("he-next");
+          next.innerHTML = "";
+          if (!open.length) {
+            const li = document.createElement("li");
+            li.className = "he-none";
+            li.textContent = "Nothing is open. The desk is clear.";
+            next.append(li);
+          }
+          for (const record of open.slice(0, 3)) {
+            const li = document.createElement("li");
+            const type = hearthTaskType(record.meta.taskType);
+            if (type) li.style.setProperty("--task-colour", type.colour);
+            const strong = document.createElement("b");
+            strong.textContent = record.title;
+            const small = document.createElement("small");
+            small.textContent = [type ? type.label : "", record.meta.due ? hearthDueLabel(record.meta.due) : ""]
+              .filter(Boolean).join("  \u00b7  ");
+            li.append(strong, small);
+            next.append(li);
+          }
+
+          holder.innerHTML = "";
+          if (!open.length) {
+            const none = document.createElement("p");
+            none.className = "panel-note";
+            none.textContent = "Raise the first item from the panel beside this.";
+            holder.append(none);
+          }
+          for (const record of open) holder.append(hearthTaskRow(record, false));
+
+          const doneHolder = $("he-tasks-done");
+          doneHolder.innerHTML = "";
+          $("he-done-wrap").hidden = closed.length === 0;
+          for (const record of closed.slice(0, 30)) doneHolder.append(hearthTaskRow(record, true));
+
+          /* what the record itself asks */
+          const derived = $("he-derived");
+          derived.innerHTML = "";
+          const asks = hearthDerivedAsks();
+          if (!asks.length) {
+            const none = document.createElement("p");
+            none.className = "panel-note";
+            none.textContent = "Every entry's sources are settled.";
+            derived.append(none);
+          }
+          for (const record of asks) {
+            const m = record.meta || {};
+            const row = document.createElement("div");
+            row.className = "he-task";
+            row.style.setProperty("--task-colour", "var(--gold)");
+            const bodyCol = document.createElement("div");
+            bodyCol.className = "he-task-body";
+            const top = document.createElement("div");
+            const strong = document.createElement("b");
+            strong.textContent = "CH-" + String(citeOf(record)).padStart(4, "0") + " \u00b7 " + record.title;
+            top.append(strong);
+            bodyCol.append(top);
+            const small = document.createElement("small");
+            small.textContent = m.followup ||
+              (m.documented === "requested" ? "A professional record was requested and has not been received." :
+               "A date in this entry needs confirming against the original.");
+            bodyCol.append(small);
+            row.append(bodyCol);
+            const go = document.createElement("button");
+            go.type = "button";
+            go.className = "he-trace-jump";
+            go.textContent = "\u21e2";
+            go.setAttribute("aria-label", "Go to the entry");
+            go.addEventListener("click", () => {
+              heSetTab("record");
+              setTimeout(() => hearthJump(record.id), 250);
+            });
+            row.append(go);
+            derived.append(row);
+          }
+
+          const count = $("he-desk-count");
+          if (count) {
+            const total = open.length + asks.length;
+            count.textContent = total
+              ? open.length + " open \u00b7 " + asks.length + " asked by the record"
+              : "The desk is clear";
+          }
         }
 
         function renderHearth() {
@@ -10751,6 +11050,26 @@
             list.append(none);
           }
 
+          /* the month index: one option per month present in the record, so
+             "June 2026" is one tap away in a four-year file */
+          const monthSel = $("he-f-month");
+          if (monthSel) {
+            const months = [...new Set(hearthEntries().map((r) => localDay(hearthWhen(r)).slice(0, 7)))].sort();
+            const held = monthSel.value;
+            monthSel.innerHTML = "";
+            const first = document.createElement("option");
+            first.value = ""; first.textContent = "Jump to\u2026";
+            monthSel.append(first);
+            for (const month of months) {
+              const o = document.createElement("option");
+              o.value = month;
+              o.textContent = new Date(month + "-15T12:00:00").toLocaleDateString(undefined,
+                { month: "short", year: "numeric" });
+              monthSel.append(o);
+            }
+            monthSel.value = held || "";
+          }
+
           let lastDay = null;
           for (const record of shown) {
             const meta = record.meta || {};
@@ -10759,6 +11078,7 @@
               lastDay = day;
               const head = document.createElement("li");
               head.className = "he-daymark";
+              head.id = "he-day-" + day;
               head.textContent = new Date(day + "T12:00:00").toLocaleDateString(undefined,
                 { weekday: "long", year: "numeric", month: "long", day: "numeric" });
               list.append(head);
@@ -10768,12 +11088,6 @@
             item.className = "he-entry";
             item.id = "he-entry-" + record.id;
             const tier = hearthTier(meta.tier);
-            /* a stable short citation, so a correction can attach to CH-0007
-               rather than to "the third one on that page" */
-            const cite = document.createElement("span");
-            cite.className = "he-cite";
-            cite.textContent = "CH-" + String(citeOf(record)).padStart(4, "0");
-            item.append(cite);
             if (tier) item.style.setProperty("--tier-colour", tier.colour);
 
             const top = document.createElement("div");
@@ -10830,6 +11144,9 @@
             const foot = document.createElement("div");
             foot.className = "he-entry-foot";
             const bits = [];
+            /* the stable citation leads the provenance line, so a correction
+               can attach to CH-0007 rather than "the third one on that page" */
+            bits.push("CH-" + String(citeOf(record)).padStart(4, "0"));
             const thread = hearthThread(meta.thread);
             if (thread) bits.push(thread.label);
             if (meta.people && meta.people.length) bits.push(meta.people.join(", "));
@@ -10880,7 +11197,10 @@
 
           renderHearthStrip(shown);
           renderHearthMatters();
+          renderHearthExhibits();
           renderHearthWeight(all);
+          const tabCount = $("he-tab-count");
+          if (tabCount) tabCount.textContent = all.length + " entr" + (all.length === 1 ? "y" : "ies");
         }
 
         function renderHearthMatters() {
@@ -10978,9 +11298,20 @@
             const level = byX.get(key) || 0;
             byX.set(key, level + 1);
             const tier = hearthTier(record.meta.tier);
+            /* the visible dot is small; the tap target is not — an invisible
+               second circle carries the click for touch */
+            const cy = H - 8 - Math.min(level, 4) * 8;
+            const hit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            hit.setAttribute("cx", x.toFixed(1));
+            hit.setAttribute("cy", String(cy));
+            hit.setAttribute("r", "10");
+            hit.setAttribute("fill", "transparent");
+            hit.style.cursor = "pointer";
+            hit.addEventListener("click", () => hearthJump(record.id));
+            svg.append(hit);
             const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             dot.setAttribute("cx", x.toFixed(1));
-            dot.setAttribute("cy", String(H - 8 - Math.min(level, 4) * 8));
+            dot.setAttribute("cy", String(cy));
             dot.setAttribute("r", "3.4");
             dot.setAttribute("fill", tier ? tier.colour : "var(--faint)");
             dot.setAttribute("fill-opacity", "0.85");
@@ -11071,6 +11402,52 @@
           target.classList.remove("is-lit");
           void target.offsetWidth;
           target.classList.add("is-lit");
+        }
+
+        function renderHearthExhibits() {
+          const holder = $("he-exhibits");
+          if (!holder) return;
+          holder.innerHTML = "";
+          const entries = hearthEntries();
+          const packets = HEARTH_EXHIBITS.filter((e) => e.id).map((e) => ({
+            ...e, hits: entries.filter((r) => r.meta.exhibit === e.id),
+          })).filter((e) => e.hits.length);
+          const loose = entries.filter((r) => !r.meta.exhibit).length;
+          if (!packets.length) {
+            const none = document.createElement("p");
+            none.className = "panel-note";
+            none.textContent = "No entry is pinned to an exhibit packet yet.";
+            holder.append(none);
+            return;
+          }
+          for (const packet of packets) {
+            const row = document.createElement("div");
+            row.className = "he-matter" + (hearthFilter.exhibit === packet.id ? " is-active" : "");
+            const open = document.createElement("button");
+            open.type = "button";
+            open.className = "he-matter-open";
+            const name = document.createElement("b");
+            name.textContent = packet.label;
+            const count = document.createElement("span");
+            const days = packet.hits.map((r) => localDay(hearthWhen(r))).sort();
+            count.textContent = packet.hits.length + (packet.hits.length === 1 ? " entry" : " entries") +
+              " \u00b7 " + days[0] + " \u2192 " + days[days.length - 1];
+            open.append(name, count);
+            open.addEventListener("click", () => {
+              hearthFilter.exhibit = hearthFilter.exhibit === packet.id ? "" : packet.id;
+              renderHearth();
+            });
+            row.append(open);
+            holder.append(row);
+          }
+          if (loose) {
+            const note = document.createElement("p");
+            note.className = "panel-note";
+            note.style.marginTop = "8px";
+            note.textContent = loose + " entr" + (loose === 1 ? "y is" : "ies are") +
+              " not pinned to any packet.";
+            holder.append(note);
+          }
         }
 
         /* What the file is made of, counted rather than characterised. */
@@ -11195,7 +11572,32 @@
           note.style.color = bad ? "var(--danger)" : "var(--faint)";
         }
 
+        /* Which of the three panes is showing. Arriving at a populated record
+           opens the record; an empty one opens the entry form, because the
+           first thing an empty file needs is its first entry. The choice is
+           remembered per device. */
+        function heSetTab(id) {
+          for (const pane of ["record", "desk", "enter", "setup"]) {
+            const el = $("he-pane-" + pane);
+            if (el) el.hidden = pane !== id;
+          }
+          document.querySelectorAll("#he-tabs button").forEach((b) =>
+            b.classList.toggle("is-on", b.dataset.hetab === id));
+          try { localStorage.setItem("gz-hearth-tab", id); } catch (e) {}
+        }
+
         function wireHearth() {
+          const tabs = $("he-tabs");
+          if (tabs && !tabs.dataset.wired) {
+            tabs.dataset.wired = "1";
+            tabs.querySelectorAll("button[data-hetab]").forEach((b) =>
+              b.addEventListener("click", () => heSetTab(b.dataset.hetab)));
+            let initial = null;
+            try { initial = localStorage.getItem("gz-hearth-tab"); } catch (e) {}
+            if (!initial) initial = hearthEntries().length ? "record" : "enter";
+            heSetTab(initial);
+          }
+
           if (!$("he-form-wired")) {
             const form = $("hearth-form");
             if (!form || form.dataset.wired) return;
@@ -11372,9 +11774,19 @@
             $("he-f-thread").addEventListener("change", () => { hearthFilter.thread = $("he-f-thread").value; renderHearth(); });
             $("he-f-tier").addEventListener("change", () => { hearthFilter.tier = $("he-f-tier").value; renderHearth(); });
             $("he-f-order").addEventListener("change", () => { hearthFilter.order = $("he-f-order").value; renderHearth(); });
+            $("he-f-month").addEventListener("change", () => {
+              const month = $("he-f-month").value;
+              if (!month) return;
+              const mark = [...document.querySelectorAll(".he-daymark")]
+                .find((el) => el.id.slice(7, 14) === month);
+              if (mark) mark.scrollIntoView({ behavior: "smooth", block: "start" });
+              else toast("No entry in that month matches the current filters.");
+            });
             $("he-f-clear").addEventListener("click", () => {
               hearthFilter.q = ""; hearthFilter.thread = ""; hearthFilter.tier = ""; hearthFilter.order = "asc";
               hearthFilter.matter = "";
+              hearthFilter.exhibit = "";
+              if ($("he-f-month")) $("he-f-month").value = "";
               $("he-q").value = ""; $("he-f-thread").value = ""; $("he-f-tier").value = ""; $("he-f-order").value = "asc";
               renderHearth();
             });
@@ -11390,6 +11802,35 @@
             });
             $("he-import-check").addEventListener("click", checkHearthImport);
             $("he-import-commit").addEventListener("click", commitHearthImport);
+          }
+
+          const taskForm = $("he-task-form");
+          if (taskForm && !taskForm.dataset.wired) {
+            taskForm.dataset.wired = "1";
+            taskForm.addEventListener("submit", async (event) => {
+              event.preventDefault();
+              const title = $("he-task-title").value.trim();
+              if (!title) return toast("Say what is open, in one line.");
+              const cite = $("he-task-cite").value.trim().toUpperCase();
+              if (cite && !/^CH-\d{1,4}$/.test(cite)) {
+                return toast("The entry reference looks like CH-0012.");
+              }
+              const ok = await seal(title, null, {
+                kind: "record", quiet: true,
+                meta: {
+                  module: "hearth", kind: "task",
+                  taskType: $("he-task-type").value,
+                  due: $("he-task-due").value || null,
+                  cite: cite || null,
+                  done: false,
+                },
+              });
+              if (!ok) return toast("Could not raise it.");
+              $("he-task-title").value = "";
+              $("he-task-due").value = "";
+              $("he-task-cite").value = "";
+              renderAll();
+            });
           }
 
           const matterForm = $("he-matter-form");
@@ -11425,6 +11866,7 @@
           if (exportBtn && !exportBtn.dataset.wired) {
             exportBtn.dataset.wired = "1";
             exportBtn.addEventListener("click", exportHearthChronology);
+            $("hearth-copy").addEventListener("click", copyHearthView);
           }
         }
 
@@ -11587,20 +12029,92 @@
           renderAll();
         }
 
+        /* The same cross-section as plain text on the clipboard — the shape an
+           email to an attorney actually takes. */
+        async function copyHearthView() {
+          const all = hearthSelection();
+          if (!all.length) return toast("Nothing matches the current view.");
+          const name = hearthSelectionName();
+          const lines = [];
+          lines.push("CHRONOLOGY" + (name ? " \u2014 " + name : "") +
+            " (" + all.length + " entries, prepared " + localDay() + ")");
+          lines.push("");
+          for (const record of all) {
+            const meta = record.meta || {};
+            const tier = hearthTier(meta.tier);
+            const lag = hearthLagDays(record);
+            lines.push("CH-" + String(citeOf(record)).padStart(4, "0") + " \u00b7 " +
+              localDay(hearthWhen(record)) + (meta.time ? " " + meta.time : "") +
+              " \u00b7 " + record.title);
+            lines.push("  Basis: " + (tier ? tier.label : "not recorded") +
+              (meta.exhibit ? " \u00b7 Exhibit " + meta.exhibit : "") +
+              (lag !== null ? " \u00b7 " + hearthLagLabel(lag) : ""));
+            if (record.body) lines.push("  " + record.body.replace(/\n/g, "\n  "));
+            for (const [k, v] of [[childName() + " said", meta.said],
+                                  ["Asked before", meta.asked],
+                                  ["Other parent said", meta.otherResponse],
+                                  ["Source", meta.source]]) {
+              if (v) lines.push("  " + k + ": " + v.replace(/\n/g, " "));
+            }
+            lines.push("");
+          }
+          try {
+            await navigator.clipboard.writeText(lines.join("\n"));
+            toast("Copied \u2014 " + all.length + " entr" + (all.length === 1 ? "y" : "ies") + " as plain text.");
+          } catch (error) {
+            toast("The clipboard refused: " + error.message);
+          }
+        }
+
         /* The printed file. It has to carry what the screen leaves implicit:
            what each basis means, when each entry was written relative to the
            event, and the digest of any original, so a reader who was not
            there can weigh it without being told what to think. */
+        /* What the current filters select, in order — the one set of entries
+           that the list, the export, and the copy all agree on. */
+        function hearthSelection() {
+          return hearthEntries().filter(hearthMatches).sort((a, b) => {
+            const cmp = String(hearthWhen(a)).localeCompare(String(hearthWhen(b)));
+            return hearthFilter.order === "desc" ? -cmp : cmp;
+          });
+        }
+
+        function hearthSelectionName() {
+          const parts = [];
+          if (hearthFilter.matter) {
+            const matter = hearthMatters().find((m) => m.id === hearthFilter.matter);
+            if (matter) parts.push(matter.label);
+          }
+          if (hearthFilter.exhibit) parts.push("Exhibit " + hearthFilter.exhibit);
+          if (hearthFilter.thread) {
+            const thread = hearthThread(hearthFilter.thread);
+            if (thread) parts.push(thread.label);
+          }
+          if (hearthFilter.tier) {
+            const tier = hearthTier(hearthFilter.tier);
+            if (tier) parts.push(tier.label + " only");
+          }
+          if (hearthFilter.q.trim()) parts.push("\u201c" + hearthFilter.q.trim() + "\u201d");
+          return parts.join(" \u00b7 ");
+        }
+
         function exportHearthChronology() {
-          const all = hearthAll().slice().sort((a, b) =>
+          /* The export prints what the screen shows. A filtered view exports
+             as a named cross-section — one matter, one exhibit packet — which
+             is exactly the shape a per-issue brief needs. It also only ever
+             prints entries: the profile row is configuration, not chronology,
+             and an earlier version of this export would have printed it. */
+          const all = hearthSelection().slice().sort((a, b) =>
             String(hearthWhen(a)).localeCompare(String(hearthWhen(b))));
-          if (!all.length) return toast("There is nothing on the record yet.");
+          if (!all.length) return toast("Nothing matches the current view.");
 
           const esc = (t) => escText(String(t == null ? "" : t));
           const lines = [];
-          lines.push("<h1>Chronology</h1>");
+          const selectionName = hearthSelectionName();
+          lines.push("<h1>Chronology" + (selectionName ? " \u2014 " + esc(selectionName) : "") + "</h1>");
           lines.push("<p class=\"ps-meta\">Prepared " + localDay() +
-            " · " + all.length + " entr" + (all.length === 1 ? "y" : "ies") + "</p>");
+            " · " + all.length + " entr" + (all.length === 1 ? "y" : "ies") +
+            (selectionName ? " · a cross-section of the full record" : " · the complete record") + "</p>");
           lines.push("<p class=\"ps-foot\">Every entry below records both the date the event " +
             "happened and the date it was written down; where these differ the gap is stated. " +
             "The basis given for each entry is the author's own classification, recorded at the " +
