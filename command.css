@@ -8365,6 +8365,55 @@ html[data-theme="light"] .he-span-over {
   }
 }
 
+/* the recipient selector rides with COPY and PRINT because it governs them */
+#he-audience {
+  border: 1px solid var(--panel-line);
+  background: var(--panel-solid);
+  color: var(--muted);
+  border-radius: var(--r-pill);
+  height: 24px;
+  padding: 0 8px;
+  font: 500 9px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  max-width: 190px;
+}
+
+#he-audience:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--amber) 55%, var(--panel-line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber) 16%, transparent);
+}
+
+@media (hover: none), (pointer: coarse) {
+  #he-audience {
+    height: 40px;
+    font-size: 11px;
+  }
+}
+
+/* what a narrowed document says about its own scope, on paper */
+.ps-scope {
+  font: 400 10.5pt / 1.55 Georgia, serif;
+  border-left: 2pt solid #999;
+  padding-left: 10pt;
+  margin: 10pt 0;
+  color: #333;
+}
+
+.ps-quote {
+  font: 400 10.5pt / 1.6 Georgia, serif;
+  border-left: 2pt solid #666;
+  padding-left: 10pt;
+  margin: 8pt 0;
+}
+
+.ps-h2 {
+  font: 400 16pt Georgia, serif;
+  margin: 22pt 0 6pt;
+  page-break-before: always;
+}
+
 /* ---------------- claims and contradictions ----------------
    The card is a bundle: the words at the top, then four columns holding
    what agrees, what does not, what corroborates independently, and what is

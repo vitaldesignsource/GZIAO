@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=94" />
+    <link rel="stylesheet" href="command.css?v=95" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -1856,6 +1856,7 @@
               <span class="kicker" style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px">
                 <span>THE CHRONOLOGY</span>
                 <span style="display: flex; gap: 8px; align-items: baseline">
+                  <select id="he-audience" aria-label="Who the copied or printed document is for"></select>
                   <button class="chrono-open" id="he-copy-here" type="button">COPY</button>
                   <button class="chrono-open" id="he-print-here" type="button">PRINT</button>
                   <span id="he-count" style="color: var(--faint)">0 entries</span>
@@ -10811,6 +10812,70 @@
           return by;
         }
 
+        /* ---------------------------------------------------------------
+           WHO THE DOCUMENT IS FOR
+
+           The export printed the file exactly as it is kept, and the file is
+           kept for a contested matter: 67 of its 91 entries carry a "bears
+           on" line, which is argument, and a third of them sit on threads
+           that exist only because there is litigation. Handed to a
+           paediatrician that document imports the whole adversarial frame
+           into a clinical setting — and a clinician reading an allegation
+           cannot unread it.
+
+           So the recipient is chosen, and the choice governs both scope and
+           framing. A neutral history carries observed events and
+           institutional records about the child and nothing else: no
+           allegations, no litigation process, no interpretation, and none of
+           the fields that exist to argue rather than to record.
+
+           Every narrowed document says what it is and states how much of the
+           file it is not showing. A partial record presented as a whole one
+           is worse than no record. */
+        const HEARTH_AUDIENCES = [
+          { id: "working", label: "The working file",
+            head: "Chronology",
+            note: "The file as it is kept, including what each entry bears on and the packet it is pinned to.",
+            threads: null, tiers: null, argument: true },
+
+          { id: "care", label: "A paediatrician or evaluator",
+            head: "Care history",
+            note: "Observed events and records about this child's behaviour, development, and schooling. " +
+                  "It carries no allegation, no court process, and no interpretation — those are excluded " +
+                  "by construction rather than by editing, and nothing here is offered as a diagnosis.",
+            threads: ["behaviour", "developmental", "school"],
+            tiers: ["institutional", "contemporaneous", "firsthand"],
+            argument: false },
+
+          { id: "school", label: "The school",
+            head: "School and behaviour history",
+            note: "The school and behaviour record as observed and as documented. It carries no allegation, " +
+                  "no court process, and no interpretation.",
+            threads: ["school", "behaviour"],
+            tiers: ["institutional", "contemporaneous", "firsthand"],
+            argument: false },
+
+          { id: "counsel", label: "Counsel",
+            head: "Chronology for counsel",
+            note: "The complete file, including what each entry bears on, the packet it is pinned to, " +
+                  "and the claims matrix.",
+            threads: null, tiers: null, argument: true, claims: true },
+        ];
+        const hearthAudience = () => {
+          const want = $("he-audience") && $("he-audience").value;
+          return HEARTH_AUDIENCES.find((a) => a.id === want) || HEARTH_AUDIENCES[0];
+        };
+
+        /* what the chosen recipient may see, out of what the screen shows */
+        function hearthForAudience(rows, aud) {
+          return rows.filter((r) => {
+            const meta = r.meta || {};
+            if (aud.tiers && !aud.tiers.includes(meta.tier)) return false;
+            if (aud.threads && !aud.threads.includes(meta.thread)) return false;
+            return true;
+          });
+        }
+
         const HEARTH_TASK_TYPES = [
           { id: "deadline", label: "Deadline", colour: "var(--danger)" },
           { id: "awaiting", label: "Awaiting an answer", colour: "var(--amber)" },
@@ -12638,6 +12703,28 @@
             heSetTab(initial);
           }
 
+          const audSel = $("he-audience");
+          if (audSel && !audSel.options.length) {
+            for (const option of HEARTH_AUDIENCES) {
+              const o = document.createElement("option");
+              o.value = option.id;
+              o.textContent = "For: " + option.label;
+              o.title = option.note;
+              audSel.append(o);
+            }
+            try {
+              const saved = localStorage.getItem("gz-hearth-audience");
+              if (saved && HEARTH_AUDIENCES.some((a) => a.id === saved)) audSel.value = saved;
+            } catch (e) {}
+            audSel.addEventListener("change", () => {
+              try { localStorage.setItem("gz-hearth-audience", audSel.value); } catch (e) {}
+              const aud = hearthAudience();
+              const kept = hearthForAudience(hearthSelection(), aud).length;
+              toast(aud.label + " — " + kept + " of " + hearthSelection().length +
+                " entr" + (hearthSelection().length === 1 ? "y" : "ies") + " would be included.");
+            });
+          }
+
           const claimForm = $("he-claim-form");
           if (claimForm && !claimForm.dataset.wired) {
             claimForm.dataset.wired = "1";
@@ -13138,12 +13225,25 @@
         /* The same cross-section as plain text on the clipboard — the shape an
            email to an attorney actually takes. */
         async function copyHearthView() {
-          const all = hearthSelection();
-          if (!all.length) return toast("Nothing matches the current view.");
+          const aud = hearthAudience();
+          const screen = hearthSelection();
+          const all = hearthForAudience(screen, aud);
+          if (!all.length) {
+            return toast(aud.argument
+              ? "Nothing matches the current view."
+              : "Nothing in the current view belongs in a " + aud.head.toLowerCase() + ".");
+          }
+          const held = screen.length - all.length;
           const name = hearthSelectionName();
           const lines = [];
-          lines.push("CHRONOLOGY" + (name ? " \u2014 " + name : "") +
+          lines.push(aud.head.toUpperCase() + (name ? " \u2014 " + name : "") +
             " (" + all.length + " entries, prepared " + localDay() + ")");
+          lines.push(aud.note);
+          if (held > 0) {
+            lines.push("This is a part of a larger file. " + held +
+              " further entr" + (held === 1 ? "y is" : "ies are") +
+              " held in that file and not shown here.");
+          }
           lines.push("");
           for (const record of all) {
             const meta = record.meta || {};
@@ -13153,20 +13253,28 @@
               localDay(hearthWhen(record)) + (meta.time ? " " + meta.time : "") +
               " \u00b7 " + record.title);
             lines.push("  Basis: " + (tier ? tier.label : "not recorded") +
-              (meta.exhibit ? " \u00b7 Exhibit " + meta.exhibit : "") +
+              (aud.argument && meta.exhibit ? " \u00b7 Exhibit " + meta.exhibit : "") +
               (lag !== null ? " \u00b7 " + hearthLagLabel(lag) : ""));
             if (record.body) lines.push("  " + record.body.replace(/\n/g, "\n  "));
-            for (const [k, v] of [[childName() + " said", meta.said],
-                                  ["Asked before", meta.asked],
-                                  ["Other parent said", meta.otherResponse],
-                                  ["Source", meta.source]]) {
-              if (v) lines.push("  " + k + ": " + v.replace(/\n/g, " "));
+            const fields = [[childName() + " said", meta.said],
+                            ["Asked before", meta.asked],
+                            ["What the adults did", meta.response],
+                            ["Source", meta.source]];
+            /* the other parent's words and what an entry bears on are the
+               file arguing; a neutral history carries neither */
+            if (aud.argument) {
+              fields.splice(3, 0, ["Other parent said", meta.otherResponse]);
+              fields.push(["Bears on", meta.bears]);
+            }
+            for (const [k, v] of fields) {
+              if (v) lines.push("  " + k + ": " + String(v).replace(/\n/g, " "));
             }
             lines.push("");
           }
           try {
             await navigator.clipboard.writeText(lines.join("\n"));
-            toast("Copied \u2014 " + all.length + " entr" + (all.length === 1 ? "y" : "ies") + " as plain text.");
+            toast("Copied \u2014 " + all.length + " entr" + (all.length === 1 ? "y" : "ies") +
+              " as " + aud.head.toLowerCase() + ".");
           } catch (error) {
             toast("The clipboard refused: " + error.message);
           }
@@ -13210,17 +13318,30 @@
              is exactly the shape a per-issue brief needs. It also only ever
              prints entries: the profile row is configuration, not chronology,
              and an earlier version of this export would have printed it. */
-          const all = hearthSelection().slice().sort((a, b) =>
+          const aud = hearthAudience();
+          const screen = hearthSelection();
+          const all = hearthForAudience(screen, aud).slice().sort((a, b) =>
             String(hearthWhen(a)).localeCompare(String(hearthWhen(b))));
-          if (!all.length) return toast("Nothing matches the current view.");
+          if (!all.length) {
+            return toast(aud.argument
+              ? "Nothing matches the current view."
+              : "Nothing in the current view belongs in a " + aud.head.toLowerCase() + ".");
+          }
+          const held = screen.length - all.length;
 
           const esc = (t) => escText(String(t == null ? "" : t));
           const lines = [];
           const selectionName = hearthSelectionName();
-          lines.push("<h1>Chronology" + (selectionName ? " \u2014 " + esc(selectionName) : "") + "</h1>");
+          lines.push("<h1>" + esc(aud.head) + (selectionName ? " \u2014 " + esc(selectionName) : "") + "</h1>");
           lines.push("<p class=\"ps-meta\">Prepared " + localDay() +
             " · " + all.length + " entr" + (all.length === 1 ? "y" : "ies") +
-            (selectionName ? " · a cross-section of the full record" : " · the complete record") + "</p>");
+            (selectionName ? " · a cross-section of the full record" : "") + "</p>");
+          lines.push("<p class=\"ps-scope\">" + esc(aud.note) + "</p>");
+          if (held > 0) {
+            lines.push("<p class=\"ps-scope\">This document is part of a larger file. " + held +
+              " further entr" + (held === 1 ? "y is" : "ies are") +
+              " held in that file and are not shown here.</p>");
+          }
           lines.push("<p class=\"ps-foot\">Every entry below records both the date the event " +
             "happened and the date it was written down; where these differ the gap is stated. " +
             "The basis given for each entry is the author's own classification, recorded at the " +
@@ -13244,18 +13365,23 @@
             facts.push("Written: " + esc(localDay(record.created_at)) +
               (lag !== null ? " (" + esc(hearthLagLabel(lag)) + ")" : ""));
             if (meta.source) facts.push("Source: " + esc(meta.source));
-            const exh = hearthExhibit(meta.exhibit);
+            const exh = aud.argument ? hearthExhibit(meta.exhibit) : null;
             if (exh && exh.id) facts.push("Exhibit " + esc(exh.id));
             if (meta.documented === "requested") facts.push("Professional record requested, not yet received");
             lines.push("<p class=\"ps-facts\">" + facts.join(" · ") + "</p>");
             if (record.body) lines.push("<p>" + esc(record.body).replace(/\n/g, "<br />") + "</p>");
-            for (const [k, v] of [[childName() + " said", meta.said],
-                                  ["Asked immediately before", meta.asked],
-                                  ["Prompting", meta.prompted], ["Quote fidelity", meta.fidelity],
-                                  ["Adults did", meta.response],
-                                  ["Other parent said", meta.otherResponse],
-                                  ["Notified", meta.notified], ["Follow-up", meta.followup],
-                                  ["Bears on", meta.bears]]) {
+            /* a child's words, and what was asked before them, belong in a
+               clinical history — the argument fields do not */
+            const printFields = [[childName() + " said", meta.said],
+                                 ["Asked immediately before", meta.asked],
+                                 ["Prompting", meta.prompted], ["Quote fidelity", meta.fidelity],
+                                 ["Adults did", meta.response]];
+            if (aud.argument) {
+              printFields.push(["Other parent said", meta.otherResponse],
+                               ["Notified", meta.notified], ["Follow-up", meta.followup],
+                               ["Bears on", meta.bears]);
+            }
+            for (const [k, v] of printFields) {
               if (!v) continue;
               lines.push("<p class=\"ps-field\"><b>" + esc(k) + ":</b> " +
                 esc(v).replace(/\n/g, "<br />") + "</p>");
@@ -13266,6 +13392,43 @@
               ).join("<br />") + "</p>");
             }
             lines.push("</div>");
+          }
+
+          /* counsel gets the claims matrix behind the chronology, because the
+             two are one argument and separating them costs a cross-reference
+             by hand */
+          if (aud.claims) {
+            const claims = hearthClaims();
+            if (claims.length) {
+              lines.push("<h2 class=\"ps-h2\">Claims and contradictions</h2>");
+              lines.push("<p class=\"ps-scope\">One record per assertion. A status describes the " +
+                "state of the evidence gathered in this file. It is not a finding about anyone's " +
+                "honesty or intent.</p>");
+              for (const claim of claims) {
+                const meta = claim.meta || {};
+                const status = hearthClaimStatus(meta.status);
+                lines.push("<div class=\"ps-entry\">");
+                lines.push("<h3>" + esc(claim.title) + " — " + esc(status.label) + "</h3>");
+                const by = [meta.speaker, meta.stated ? localDay(meta.stated + "T12:00:00") : null, meta.origin]
+                  .filter(Boolean);
+                if (by.length) lines.push("<p class=\"ps-facts\">" + esc(by.join(" · ")) + "</p>");
+                if (meta.wording) {
+                  lines.push("<p class=\"ps-quote\">" + esc(meta.wording).replace(/\n/g, "<br />") + "</p>");
+                }
+                for (const stance of HEARTH_STANCES) {
+                  const mine = claimEvidence(claim).filter((e) => e.stance === stance.id);
+                  if (!mine.length) continue;
+                  lines.push("<p class=\"ps-field\"><b>" + esc(stance.label) + ":</b></p>");
+                  lines.push("<ul class=\"ps-key\">" + mine.map((e) => {
+                    const target = e.cite ? hearthEntries().find((r) => r.id === e.cite) : null;
+                    const ref = target ? " (CH-" + String(citeOf(target)).padStart(4, "0") + ")" : "";
+                    return "<li>" + esc(e.text) + esc(ref) +
+                      (e.source ? " — " + esc(e.source) : "") + "</li>";
+                  }).join("") + "</ul>");
+                }
+                lines.push("</div>");
+              }
+            }
           }
 
           const sheet = $("print-sheet");
