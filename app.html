@@ -3126,7 +3126,11 @@
         if (GZ.client.from) {
           const { data: profileRow } = await GZ.client
             .from("profiles")
-            .select("display_name, household_id, access")
+            /* id was never selected, so user.id was undefined — every
+               ownership comparison against it quietly returned false, and a
+               vault path built from it would have begun "undefined/" and been
+               refused by the policy that keys on the owner's folder */
+            .select("id, display_name, household_id, access")
             .eq("id", user.id)
             .maybeSingle();
           if (profileRow) profile = profileRow;
@@ -12015,7 +12019,7 @@
         }
 
         const dispatchName = (id) =>
-          dispatchPeople[id] || (id === profile.id ? "You" : "The other of you");
+          dispatchPeople[id] || (id === user.id ? "You" : "The other of you");
 
         function renderDispatch() {
           const holder = $("dis-thread");
@@ -12044,7 +12048,7 @@
               holder.append(mark);
             }
 
-            const mine = msg.owner_id === profile.id;
+            const mine = msg.owner_id === user.id;
             const row = document.createElement("article");
             row.className = "dis-msg" + (mine ? " is-mine" : "");
 
@@ -12126,7 +12130,7 @@
               row.className = "dis-person";
               const dot = document.createElement("i");
               const label = document.createElement("b");
-              label.textContent = name + (id === profile.id ? " (you)" : "");
+              label.textContent = name + (id === user.id ? " (you)" : "");
               const sent = document.createElement("small");
               const n = msgs.filter((m) => m.owner_id === id).length;
               sent.textContent = n + " sent";
@@ -12144,7 +12148,7 @@
           if (stats) {
             stats.innerHTML = "";
             const files = msgs.reduce((n, m) => n + (((m.meta && m.meta.files) || []).length), 0);
-            const unread = msgs.filter((m) => m.owner_id === profile.id &&
+            const unread = msgs.filter((m) => m.owner_id === user.id &&
               !reads.some((r) => r.meta.messageId === m.id && r.owner_id !== m.owner_id)).length;
             for (const [label, value] of [
               ["Messages", msgs.length],
@@ -12168,8 +12172,8 @@
         async function markDispatchRead(msgs) {
           if (dispatchMarking) return;
           const reads = dispatchReads();
-          const owed = msgs.filter((m) => m.owner_id !== profile.id &&
-            !reads.some((r) => r.meta.messageId === m.id && r.owner_id === profile.id));
+          const owed = msgs.filter((m) => m.owner_id !== user.id &&
+            !reads.some((r) => r.meta.messageId === m.id && r.owner_id === user.id));
           if (!owed.length) return;
           dispatchMarking = true;
           try {
@@ -12195,7 +12199,7 @@
         }
 
         function dispatchToHearth(msg) {
-          const who = msg.owner_id === profile.id ? "I" : dispatchName(msg.owner_id);
+          const who = msg.owner_id === user.id ? "I" : dispatchName(msg.owner_id);
           setView("hearth");
           heSetTab("enter");
           setTimeout(() => {
@@ -12228,7 +12232,7 @@
           try {
             const files = [];
             for (const file of dispatchQueue) {
-              const path = profile.id + "/" + Date.now() + "_" + file.name.replace(/[^\w.\-]+/g, "_");
+              const path = user.id + "/" + Date.now() + "_" + file.name.replace(/[^\w.\-]+/g, "_");
               const entry = { name: file.name, path, size: file.size, type: file.type || "file" };
               try { entry.sha256 = await sha256Hex(await file.arrayBuffer()); } catch (e) {}
               const { error } = await GZ.client.storage.from("vault")
