@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=102" />
+    <link rel="stylesheet" href="command.css?v=103" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -11418,9 +11418,9 @@
             return hearthFilter.order === "desc" ? -cmp : cmp;
           });
 
-          $("he-count").textContent = shown.length === all.length
-            ? all.length + " entr" + (all.length === 1 ? "y" : "ies")
-            : shown.length + " of " + all.length;
+          heCountTo($("he-count"), shown.length, (n) => shown.length === all.length
+            ? n + " entr" + (n === 1 ? "y" : "ies")
+            : n + " of " + all.length);
           $("he-empty").hidden = all.length > 0;
 
           list.innerHTML = "";
@@ -11488,7 +11488,10 @@
             const top = document.createElement("div");
             top.className = "he-entry-top";
             const time = document.createElement("small");
-            time.textContent = meta.time || "";
+            /* the slot held a clock time that most entries do not have; when
+               it is empty it can say something that is always true instead */
+            time.textContent = meta.time || heAgo(hearthWhen(record));
+            if (!meta.time) time.className = "is-ago";
             const title = document.createElement("b");
             title.textContent = record.title;
             const basis = document.createElement("i");
@@ -11700,6 +11703,9 @@
           }
 
           renderHearthSpan(shown);
+          hearthObserveEntries();
+          wireHearthScroll();
+          trackSpanToScroll();
           renderHearthClaims();
           renderHearthMatters();
           renderHearthExhibits();
@@ -12399,6 +12405,49 @@
           renderHearth();
         }
 
+        /* Entries wake as they come into view rather than all at once on
+           render — with ninety-one of them, a list that only ever animates
+           once is a list that is still for the whole time you use it. */
+        let hearthReveal = null;
+        let hearthUnveilNet = null;
+        function hearthObserveEntries() {
+          if (!("IntersectionObserver" in window)) return;
+          if (heReducedMotion()) return;
+          if (!hearthReveal) {
+            hearthReveal = new IntersectionObserver((rows) => {
+              for (const row of rows) {
+                if (!row.isIntersecting) continue;
+                row.target.classList.remove("is-veiled");
+                hearthReveal.unobserve(row.target);
+              }
+            }, { rootMargin: "0px 0px -8% 0px", threshold: 0.02 });
+          }
+          for (const node of document.querySelectorAll("#he-list .he-entry")) {
+            if (node.dataset.watched) continue;
+            node.dataset.watched = "1";
+            node.classList.add("is-veiled");
+            hearthReveal.observe(node);
+          }
+          /* a net, for the same reason the reveal needed one: an entry that
+             is veiled and never intersects — a pane hidden at the moment it
+             was observed, an observer that never fires — would be an invisible
+             record, which is the worst failure this module could have. */
+          clearTimeout(hearthUnveilNet);
+          hearthUnveilNet = setTimeout(() => {
+            for (const node of document.querySelectorAll("#he-list .he-entry.is-veiled")) {
+              node.classList.remove("is-veiled");
+            }
+          }, 2500);
+        }
+
+        let hearthScrollWired = false;
+        function wireHearthScroll() {
+          if (hearthScrollWired) return;
+          hearthScrollWired = true;
+          window.addEventListener("scroll", trackSpanToScroll, { passive: true });
+          window.addEventListener("resize", trackSpanToScroll, { passive: true });
+        }
+
         function wireDispatch() {
           const form = $("dis-form");
           if (!form || form.dataset.wired) return;
@@ -12509,6 +12558,48 @@
           if (!stamp || !stamp.hash) return { state: "none" };
           const now = await hearthHash(record);
           return { state: now === stamp.hash ? "ok" : "changed", at: stamp.at, hash: stamp.hash };
+        }
+
+        /* a count that climbs to its value. Small thing, but a figure that
+           lands rather than simply being there is the difference between a
+           page that has loaded and a page that is running. */
+        function heCountTo(node, value, render) {
+          if (!node) return;
+          const from = parseInt(node.dataset.value || "0", 10) || 0;
+          node.dataset.value = String(value);
+          if (from === value || heReducedMotion() || Math.abs(value - from) > 400) {
+            node.textContent = render(value);
+            return;
+          }
+          const started = performance.now();
+          const span = 520;
+          let landed = false;
+          const land = () => { if (!landed) { landed = true; node.textContent = render(value); } };
+          const step = (now) => {
+            if (landed) return;
+            const p = Math.min(1, (now - started) / span);
+            const eased = 1 - Math.pow(1 - p, 3);
+            node.textContent = render(Math.round(from + (value - from) * eased));
+            if (p < 1) requestAnimationFrame(step); else land();
+          };
+          requestAnimationFrame(step);
+          /* rAF does not run in a backgrounded tab, so the climb would stop
+             on its first frame and the figure would read zero. The timer does
+             not care whether anyone is watching. */
+          setTimeout(land, span + 90);
+        }
+
+        /* how long ago, in words, so a row says something a date alone does
+           not: whether this is old news or this week */
+        function heAgo(when) {
+          const days = Math.floor((Date.now() - new Date(when).getTime()) / dayMs);
+          if (days < 0) return "";
+          if (days === 0) return "today";
+          if (days === 1) return "yesterday";
+          if (days < 7) return days + "d ago";
+          if (days < 31) return Math.floor(days / 7) + "w ago";
+          if (days < 365) return Math.floor(days / 30) + "mo ago";
+          return Math.floor(days / 365) + "y ago";
         }
 
         const heReducedMotion = () => {
@@ -12754,6 +12845,16 @@
           });
           svg.append(marker);
 
+          /* where you are reading, as you read it. A separate mark from the
+             hover marker so the two never fight: this one follows the
+             chronology, that one follows the pointer. */
+          const here = svgEl("line", {
+            x1: 0, y1: ceiling - 8, x2: 0, y2: base + 4,
+            stroke: "var(--paper)", "stroke-width": 1.2, "stroke-opacity": 0,
+            id: "he-span-here",
+          });
+          svg.append(here);
+
           const order = HEARTH_TIERS.map((t) => t.id);
           const cells = [];
           for (const start of Array.from(buckets.keys()).sort((a, b) => a - b)) {
@@ -12810,6 +12911,49 @@
           if (spanSelection) {
             const still = cells.find((c) => c.start === spanSelection.start);
             if (still) paintSpanMarker(still); else spanSelection = null;
+          }
+        }
+
+        /* The chronology and the span are two views of one record, so
+           scrolling one should move the other. The line rides to whatever
+           period is at the top of the reading area — cheap to compute, since
+           the entries are already in date order and only the first visible
+           one matters. */
+        /* throttled on the clock rather than on a frame. requestAnimationFrame
+           does not run in a backgrounded tab, and having been caught by that
+           three times in this module now — the reveal, the count, and this —
+           the scroll tracker does not depend on one. The work is a walk down
+           the entries that stops at the first one still on screen, so it is
+           cheap enough to run on a timer. */
+        let spanTrackAt = 0;
+        function trackSpanToScroll() {
+          const now = Date.now();
+          if (now - spanTrackAt < 50) return;
+          spanTrackAt = now;
+          {
+            const here = document.getElementById("he-span-here");
+            const list = $("he-list");
+            if (!here || !list || !hearthWindow) return;
+            const top = 160;
+            let found = null;
+            for (const node of list.querySelectorAll(".he-entry")) {
+              const box = node.getBoundingClientRect();
+              if (box.bottom >= top) { found = node; break; }
+            }
+            if (!found) { here.setAttribute("stroke-opacity", "0"); return; }
+            const id = found.id.replace("he-entry-", "");
+            const record = hearthEntries().find((r) => r.id === id);
+            if (!record) { here.setAttribute("stroke-opacity", "0"); return; }
+            const t = new Date(hearthWhen(record)).getTime();
+            const span = Math.max(hearthWindow.to - hearthWindow.from, dayMs);
+            if (t < hearthWindow.from || t > hearthWindow.to) {
+              here.setAttribute("stroke-opacity", "0");
+              return;
+            }
+            const x = ((t - hearthWindow.from) / span * SPAN_W).toFixed(1);
+            here.setAttribute("x1", x);
+            here.setAttribute("x2", x);
+            here.setAttribute("stroke-opacity", "0.5");
           }
         }
 
