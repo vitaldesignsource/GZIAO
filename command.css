@@ -7648,6 +7648,126 @@ html[data-theme="light"] .directive {
   transform: translateY(-1px);
 }
 
+/* the whole row is the control that opens it — a button, so the keyboard
+   and a screen reader get the same affordance the mouse does */
+.he-entry-head {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.he-entry-head:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 4px;
+  border-radius: var(--r-sm);
+}
+
+/* what the closed row says: enough to find it again without opening it */
+.he-entry-glance {
+  color: var(--faint);
+  font-size: 10px;
+  margin-top: 7px;
+  padding-right: 26px;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.he-entry-chev {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--faint);
+  border-bottom: 1.5px solid var(--faint);
+  transform: rotate(45deg);
+  transition: transform 0.18s var(--ease, ease), border-color 0.18s ease;
+  pointer-events: none;
+}
+
+.he-entry.is-open .he-entry-chev {
+  transform: rotate(225deg);
+  border-color: var(--amber);
+}
+
+.he-entry:hover .he-entry-chev {
+  border-color: var(--muted);
+}
+
+.he-entry.is-open .he-entry-glance {
+  white-space: normal;
+  color: var(--muted);
+}
+
+.he-entry-open {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-line);
+}
+
+.he-open-label {
+  display: block;
+  font: 600 8.5px Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 6px;
+}
+
+.he-entry-docs,
+.he-entry-cited {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-line);
+}
+
+.he-entry-cited {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.he-entry-source {
+  color: var(--muted);
+  font: 400 11.5px / 1.6 Georgia, serif;
+  margin: 0;
+}
+
+/* a source named but not held is a gap in the file, and it should look
+   like one rather than like a citation */
+.he-entry-source.is-gap {
+  color: var(--faint);
+}
+
+.he-entry-source.is-gap b {
+  color: var(--he-t4);
+  font-weight: 600;
+}
+
+/* the tools used to float at the entry's top-right and appear on hover.
+   That corner now belongs to the chevron, and an opened entry has room to
+   show its own controls in the flow rather than hiding them behind a
+   gesture a touch screen does not have. */
+.he-entry-open .he-entry-tools {
+  position: static;
+  opacity: 1;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-line);
+  display: flex;
+  gap: 14px;
+}
+
 .he-entry-top {
   display: flex;
   align-items: baseline;
@@ -8874,6 +8994,26 @@ html[data-theme="light"] .he-tabbar {
     flex: 1 1 auto;
     justify-content: center;
   }
+  /* the recipient selector plus COPY, PRINT and the count do not fit on one
+     line beside the kicker at phone widths — the row was pushing the whole
+     document 118px sideways. The controls take their own line. */
+  #he-pane-record .panel > .kicker:first-child {
+    display: block !important;
+  }
+  #he-pane-record .panel > .kicker:first-child > span:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  #he-audience {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   .he-tabbar button span {
     display: none;
   }

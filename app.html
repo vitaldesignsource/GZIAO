@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Spectral:wght@300;400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=7" />
     <link rel="stylesheet" href="app.css?v=2" />
-    <link rel="stylesheet" href="command.css?v=95" />
+    <link rel="stylesheet" href="command.css?v=96" />
     <link rel="stylesheet" href="polish.css?v=5" />
     <script>
       (function () {
@@ -11351,6 +11351,20 @@
             item.id = "he-entry-" + record.id;
             const tier = hearthTier(meta.tier);
             if (tier) item.style.setProperty("--tier-colour", tier.colour);
+            const open = hearthOpenEntries.has(record.id);
+            if (open) item.classList.add("is-open");
+
+            /* THE HEADER — what the row is when it is closed. Ninety-one
+               entries each printing nine labelled fields is not a record, it
+               is a wall: everything was permanently expanded, so nothing could
+               be opened and nothing could be scanned. The row now carries the
+               date, the title, and the basis, and everything else waits behind
+               it until it is asked for. */
+            const head = document.createElement("button");
+            head.type = "button";
+            head.className = "he-entry-head";
+            head.setAttribute("aria-expanded", open ? "true" : "false");
+            head.setAttribute("aria-controls", "he-open-" + record.id);
 
             const top = document.createElement("div");
             top.className = "he-entry-top";
@@ -11362,17 +11376,43 @@
             basis.className = "he-basis";
             basis.textContent = tier ? tier.label : "basis not recorded";
             top.append(time, title, basis);
-            item.append(top);
+            head.append(top);
+
+            /* the closed row still has to say enough to be found again */
+            const glance = document.createElement("div");
+            glance.className = "he-entry-glance";
+            const seen = ["CH-" + String(citeOf(record)).padStart(4, "0")];
+            const thread = hearthThread(meta.thread);
+            if (thread) seen.push(thread.label);
+            if (meta.source) seen.push(meta.source);
+            const fileCount = (meta.files && meta.files.length) || 0;
+            if (fileCount) seen.push(fileCount + " document" + (fileCount === 1 ? "" : "s"));
+            const citedBy = hearthClaims().filter((c) =>
+              claimEvidence(c).some((e) => e.cite === record.id));
+            if (citedBy.length) {
+              seen.push("cited by " + citedBy.length + " claim" + (citedBy.length === 1 ? "" : "s"));
+            }
+            glance.textContent = seen.join("  ·  ");
+            head.append(glance);
+
+            const chev = document.createElement("span");
+            chev.className = "he-entry-chev";
+            chev.setAttribute("aria-hidden", "true");
+            head.append(chev);
+            item.append(head);
+
+            /* THE OPENED ENTRY — everything the file holds about this event */
+            const body = document.createElement("div");
+            body.className = "he-entry-open";
+            body.id = "he-open-" + record.id;
+            body.hidden = !open;
 
             if (record.body) {
-              const body = document.createElement("p");
-              body.textContent = record.body;
-              item.append(body);
+              const p = document.createElement("p");
+              p.textContent = record.body;
+              body.append(p);
             }
 
-            /* the structured fields are shown labelled rather than run
-               together, because which field a statement came from is part of
-               what that statement is worth */
             const detail = [
               [childName() + " said", meta.said],
               ["Asked before", meta.asked],
@@ -11400,42 +11440,79 @@
                 dd.textContent = v;
                 dl.append(dt, dd);
               }
-              item.append(dl);
+              body.append(dl);
             }
 
             const foot = document.createElement("div");
             foot.className = "he-entry-foot";
-            const bits = [];
-            /* the stable citation leads the provenance line, so a correction
-               can attach to CH-0007 rather than "the third one on that page" */
-            bits.push("CH-" + String(citeOf(record)).padStart(4, "0"));
-            const thread = hearthThread(meta.thread);
+            const bits = ["CH-" + String(citeOf(record)).padStart(4, "0")];
             if (thread) bits.push(thread.label);
             if (meta.people && meta.people.length) bits.push(meta.people.join(", "));
             if (meta.place) bits.push(meta.place);
             const lag = hearthLagDays(record);
             if (lag !== null) bits.push(hearthLagLabel(lag));
-            if (meta.source) bits.push("source: " + meta.source);
             if (meta.documented === "requested") bits.push("record requested, not yet received");
             const exhibitOf = hearthExhibit(meta.exhibit);
             if (exhibitOf && exhibitOf.id) bits.push("Exhibit " + exhibitOf.id);
-            if (meta.files && meta.files.length) {
-              bits.push(meta.files.length + " attachment" + (meta.files.length === 1 ? "" : "s"));
-            }
             foot.textContent = bits.join("  ·  ");
-            item.append(foot);
+            body.append(foot);
 
-            if (meta.files && meta.files.length) {
+            /* THE DOCUMENTS. An entry names its source in words; whether the
+               document itself is actually held is a different question, and
+               the honest answer is worth showing — an entry whose source is
+               named but not attached is a gap, and it should look like one. */
+            const docs = document.createElement("div");
+            docs.className = "he-entry-docs";
+            const docHead = document.createElement("span");
+            docHead.className = "he-open-label";
+            docHead.textContent = "DOCUMENTS";
+            docs.append(docHead);
+            if (fileCount) {
               const strip = document.createElement("div");
               strip.className = "he-attachments";
               for (const file of meta.files) {
-                const open = document.createElement("button");
-                open.type = "button";
-                open.textContent = "⧉ " + file.name;
-                open.addEventListener("click", () => openStoredFile(file.path, file.name));
-                strip.append(open);
+                const openBtn = document.createElement("button");
+                openBtn.type = "button";
+                openBtn.textContent = "⧉ " + file.name;
+                openBtn.addEventListener("click", () => openStoredFile(file.path, file.name));
+                strip.append(openBtn);
               }
-              item.append(strip);
+              docs.append(strip);
+            }
+            const srcLine = document.createElement("p");
+            srcLine.className = "he-entry-source";
+            if (meta.source && !fileCount) {
+              srcLine.innerHTML = "";
+              const b = document.createElement("b");
+              b.textContent = "Named, not attached: ";
+              srcLine.append(b, document.createTextNode(meta.source));
+              srcLine.classList.add("is-gap");
+            } else if (meta.source) {
+              srcLine.textContent = "Source: " + meta.source;
+            } else if (!fileCount) {
+              srcLine.textContent = "No document and no source recorded.";
+              srcLine.classList.add("is-gap");
+            }
+            if (srcLine.textContent) docs.append(srcLine);
+            body.append(docs);
+
+            if (citedBy.length) {
+              const cited = document.createElement("div");
+              cited.className = "he-entry-cited";
+              const ch = document.createElement("span");
+              ch.className = "he-open-label";
+              ch.textContent = "CITED BY";
+              cited.append(ch);
+              for (const claim of citedBy) {
+                const link = document.createElement("button");
+                link.type = "button";
+                link.className = "he-trace-jump";
+                const st = hearthClaimStatus(claim.meta.status);
+                link.textContent = claim.title + " — " + st.label;
+                link.addEventListener("click", () => heSetTab("claims"));
+                cited.append(link);
+              }
+              body.append(cited);
             }
 
             const tools = document.createElement("div");
@@ -11444,7 +11521,7 @@
             trace.type = "button";
             trace.textContent = "Trace";
             trace.className = "he-trace-btn";
-            trace.addEventListener("click", () => toggleHearthTrace(record, item));
+            trace.addEventListener("click", () => toggleHearthTrace(record, body));
             tools.append(trace);
             const drop = document.createElement("button");
             drop.type = "button";
@@ -11452,7 +11529,18 @@
             drop.textContent = "Destroy";
             drop.addEventListener("click", () => destroyRecord(record, "entry"));
             tools.append(drop);
-            item.append(tools);
+            body.append(tools);
+
+            item.append(body);
+
+            head.addEventListener("click", () => {
+              const nowOpen = body.hidden;
+              body.hidden = !nowOpen;
+              item.classList.toggle("is-open", nowOpen);
+              head.setAttribute("aria-expanded", nowOpen ? "true" : "false");
+              if (nowOpen) hearthOpenEntries.add(record.id);
+              else hearthOpenEntries.delete(record.id);
+            });
 
             list.append(item);
           }
@@ -11831,6 +11919,10 @@
            compresses a quiet stretch to make the shape look better — a silent
            spring is a fact about the record, and it stays silent.
            --------------------------------------------------------------- */
+        /* which entries the operator has opened, kept across re-renders so a
+           filter change or a new entry does not close what they were reading */
+        const hearthOpenEntries = new Set();
+
         const SPAN_W = 1000;
         let hearthWindow = null;   /* {from,to} in ms, or null for the whole span */
         /* A window the operator never chose must not survive a change to the
@@ -12503,6 +12595,16 @@
         function hearthJump(id) {
           const target = document.getElementById("he-entry-" + id);
           if (!target) return;
+          /* arriving at a closed entry and having to open it is a step the
+             jump already knows the answer to */
+          const body = document.getElementById("he-open-" + id);
+          const head = target.querySelector(".he-entry-head");
+          if (body && body.hidden) {
+            body.hidden = false;
+            target.classList.add("is-open");
+            if (head) head.setAttribute("aria-expanded", "true");
+            hearthOpenEntries.add(id);
+          }
           target.scrollIntoView({ behavior: "smooth", block: "center" });
           target.classList.remove("is-lit");
           void target.offsetWidth;
